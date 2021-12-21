@@ -1089,7 +1089,7 @@ pre .javascript .function {
   position: relative;
   display: inline-block;
   padding: 0 40px;
-  color: #0b3b2e;
+  color: #fff;
   background: $brand-bg;
   border-bottom: none;
 }
@@ -1185,7 +1185,7 @@ pre .javascript .function {
   transition-duration: 0.2s;
   transition-timing-function: ease-in-out;
   transition-delay: 0s;
-  color: #0b3b2e;
+  color: #2e2e2e;
 }
 .menu .menu-item a:hover,
 .menu-item-active a {
@@ -1804,7 +1804,7 @@ pre .javascript .function {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: #fff4be;
+  background: #ffffac;
 }
 .links-of-blogroll {
   font-size: 13px;
@@ -3046,7 +3046,7 @@ pre {
   -moz-box-shadow: 0 0 5px rgba(202,203,204,0.5);
 }
 .footer-inner {
-  color: #0b3b2e;
+  color: #2e2e2e;
 }
 .header-inner {
   opacity: 0.8;
