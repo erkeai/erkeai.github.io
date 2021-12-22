@@ -119,17 +119,17 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">5</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">13</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
 
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">2</span></a>
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">5</span></a>
 
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">3</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">16</span></a>
 
   </li>
   </ul>
@@ -159,7 +159,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/12/22/test/">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/12/22/wkp/Chapter%203%20Kernel%20Programming%20Basics/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images/81193478873_avatar.png">
@@ -173,7 +173,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2021/12/22/test/" class="post-title-link" itemprop="url">test</a>
+            <a href="/2021/12/22/wkp/Chapter%203%20Kernel%20Programming%20Basics/" class="post-title-link" itemprop="url">未命名</a>
         </h2>
 
         <div class="post-meta">
@@ -182,18 +182,8 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2021-12-22 17:31:52 / 修改时间：09:17:30" itemprop="dateCreated datePublished" datetime="2021-12-22T17:31:52+08:00">2021-12-22</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E8%84%B1%E5%A3%B3/" itemprop="url" rel="index"><span itemprop="name">脱壳</span></a>
-                </span>
+              <time title="创建时间：2021-12-22 11:06:32" itemprop="dateCreated datePublished" datetime="2021-12-22T11:06:32+08:00">2021-12-22</time>
             </span>
 
           <br>
@@ -202,14 +192,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>5</span>
+              <span>3.6k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
+              <span>3 分钟</span>
             </span>
 
         </div>
@@ -221,7 +211,238 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h3 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h3>
+          <p>Chapter 3 Kernel Programming Basics</p>
+<p><em><strong>*1.首先介绍用户模式和内核模式的差别*</strong></em></p>
+<p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps6901.tmp.jpg" alt="img"> </p>
+<p><em><strong>*未处理的异常*</strong></em></p>
+<p>用户模式情况下会崩溃该进程，内核模式下会崩溃系统，导致蓝屏（实质上是一种保护机制，如果允许代码继续执行可能会造成一些不可逆转的损坏）。</p>
+<p><em><strong>*终止*</strong></em></p>
+<p>进程会自动释放内存和资源，包括关闭句柄，没有资源泄露。而对于内核驱动来说，如果没有释放资源，这些资源不会被自动释放，只有在下一次系统启动时才能被释放。</p>
+<p><em><strong>*函数返回值*</strong></em></p>
+<p>要注意处理内核模式下的函数返回值，因为一些简单的API函数也有可能失败，失败造成的结果相比用户模式比较严重。</p>
+<p><em><strong>*IRQL*</strong></em></p>
+<p>中断请求级别，当一个用户模式代码正在执行时，****总是*<em><strong>为0；内核模式下</strong></em>*大部分时间****为0.</p>
+<p><em><strong>*C++使用*</strong></em></p>
+<p>C++作为一种语言几乎完全支持内核代码，C++的一个术语RAII(资源获取就是初始化)，是C++常用的管理资源、避免内存泄漏的方法，保证在任何情况下，使用对象是先构造对象，然后析构对象。但是在内核钟没有C++运行，所以<em><strong>*一些C++特性不能被使用：*</strong></em></p>
+<p>****–****new和delete不被支持并且不会被编译，这是因为它们的正常操作是从用户模式堆中分配，这和内核无关。但是内核API会有替换函数，但是模仿的函数更类似malloc和free,</p>
+<p>–将不会调用具有非默认构造函数的全局变量，当然这些情况可以<strong>**通过这些方式避免*<em><strong>：</strong>避免使用构造函数中的任何代码，而是创建一些要从驱动程序代码中显式调用的Init函数</em>*；</strong>只将指针分配为全局变量，并动态地创建实际实例。编译器将生成正确的代码来调用构造函数。**</p>
+<p>–C++异常处理关键字（try,catch,throw）不进行编译。这是因为C++异常处理机制需要它自己的运行时，异常处理只能使用结构化异常处理(SEH)来完成——这是一种处理异常的内核机制</p>
+<p>–在内核中无法使用标准的C++库。</p>
+<p>严格地说，驱动程序可以用纯C语编写，没有任何问题。如果您更喜欢使用该路由，请使用具有C扩展名的文件，而不是CPP，这将自动调用C编译器。</p>
+<p><em><strong>*2.Debug与Release*</strong></em></p>
+<p>Debug默认不适用优化但是更易于调试。Release利用编译器优化来尽可能快地生成代码，在内核中是checked\Free.从编译角度看，内核调试定义符号DBG，并将其设置为1（用户模式定_DEBUG），这实际上是KdPrint宏所做的：在debug构建中，它编译为调用DbgPrint，而在Realse中，它什么都不编译，所以vKdPrint调用在Realse中没有影响。</p>
+<p><em><strong>*3.内核API*</strong></em></p>
+<p>内核驱动程序使用从内核组件导出的函数，大多数都是在内核模块本身(NtOskrnl.exe)中实现的，但有些功能可以由其他内核模块实现，比如HAL(hal.dll)。</p>
+<p>大多数函数都以实现该功能地组件前缀开头，比如Nt，Ex。</p>
+<p>如果内核驱动程序需要调用系统服务，则它不应该受到对用户模式调用者施加的相同的检查和约束。这就是Zw函数发挥作用的地方。调用Zw函数会将前面的调用者模式设置为KernelMode（0），然后调用本机函数。</p>
+<p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps6911.tmp.jpg" alt="img"> </p>
+<p>调用Zw函数将前一个调用者模式设置为KernelMode（0），然后调用本机函数。例如，调用ZwCreateFile将上一个调用方设置为kernelMode，然后调用NtCreateFile，从而使NtCreateFile绕过一些安全性和缓冲区检查，否则将执行这些检查。</p>
+<p><em><strong>*内核驱动都推荐用Zw，可以避免不必要的检查。*</strong></em></p>
+<p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps6912.tmp.jpg" alt="img"> </p>
+<p><em><strong>*4.函数和错误代码*</strong></em></p>
+<p>大多数内核API函数返回一个指示操作成功或失败的状态。这是一个类型NTSTATUS，一个有符号的32位整数。值STATUS_SUCCESS（0）表示成功，负值表示存在某种错误。</p>
+<p>大多数代码路径都不关心错误的确切性质，因此测试最重要的位就足够了。这可以通过NT_SUCCESS宏来完成。</p>
+<p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps6913.tmp.jpg" alt="img"> </p>
+<p>在某些情况下，NTSTATUS将从函数返回并最终到用户模式。在这些情况下，STATUS_xxx值将通过****GetLastError****函数转换为用户模式可用的某些ERROR_yyy值。请注意，这些都不是相同的数字。首先，用户模式下的错误代码具有正值，其次，该映射并不是一对一的。</p>
+<p><em><strong>*5.字符串*</strong></em></p>
+<p>_UNICODE_STRING，操作该结构通常用Rtl开头的函数。</p>
+<p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps6914.tmp.jpg" alt="img"> </p>
+<p><em><strong>*6.动态分配内存*</strong></em></p>
+<p>驱动通常都需要动态分配内存，驱动一般提供两种内存池，</p>
+<p>分页池—如果需要，可以调出的内存池。</p>
+<p>非分页池—从不分页并保证保留在RAM中的内存池（慎用）</p>
+<p>某些函数中的tag参数允许用4字节值标记分配。通常，此值最多由4个ASCII字符组成，这些字符在逻辑上标识驱动程序或驱动程序的某些部分。这些标记可用于指示内存泄漏—如果在卸载驱动程序后仍保留任何带有驱动程序标记的分配。</p>
+<p><em><strong>*7.链表*</strong></em></p>
+<p>系统上的所有进程都由EPROCESS结构管理，连接在一个循环的双链表中，它的头存储在内核变量PsActiveProcessHead中。</p>
+<p>CONTAINING_RECORD是一个宏，根据一个结构体变量成员的地址来获取该结构体变量的地址,成员变量的地址-成员变量和结构体首地址间的偏移量，就是结构体的首地址了。<br>    CONTAINING_RECORD (entry, PDO_DEVICE_DATA, Link);<br>    entry是一个PDO_DEVICE_DATA结构中Link成员的地址，表达式得到的是其所在结构体变量的地址。<br>    LIST_ENTRY是一个链表节点成员，一些结构中会定义一个此类型的成员，以便把很多结构体变量连成一个链表。在自定义结构中，最好把链表节点成员定义在最前，这样该成员的地址就是结构体的地址，不需要这样转换。</p>
+<p><em><strong>*8.驱动对象*</strong></em></p>
+<p>Driver在启动时对Driver_Object初始化，MajorFunction指定驱动支持哪些操作比如读写创建等等，通常这些都需要IRP_MJ前缀以前的MajorFunction队列由内核初始化，一个驱动至少要有Creat和Close操作。</p>
+<p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps6915.tmp.jpg" alt="img"> </p>
+<p><em><strong>*9.设备对象*</strong></em></p>
+<p>客户端与驱动程序对话的实际通信端点是****设备对象****，要与Driver_Object通信，必须创建一个DeviceObject与之连接，一个驱动对象可以有多个设备对象，以链表方式存在。</p>
+<p>CreateFile函数第一个参数是文件名，其实应该是驱动对象名。CreateFile的file其实意味着文件对象。打开一个文件或者设备句柄会创建内核结构FILE_OBJECT的实例。更准确地说，CreateFile接受一个****符号链接****（一个知道如何指向另外一个内核对象得内核对象。类似文件的快捷方式）。</p>
+<p>大部分的符号链接都在这个Global??目录里，指向设备目录下的内部设备名称。用户模式调用者不能直接访问此目录中的名称。但是内核调用者可以使用IoGetDevice对象指针API访问它们。</p>
+<p>驱动程序使用IoCreateDevice函数创建设备对象。此函数分配并初始化设备对象结构，并将其指针返回给调用者。设备对象实例存储在DRIVER_OBJECT结构的DeviceObject成员中。如果创建了多个设备对象，它们将形成一个单独的链接列表，其中DEVICE_OBJECT的成员NextDevice指向下一个设备对象。注意，设备对象插入到列表的顶部，因此创建的第一个设备对象最后存储；其NextDevice指向NULL。</p>
+<p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps6916.tmp.jpg" alt="img"> </p>
+<p><em><strong>*双机调试*</strong></em></p>
+<p>双机调试</p>
+<p>1.打开源代码文件a.cpp</p>
+<p>2.!process 0 0 进程名</p>
+<p>3.显示eprocess结构体地址，输命令 .process /i /r /p 地址</p>
+<p>4.g</p>
+<p>5..reload /user /f</p>
+<p>6.在cpp下断点，g</p>
+<p><em><strong>*双机调试应用实例：*</strong></em></p>
+<p>ps（调试的时候记得看microsoft file有没有文件；virtualKD：将target64复制到虚拟机，然后启动程序）</p>
+<p>首先虚拟机按f8关闭强制签名</p>
+<p>运行AutoRun.exe，然后在Windbg打开源代码文件，再break(注意这里打开的exe与cpp一定要是同一个文件)</p>
+<p>!process 0 0 进程名(显示进程名)</p>
+<p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps6917.tmp.jpg" alt="img"> </p>
+<p>显示eprocess结构体地址，输命令 .process /i /r /p 地址，然后输入g继续运行，再.reload /user /f加载符号</p>
+<p>在cpp中下断点，断在CreateService函数的位置，一步一步调试到要到的位置，这个位置的选定要结合IDA，首先IDA打开CreateService的dll,下图中圈出来的前三个是该函数的开头字节码。</p>
+<p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps6918.tmp.jpg" alt="img"> </p>
+<p>下图是该函数的伪代码，调试发现函数进的是箭头指向的函数，所以直接动态调试进该函数，我们动态调试的目的是需要看该函数的第二个参数是什么。但是由于参数地址后面加了3090，所以在静态分析的时候不能准确判断。</p>
+<p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps6919.tmp.jpg" alt="img"> </p>
+<p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps691A.tmp.jpg" alt="img"> </p>
+<p>在windbg中动态调试查看第二个参数压入栈的寄存器的值，在IDA中找到该地址的值，就可以得到我们要的函数字节码</p>
+<p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps691B.tmp.jpg" alt="img"> </p>
+<p>对比发现是4800h开头的值</p>
+<p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps691C.tmp.jpg" alt="img"> </p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/12/22/sample/KimSuky%E7%BB%84%E7%BB%87%E6%A0%B7%E6%9C%AC%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images/81193478873_avatar.png">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="临渊羡鱼，不如退而结网">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/12/22/sample/KimSuky%E7%BB%84%E7%BB%87%E6%A0%B7%E6%9C%AC%E5%88%86%E6%9E%90/" class="post-title-link" itemprop="url">KimSuky样本分析</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-12-22 00:00:00 / 修改时间：09:50:56" itemprop="dateCreated datePublished" datetime="2021-12-22T00:00:00+08:00">2021-12-22</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%A0%B7%E6%9C%AC%E5%88%86%E6%9E%90/" itemprop="url" rel="index"><span itemprop="name">样本分析</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="KimSuky组织样本分析"><a href="#KimSuky组织样本分析" class="headerlink" title="KimSuky组织样本分析"></a>KimSuky组织样本分析</h2><blockquote>
+<p>MD5：ae986dd436082fb9a7fec397c8b6e717</p>
+<p>SHA1:31a0168eb814b0d0753f88f6a766c04512b6ef03</p>
+<p>SHA256:3110f00c1c48bbba24931042657a21c55e9a07d2ef315c2eae0a422234623194</p>
+</blockquote>
+<h3 id="1-行为分析"><a href="#1-行为分析" class="headerlink" title="1. 行为分析"></a>1. 行为分析</h3><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/1.png" alt="image-20210428092813810"></p>
+<p>图标伪装成ESET杀毒软件，样本名字为eset_update.exe，伪装成升级程序。</p>
+<p>打开火绒剑进行进程过滤 （过滤-&gt;进程过滤-&gt;添加-&gt;开启监控），双击样本后程序运行如下</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/2.png" alt="image-20210428093420835"></p>
+<p>可以看到火绒剑在这里高亮了蓝色，这个是把C:\Users\Administrator\AppData\Roaming\目录下的程序加到开机启动项，前面的几步就是把释放的程序放到这个目录下</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/3.png" alt="image-20210428093654954"></p>
+<p>有一个网络连接，应该是要和远程的一个网站进行交互</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/4.png" alt="image-20210428094217330"></p>
+<h3 id="2-PE结构和IDA分析"><a href="#2-PE结构和IDA分析" class="headerlink" title="2.PE结构和IDA分析"></a>2.PE结构和IDA分析</h3><pre><code>#### 2.1PEiD与Keygener
+</code></pre>
+<p>首先用PEiD查壳,显示32位程序无壳。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/5.png" alt="image-20210428094601103"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/6.png" alt="image-20210428100058824"></p>
+<p>在Keygener中发现有Base64和CRC32怀疑程序内有一定的加密措施，后续直接拖到IDA分析</p>
+<h4 id="2-2-IDA分析"><a href="#2-2-IDA分析" class="headerlink" title="2.2 IDA分析"></a>2.2 IDA分析</h4><h5 id="2-2-1导入表分析"><a href="#2-2-1导入表分析" class="headerlink" title="2.2.1导入表分析"></a>2.2.1导入表分析</h5><p>可以看到关于文件的操作以及网络连接，印证了火绒剑行为分析</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/8.png" alt="image-20210428101855133"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/7.png" alt="image-20210428101618564"></p>
+<h5 id="2-2-2-WinMain函数分析"><a href="#2-2-2-WinMain函数分析" class="headerlink" title="2.2.2 WinMain函数分析"></a>2.2.2 WinMain函数分析</h5><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/9.png" alt="image-20210428102245344"></p>
+<p>在<code>winmain</code>函数中可以看到首先是创建了一个互斥对象，应该是为了创建相关进程或者检测相关进程是否存在，<code>getlasterror</code>判断指定的本地组是否存在</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/10.png" alt="image-20210428102523874"></p>
+<h5 id="2-2-3-sub-4011E0函数分析"><a href="#2-2-3-sub-4011E0函数分析" class="headerlink" title="2.2.3 sub_4011E0函数分析"></a>2.2.3 sub_4011E0函数分析</h5><p>进入函数后有一堆加密过的字符串和一堆<code>GetProcAddress</code>函数调用，猜测该函数为加载dll和相关字串解密获取相关api函数地址</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/11.png" alt="image-20210428103256337"></p>
+<p>用OD动态调试查看加密的DLL名字，打开OD发现基址是00480000，所以在4811E0处f2下断点，f9直接运行到函数处调试,可以看到导入的3个dll(<code>WINNET.dll</code>,<code>urlmon.dll</code>,<code>kernel32.dll</code>)<img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/12.png" alt="image-20210429095022290"></p>
+<p>前两个dll是获取了与网络相关的函数，kernel32获取了<code>CreateToolhelp32Snapshot</code>和<code>WinExec</code></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/13.png" alt="image-20210429095622308"></p>
+<h5 id="2-2-4-sub-403600函数分析"><a href="#2-2-4-sub-403600函数分析" class="headerlink" title="2.2.4 sub_403600函数分析"></a>2.2.4 sub_403600函数分析</h5><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/14.png" alt="image-20210429150725499"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/15.png" alt="image-20210429151023968"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/16.png" alt="image-20210429152301294"></p>
+<p>先在OD里面一步一步看看这个函数里面的各个函数要做什么，参数是什么，注释在下图，这个函数功能主要是将自身复制到特定目录，然后操作注册表实现自启动，最后弹窗欺骗用户ESET升级成功，电脑已被保护。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/17.png" alt="image-20210429161950264"></p>
+<h5 id="2-2-5-401580函数分析"><a href="#2-2-5-401580函数分析" class="headerlink" title="2.2.5 401580函数分析"></a>2.2.5 401580函数分析</h5><p>​    主要功能为获取本机网卡信息和执行获取磁盘序列号，以及随机数的生成，通过<code>GetAdaptersInfo</code>获取网卡配置和ip信息，后又通过<code>GetVolumeInformationA</code>来获取磁盘序列号，最后通过<code>GetTickCount</code>来生成随机数</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/18.png" alt="image-20210429165557251"></p>
+<h5 id="2-2-6-401770函数分析"><a href="#2-2-6-401770函数分析" class="headerlink" title="2.2.6 401770函数分析"></a>2.2.6 401770函数分析</h5><p>该函数主要为获取系统版本信息的获取和操作系统的位数，通过<code>GetVersion</code>函数获取相关系统版本信息，然后通过<code>GetNativeSystemInfo</code>,格式化一下，然后做数学运算应该是一些加密操作。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/19.png" alt="image-20210429170323853"></p>
+<h5 id="2-2-7-402790函数分析"><a href="#2-2-7-402790函数分析" class="headerlink" title="2.2.7 402790函数分析"></a>2.2.7 402790函数分析</h5><p>和前面一样，先OD动态调试查看解密后的值等</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/20.png" alt="image-20210429170936573"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/21.png" alt="image-20210429171202113"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/22.png" alt="image-20210429172418964"></p>
+<p>函数功能为注册表信息修改，然后将存储在<code>qword_41A620</code>处的恶意url写入注册表（此处先猜测该域名为C2服务器域名</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/23.png" alt="image-20210429172627346"></p>
+<h5 id="2-2-8-CreateThread分析"><a href="#2-2-8-CreateThread分析" class="headerlink" title="2.2.8 CreateThread分析"></a>2.2.8 CreateThread分析</h5><p>进入线程函数中查看线程函数完成的功能，首先是<code>sub_402F30</code>，前半部分构造http请求包</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/24.png" alt="image-20210429193038167"></p>
+<p>用OD调试发现后半部分是网络请求设置（头，方式，协议）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/25.png" alt="image-20210429194705684"></p>
+<p>后续就是从C2服务器接受数据，然后Base64解码传输的数据，在进行多字节到宽字节的转换，把传输过来的数据经过一系列的运算来到<code>sub_401AA0</code>函数，</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/26.png" alt="image-20210429195608233"></p>
+<p>但是因为C2服务器现在无法连接了，所以动态调试没法接受传输过来的数据，下面分析<code>sub_401AA0</code>函数，由于无法动态调试，所以无法知道加密的字符串是什么，查找网上的博客知道是rundll32.exe.<img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/27.png" alt="image-20210429203028478"></p>
+<p>下面对C2服务器收到的数据通过”|“分割，依靠动物名字下达指令（核心功能远程控制）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/28.png" alt="image-20210429203440338"></p>
+<p>比如tiger为cmd操作，mongkey为创建进程执行下载程序。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/29.png" alt="image-20210429203656736"></p>
+<h3 id="3-总结"><a href="#3-总结" class="headerlink" title="3.总结"></a>3.总结</h3><ul>
+<li><p>样本通过sub_4011E0调用解密函数解密一部分关键api,加载了WININET.dll、urlmon.dll、<br> kennel32.dll，并通过GetProcAddress函数获取相应函数地址，函数如下InternetOpenA、InternetCloseHandle、InternetConnectA、HttpOpenRequestAHttpSend、RequestAURLDownloadToFileA、DeleteUrlCacheEntryA、WinExec、CreateToolhelp32Snapshot、InternetReadFile、InternetQueryDataAvailable。</p>
+</li>
+<li><p>通过sub_403600函数实现文件自拷贝，自启动设置，程序弹窗设置。</p>
+</li>
+<li><p>通过sub_401580获取主机网卡和ip信息。</p>
+</li>
+<li><p>通过sub_401770获取系统版本信息的获取和操作系统的位数。</p>
+</li>
+<li><p>通过sub_402790修改注册表写入恶意url。</p>
+</li>
+<li><p>通过sub_931AA0实现相关的远程注入。</p>
+</li>
+<li><p> 该样本代码中加入了一系列动物名称，例如tiger、wolf等，属于KimSuky家族系列。</p>
+</li>
+</ul>
+<h5 id="个人体会"><a href="#个人体会" class="headerlink" title="个人体会"></a>个人体会</h5><p>  这次样本分析发现该样本其实用到的函数在项目中经常见到，所以分析起来比较顺手，知道各个API在用的时候企图达到什么样的目的。并且在这一次分析用到了OD，并且学会了OD动态调试查看dll调用情况以及加密的参数值。</p>
+
       
     </div>
 
@@ -265,7 +486,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2021-12-22 00:00:00 / 修改时间：09:35:34" itemprop="dateCreated datePublished" datetime="2021-12-22T00:00:00+08:00">2021-12-22</time>
+              <time title="创建时间：2021-12-22 00:00:00 / 修改时间：09:50:50" itemprop="dateCreated datePublished" datetime="2021-12-22T00:00:00+08:00">2021-12-22</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -438,7 +659,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/12/15/hello-world/">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/12/22/sample/%E7%AE%80%E5%8D%95%E7%9A%84%E9%97%B4%E8%B0%8D%E6%9C%A8%E9%A9%AC%E5%88%86%E6%9E%90/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images/81193478873_avatar.png">
@@ -452,7 +673,135 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2021/12/15/hello-world/" class="post-title-link" itemprop="url">Hello World</a>
+            <a href="/2021/12/22/sample/%E7%AE%80%E5%8D%95%E7%9A%84%E9%97%B4%E8%B0%8D%E6%9C%A8%E9%A9%AC%E5%88%86%E6%9E%90/" class="post-title-link" itemprop="url">简单的间谍木马分析</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-12-22 00:00:00 / 修改时间：09:50:52" itemprop="dateCreated datePublished" datetime="2021-12-22T00:00:00+08:00">2021-12-22</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%A0%B7%E6%9C%AC%E5%88%86%E6%9E%90/" itemprop="url" rel="index"><span itemprop="name">样本分析</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="简单的间谍木马分析"><a href="#简单的间谍木马分析" class="headerlink" title="简单的间谍木马分析"></a>简单的间谍木马分析</h1><h3 id="0-前言"><a href="#0-前言" class="headerlink" title="0.前言"></a>0.前言</h3><p>此篇笔记记录一下分析实战样本11_1的样本，技术已经过时，只是为了了解一下间谍木马的特征和行为。</p>
+<h3 id="1-静态分析"><a href="#1-静态分析" class="headerlink" title="1.静态分析"></a>1.静态分析</h3><ul>
+<li>由下图可知程序没有加壳是一个控制台程序。</li>
+</ul>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/1.png" alt="image-20210416161119304"></p>
+<ul>
+<li>查看导入表，可以看到对资源节操作的API,还有一些注册表相关的API</li>
+</ul>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/2.png" alt="image-20210416162024328"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/3.png" alt="image-20210416162311061"></p>
+<ul>
+<li>使用ResHack查看资源数据, 可以发现一段未经加密的PE数据,  后续会分析这段PE</li>
+</ul>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/4.png" alt="image-20210416163141671"></p>
+<ul>
+<li><p>IDA查看字符串，可以看到GinaDll,Windows的开机密码认证模块一般是由Gina DLL完成的。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/5.png" alt="image-20210419092154616"></p>
+<h3 id="2-火绒剑行为检测"><a href="#2-火绒剑行为检测" class="headerlink" title="2.火绒剑行为检测"></a>2.火绒剑行为检测</h3><p>查看行为，发现样本在同目录下释放了一个dll,经过对比发现，释放的dll就是资源中的PE数据<strong>（为什么）</strong>，然后对注册表写入dll的路径,并且最后摧毁了自己的进程。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/8.png" alt="image-20210419103650288"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/6.png" alt="image-20210419094915222"></p>
+<h3 id="3-IDA分析"><a href="#3-IDA分析" class="headerlink" title="3.IDA分析"></a>3.IDA分析</h3><h4 id="3-1-main分析"><a href="#3-1-main分析" class="headerlink" title="3.1 main分析"></a>3.1 main分析</h4><p>​        观察main函数代码,  可以发现程序首先通过<code>GetModuleFileNameA</code>获取自身程序的全路径, 在调用<code>401080</code>后, 然后通过<code>_strrchr</code>截取<code>\</code>之前的内容,  与<code>\\msgina32.dll</code>进行字符串拼接  然后将拼接后的字符串作为参数传入堆栈调用<code>401000</code></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/7.png" alt="image-20210419095821170"></p>
+<p>​        接下来分析401080与401000</p>
+<h4 id="3-2-401080分析"><a href="#3-2-401080分析" class="headerlink" title="3.2 401080分析"></a>3.2 401080分析</h4><p>​        可以明显看到资源节数据的操作，然后通过 <code>VirtualAlloc </code>申请一段内存空间用于存放资源中的PE数据, 在将资源中的数据取出后,  通过一系列文件操作将PE数据保存到<code>xx\msgina32.dll</code>文件中,  xx的路径就是main函数中通过<code>GetModuleFileNameA</code>取出的当前程序的运行路径。这里有个函数为<code>401299</code>,  这个函数就是类似printf的打印输出函数，这里我们将这个函数重命名,  防止后面的分析中再次出现  ,  可以节省时间。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/9.png" alt="image-20210420110324830"></p>
+<p>​    到这里<code>401080</code>这个函数功能已经确定了,  取资源节数据并写入文件 ,  文件名为<code>msgina32.dll</code>,  路径为程序同路径。</p>
+<h4 id="3-3-401000分析"><a href="#3-3-401000分析" class="headerlink" title="3.3 401000分析"></a>3.3 401000分析</h4><p>​    该函数的参数是释放出的dll文件的全路径，可以看到一系列注册表操作,   函数功能是将dll全路径写入注册表路径为<code>SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon</code>, 名为<code>GinaDLL</code>的注册表项。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/10.png" alt="image-20210421092749755"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/11.png" alt="image-20210421092844415"></p>
+<h4 id="3-4-exe总结"><a href="#3-4-exe总结" class="headerlink" title="3.4 exe总结"></a>3.4 exe总结</h4><p>​    整个exe的功能就是为了持久化安装dll文件：将自身资源中的PE数据写入与自身路径相同,  文件名为<code>msgina32.dll</code>的dll文件；将dll文件写入注册表；程序结束。</p>
+<p>​    所以说重要功能应该在dll里面，exe文件只是为了dll文件服务。  </p>
+<h3 id="4-IDA分析dll"><a href="#4-IDA分析dll" class="headerlink" title="4.IDA分析dll"></a>4.IDA分析dll</h3><h4 id="4-1-dllmain分析"><a href="#4-1-dllmain分析" class="headerlink" title="4.1 dllmain分析"></a>4.1 dllmain分析</h4><p>​    将<code>dll</code>文件拖入IDA，<code>查看dllmain</code>函数，首先是<code>DisableThreadLibraryCalls</code>禁用指定的DLL的<code>DLL_THREAD_ATTACH</code>和<code>DLL_THREAD_DETACH</code>通知，这样可以减小某些程序的工作集大小。</p>
+<p>​    通过<code>GetSystemDirectoryW</code>获取系统目录,  与<code>\MSGina</code>拼接后获取正常的GinaDll ,  然后通过<code>LoadLibraryW</code>加载获取dll句柄, 存入全局变量<code>hLibModule</code>,  然后dllmain函数执行结束</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/12.png" alt="image-20210421094451437"></p>
+<p>根据前面exe的注册表操作可以知道，这是为了替换正常的GinalDll,</p>
+<h4 id="4-2-dll导出函数"><a href="#4-2-dll导出函数" class="headerlink" title="4.2 dll导出函数"></a>4.2 dll导出函数</h4><p>查看dll导出函数,依次查看导出函数代码,  发现绝大多数导出函数都调用了<code>10001000</code>函数,  这个函数很明显用于导出函数的转发。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/13.png" alt="image-20210421095103186"></p>
+<p><code>DllRegister</code>与<code>DllUnregister</code>也是很简单的函数,  对于注册表值的安装/卸载操作，通过查询百度相关文档信息,  我们知道<code>WlxLoggedOutSAS</code>是在windows注销时会调用的函数,接下来看看它想在注销时做什么。</p>
+<h4 id="4-3-WlxLoggedOutSAS分析"><a href="#4-3-WlxLoggedOutSAS分析" class="headerlink" title="4.3 WlxLoggedOutSAS分析"></a>4.3 WlxLoggedOutSAS分析</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/14.png" alt="image-20210421100642564"></p>
+<p>观察代码, 样本首先调用10001000进行正常功能的转发,  然后调用edi,  通过回溯寄存器(<strong>如何？</strong>),  我们知道了edi是正常的<code>WlxLoggedOutSAS</code>,  然后样本执行了10001570函数,  观察参数发现一个有趣的字符串<code>UN %s DM %s PW %s OLD %s</code>,  这种携带占位符的字符串常用于输出, 替换, 拼接等,  接下来我们就需要看看10001570处的函数</p>
+<h4 id="4-4-10001570分析"><a href="#4-4-10001570分析" class="headerlink" title="4.4 10001570分析"></a>4.4 10001570分析</h4><p>首先将传入的参数通过<code>_vsnwprintf</code>进行格式化, 然后打开文件<code>msutil32.sys</code>,  接着格式化时间,  然后调用<code>fwprintf</code>将数据写入流中,  通过寄存器回溯, 我们可以找到esi来源就是wfopen的返回值, 也就是代表文件<code>msutil32.sys</code></p>
+<p>然后调用<code>FormatMessageW</code>转化一些数据, 观察参数大致能猜出来是系统调用时传递的数据. 最后关闭文件,结束程序。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/15.png" alt="image-20210421100908023"></p>
+<h4 id="4-5-总结"><a href="#4-5-总结" class="headerlink" title="4.5 总结"></a>4.5 总结</h4><p>​    根据分析,  整个dll的作用就是劫持WlxLoggedOutSAS函数,  获取到函数参数后加入一些例如时间戳信息后写入文件<code>msutil32.sys</code>,  这也说明这个sys文件并不像它表现出的是个驱动文件,  而是一个简单的日志文件。</p>
+<p>​    由于GinaDll在新系统中已经不再使用, 因此想要复现需要XP或者更旧的系统,  这样在点击注销后, 样本会记录用户的账户密码,  也就是个最简单的间谍木马</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/11/13/reverse/EasyRE_REvenge/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images/81193478873_avatar.png">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="临渊羡鱼，不如退而结网">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/11/13/reverse/EasyRE_REvenge/" class="post-title-link" itemprop="url">buuctf_EasyRE_REvenge</a>
         </h2>
 
         <div class="post-meta">
@@ -462,7 +811,23 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2021-12-15 11:39:05" itemprop="dateCreated datePublished" datetime="2021-12-15T11:39:05+08:00">2021-12-15</time>
+              <time title="创建时间：2021-11-13 00:00:00" itemprop="dateCreated datePublished" datetime="2021-11-13T00:00:00+08:00">2021-11-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 10:33:21" itemprop="dateModified" datetime="2021-12-22T10:33:21+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/buuctf/" itemprop="url" rel="index"><span itemprop="name">buuctf</span></a>
+                </span>
             </span>
 
           <br>
@@ -471,7 +836,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>367</span>
+              <span>220</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -490,19 +855,544 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+          <h3 id="EasyRE-REvenge"><a href="#EasyRE-REvenge" class="headerlink" title="EasyRE_REvenge"></a>EasyRE_REvenge</h3><p>这道题和前面那道easyre结构一样如下，函数中有花指令</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse7/image-20211115101010954.png" alt="image-20211115101010954"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse7/image-20211115110634542.png" alt="image-20211115110634542"></p>
+<p>我们edit-patch-changebyte(不是assemble)。0B前面那个00也要改成90</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse7/image-20211115112905196.png" alt="image-20211115112905196"></p>
+<p>可以看到还要修改一个地方，全部nop</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse7/image-20211115113230271.png" alt="image-20211115113230271"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse7/image-20211115113438466.png" alt="image-20211115113438466"></p>
+<p>发现还是不行，往下一直看会发现全是一样的代码（花指令），写个py脚本全部nop掉（IDA7.0自带IDAPython，但是需要安装python27）,File-Scripts Files就ok</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse7/image-20211115202819745.png" alt="image-20211115202819745"></p>
+<p>反汇编后如图,我们自己写个代码</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse7/image-20211115203400188.png" alt="image-20211115203400188"></p>
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+      
+    </div>
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/10/25/reverse/overlong/">
 
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images/81193478873_avatar.png">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="临渊羡鱼，不如退而结网">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/10/25/reverse/overlong/" class="post-title-link" itemprop="url">buuctf_overlong</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-10-25 00:00:00" itemprop="dateCreated datePublished" datetime="2021-10-25T00:00:00+08:00">2021-10-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 10:26:43" itemprop="dateModified" datetime="2021-12-22T10:26:43+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/buuctf/" itemprop="url" rel="index"><span itemprop="name">buuctf</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>339</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="overlong"><a href="#overlong" class="headerlink" title="overlong"></a>overlong</h4><p>用PEid显示有壳，但是ExInfo不是，直接拖到IDA看看</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse6/image-20211025101621373.png" alt="image-20211025101621373"></p>
+<p>我们转到sub_401160函数看一下，图中的\x1c是十进制的28</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse6/image-20211025104708760.png" alt="image-20211025104708760"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse6/image-20211025104824155.png" alt="image-20211025104824155"></p>
+<p>unk_402008指针指向的内容与TEXT(a1)一共进行了28次的一些字符操作。但是该指针指向的内容不止28个字符，点击进去查看有175个</p>
+<p>exe一开始运行是这样的，说从未破坏编码，那就直接将其改为读取175个</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse6/image-20211025105732834.png" alt="image-20211025105732834"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse6/image-20211025110224330.png" alt="image-20211025110224330"></p>
+<p>这样直接修改会有错误，提示Invalid operand，可能是吧修改的数据会覆盖掉后面的一些数据，我们拖进OD试试，发现改了以后后面的代码也变了</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse6/image-20211025111317713.png" alt="image-20211025111317713"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse6/image-20211025111342988.png" alt="image-20211025111342988"></p>
+<p>直接修改二进制码</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse6/image-20211025113152358.png" alt="image-20211025113152358"></p>
+<p>运行后如图，得到flag</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse6/image-20211025113214588.png" alt="image-20211025113214588"></p>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>​    这道题目的收获主要是关于修改代码，一般都是直接修改，还没有考虑过会改变后面的数据。以后修改代码最好用OD，可以看到后面代码是否被修改</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/10/11/reverse/Maze/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images/81193478873_avatar.png">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="临渊羡鱼，不如退而结网">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/10/11/reverse/Maze/" class="post-title-link" itemprop="url">buuctf_Maze</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-10-11 00:00:00" itemprop="dateCreated datePublished" datetime="2021-10-11T00:00:00+08:00">2021-10-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 10:23:35" itemprop="dateModified" datetime="2021-12-22T10:23:35+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/buuctf/" itemprop="url" rel="index"><span itemprop="name">buuctf</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>558</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="Maze"><a href="#Maze" class="headerlink" title="Maze"></a>Maze</h4><p>1.首先PEid查壳，查到是UPX的壳</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse5/image-20211011192051606.png" alt="image-20211011192051606"></p>
+<p>2.UPX脱壳，之前在网上找脱壳工具，但是其实UPX是开源的，在github上下载后，在cmd下执行upx -d yourfile.exe就可以脱壳，拖进IDA是下面的样子，发现f5不能查看伪代码，再看左边的函数栏，没有main函数。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse5/image-20211011195316028.png" alt="image-20211011195316028"></p>
+<p>网上搜索后发现是加了<strong>花程序</strong></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse5/image-20211011195716680.png" alt="image-20211011195716680"></p>
+<p>查看上图的jnz跳转到了下一行代码。相当于没有跳转，接下来的call调用的一个不是地址的地址，网上的方法是将jnz指令nop掉（<u>nop指令也就是控指令，执行的时候不做任何事，有时候可用于短接某些触点或用nop指令将不要的指令覆盖掉</u>）</p>
+<p>3.先将jnz指令nop掉（Edit-&gt;Patch program-&gt;Assemble），因为call后面很有可能事有用的数据，所以用d先转换为数据,jnz后面的也是花指令，所以应该把该数据包的高字节部分也nop掉，但是IDA总是不成功，所以用OD,修改后右键复制到可执行文件，然后右键保存</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse5/image-20211011201009496.png" alt="image-20211011201009496"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse5/image-20211011203812041.png" alt="image-20211011203812041"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse5/image-20211011203847749.png" alt="image-20211011203847749"></p>
+<p>4.拖进IDA反汇编,这个代码逻辑比较简单，wsad其实就是玩游戏的上下左右，</p>
+<p>初始dword_408078=7,dword_40807c = 0,需要经过十四次移动修改两个变量为5和-4，按照迷宫题目的经验应该有地图或者字符。提取出来自己排列一下</p>
+<p>flag{ssaaasaassdddw}</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse5/image-20211012094241147.png" alt="image-20211012094241147"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse5/image-20211012154856963.png" alt="image-20211012154856963"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse5/image-20211012154814391.png" alt="image-20211012154814391"></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/09/09/reverse/joker1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images/81193478873_avatar.png">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="临渊羡鱼，不如退而结网">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/09/09/reverse/joker1/" class="post-title-link" itemprop="url">buuctf_joker</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-09-09 00:00:00" itemprop="dateCreated datePublished" datetime="2021-09-09T00:00:00+08:00">2021-09-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 10:23:04" itemprop="dateModified" datetime="2021-12-22T10:23:04+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/buuctf/" itemprop="url" rel="index"><span itemprop="name">buuctf</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="joker1"><a href="#joker1" class="headerlink" title="joker1"></a>joker1</h4><p>没有加壳</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909150331784.png" alt="image-20210909150331784"></p>
+<p><code>F5</code>发现不能反汇编（确定不是IDA的问题，网上说是堆栈市镇偏移出错，选项-常规-点击堆栈指针，快捷键alt+k,值改为0【PS:堆栈不平衡笔记在最后】</p>
+<p>在最后一个AC处修改位0</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909162139584.png" alt="image-20210909162139584"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909162010697.png" alt="image-20210909162010697"></p>
+<p>反汇编后伪代码如下，首先是输入长度为24，然后主要函数为<code>wrong</code> <code>omg</code> <code>encrypt</code>三个函数</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909162739475.png" alt="image-20210909162739475"></p>
+<p><code>wrong</code>是加密</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909163728424.png" alt="image-20210909163728424"></p>
+<p><code>omg</code>是比较<code>wrong</code>加密结果和unk_4030C0地址的值是否相同</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909164135177.png" alt="image-20210909164135177"></p>
+<p>写个脚本,得出来的flag{fak3_alw35_sp_me!!}是个假的</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">import string</span><br><span class="line">s=[102, 107, 99, 100, 127, 97, 103, 100, 59, 86, 107, 97, 123, 38, 59, 80, 99, 95, 77, 90, 113, 12, 55, 102]</span><br><span class="line">out=[]</span><br><span class="line">for i in range(0,24):</span><br><span class="line">    if i&amp;1 :</span><br><span class="line">        s[i]+=i</span><br><span class="line">        out.append(s[i])</span><br><span class="line">    else:</span><br><span class="line">        s[i]^=i</span><br><span class="line">        out.append(s[i])</span><br><span class="line">for i in out:</span><br><span class="line">    print(chr(i),end=&#x27;&#x27;)</span><br></pre></td></tr></table></figure>
+
+<p>注意一下还有一个<code>Encrypt</code>函数，这个函数也是不能反汇编的</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909172356488.png" alt="image-20210909172356488"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909172621478.png" alt="image-20210909172621478"></p>
+<p>动态OD调试试试，进加密函数看看</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909182844710.png" alt="image-20210909182844710"></p>
+<p>（或者OllyDump脱壳）IDA动态调试,看到原来的data数据变成了汇编代码，从encrypt函数的起始地址0x401500开始选取，选取所有没有编译的text段数据，按c，点击force</p>
+<p><a target="_blank" rel="noopener" href="https://www.leadroyal.cn/p/370/">https://www.leadroyal.cn/p/370/</a></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L21jbXV5YW5nYQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<p>然后在0x401500处右击创建函数，现在就能看到encrpty函数里的内容了,大概就是将带入的数据与Buffer进行异或操作，然后得到unk_403040地址上的值</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909192327017.png" alt="image-20210909192327017"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">import string</span><br><span class="line"></span><br><span class="line">result=[0xe,0xd,0x9,0x6,0x13,0x5,0x58,0x56,0x3e,0x6,0xc,0x3c,0x1f,0x57,0x14,0x6b,0x57,0x59,0xd]</span><br><span class="line">flag=&quot;&quot;</span><br><span class="line">haha=&quot;hahahaha_do_you_find_me?&quot;</span><br><span class="line">for i in range(19):</span><br><span class="line">    flag+=chr(ord(haha[i])^(result[i]))</span><br><span class="line">print(flag)</span><br></pre></td></tr></table></figure>
+
+<p>flag不全</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909193101144.png" alt="image-20210909193101144"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909193617976.png" alt="image-20210909193617976"></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/CSNN2019/article/details/115328038">https://blog.csdn.net/CSNN2019/article/details/115328038</a></p>
+<h4 id="堆栈不平衡"><a href="#堆栈不平衡" class="headerlink" title="堆栈不平衡"></a>堆栈不平衡</h4><p>IDA f5无法反汇编，出现如图错误一般是因为程序代码有一些干扰代码，比如用push + n条指令 + retn来实际跳转，而IDA会以为是retn是函数要结束，结果分析后发现调用栈不平衡</p>
+<p>简单来说就是调用函数后。使用完堆栈esp要回到ebp的位置（大概这么理解</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909153157763.png" alt="image-20210909153157763"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909155612149.png" alt="image-20210909155612149"></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/saintlas/p/7093561.html">https://www.cnblogs.com/saintlas/p/7093561.html</a></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/09/08/reverse/2020ACTF%E6%96%B0%E7%94%9F%E8%B5%9B%20rome/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images/81193478873_avatar.png">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="临渊羡鱼，不如退而结网">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/09/08/reverse/2020ACTF%E6%96%B0%E7%94%9F%E8%B5%9B%20rome/" class="post-title-link" itemprop="url">buuctf_2020ACTF新生赛rome</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-09-08 00:00:00" itemprop="dateCreated datePublished" datetime="2021-09-08T00:00:00+08:00">2021-09-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 10:23:02" itemprop="dateModified" datetime="2021-12-22T10:23:02+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/buuctf/" itemprop="url" rel="index"><span itemprop="name">buuctf</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>85</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="2020ACTF新生赛-rome"><a href="#2020ACTF新生赛-rome" class="headerlink" title="2020ACTF新生赛 rome"></a>2020ACTF新生赛 rome</h4><p>1.用IDA32直接打开exe,函数伪代码如下，是一些字符串操作，我们写一个脚本</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse3/image-20210908152000301.png" alt="image-20210908152000301"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse3/image-20210908160822925.png" alt="image-20210908160822925"></p>
+<p>最终flag等于flag{Cae3ar_th4_Gre@t}</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/08/31/reverse/2019%E7%BA%A2%E5%B8%BD%E6%9D%AFEasyRE/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images/81193478873_avatar.png">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="临渊羡鱼，不如退而结网">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/08/31/reverse/2019%E7%BA%A2%E5%B8%BD%E6%9D%AFEasyRE/" class="post-title-link" itemprop="url">buuctf_2019红帽杯EasyRe</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-08-31 00:00:00" itemprop="dateCreated datePublished" datetime="2021-08-31T00:00:00+08:00">2021-08-31</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 10:23:01" itemprop="dateModified" datetime="2021-12-22T10:23:01+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/buuctf/" itemprop="url" rel="index"><span itemprop="name">buuctf</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>419</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="2019红帽杯EasyRE"><a href="#2019红帽杯EasyRE" class="headerlink" title="2019红帽杯EasyRE"></a>2019红帽杯EasyRE</h4><p>首席按IDA64打开，<code>shift+f12</code>查看字符串，看到关键字符串<code>you found me</code></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse2/image-20210831171908454.png" alt="image-20210831171908454"></p>
+<p>双击进去，按<code>X</code>键，切换到关键代码</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse2/image-20210831172039819.png" alt="image-20210831172039819"></p>
+<p><code>F5</code>反汇编，第一次输入的每个字符与索引异或，判断是否与v17到v52的字符串相等，可以写一个脚本，运行结果：Info:The first four chars are <code>flag</code></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse2/image-20210906144222336.png" alt="image-20210906144222336"></p>
+<p>下面的代码是讲第二次输入的字符串base64加密，然后判断字符串与off_6cc090是否相等</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse2/image-20210906150112228.png" alt="image-20210906150112228"></p>
+<p>运行结果是看雪论坛的一个网址（又被耍了</p>
+<p>没想到用到的是这两个字符串</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse2/image-20210906151316247.png" alt="image-20210906151316247"></p>
+<p>点进函数，v2的生成类似于是随机产生一个四位的key,然后发现<code>f</code>和<code>g</code>，这里是将字符串一到四位与key[i]进行异或，所以可以反过来求key   ，猜测其后的就是flag，（HIBYTE作用是获取高字节，也就是数组最后一位）</p>
+<p>猜测for循环里面就是flag,再次将字符串与key[i%4]进行异或得到flag</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse2/image-20210906151418161.png" alt="image-20210906151418161"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse2/image-20210906153301871.png" alt="image-20210906153301871"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">flag&#123;Act1ve_Defen5e_Test&#125;</span><br></pre></td></tr></table></figure>
+
 
       
     </div>
@@ -520,6 +1410,9 @@
 
 
   
+  <nav class="pagination">
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+  </nav>
 
 
 
@@ -586,20 +1479,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">3</span>
+          <span class="site-state-item-count">16</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-count">5</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-count">13</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -643,12 +1536,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">7k</span>
+    <span title="站点总字数">21k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">6 分钟</span>
+    <span title="站点阅读时长">19 分钟</span>
 </div>
 
         
