@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/function%20()%20%7B%0A%20%20%20%20%20%20for%20(var%20_len2%20=%20arguments.length,%20args%20=%20new%20Array(_len2),%20_key2%20=%200;%20_key2%20%3C%20_len2;%20_key2++)%20%7B%0A%20%20%20%20%20%20%20%20args%5B_key2%5D%20=%20arguments%5B_key2%5D;%0A%20%20%20%20%20%20%7D%0A%0A%20%20%20%20%20%20return%20obj%5Bval%5D.apply(obj,%20args);%0A%20%20%20%20%7D">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"erkeai.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="这篇文章主要目的是帮助安全从业人员理解：Windows下访问令牌是怎么工作的；攻击者是如何利用合法的Windows功能来横向移动并损害整个ActiveDirectory域信；他们检测和响应其环境中的访问令牌操作的能力。 Windows Security InternalsLogon Sessions and Access Tokens简单的说，用户登陆到windows系统之后，不管该用户是本地登陆">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2020黑帽Detecting Access Token Manipulate学习">
+<meta property="og:url" content="https://erkeai.github.io/2021/10/14/paper/2020%E9%BB%91%E5%B8%BDDetecting%20Access%20Token%20Manipulate%E5%AD%A6%E4%B9%A0/index.html">
+<meta property="og:site_name" content="hazel&#39;blog">
+<meta property="og:description" content="这篇文章主要目的是帮助安全从业人员理解：Windows下访问令牌是怎么工作的；攻击者是如何利用合法的Windows功能来横向移动并损害整个ActiveDirectory域信；他们检测和响应其环境中的访问令牌操作的能力。 Windows Security InternalsLogon Sessions and Access Tokens简单的说，用户登陆到windows系统之后，不管该用户是本地登陆">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wpsD52E.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wpsD53E.tmp.jpg">
+<meta property="article:published_time" content="2021-10-13T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-12-22T07:49:57.223Z">
+<meta property="article:author" content="ZouFeIYu">
+<meta property="article:tag" content="windows令牌">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wpsD52E.tmp.jpg">
+
+<link rel="canonical" href="https://erkeai.github.io/2021/10/14/paper/2020%E9%BB%91%E5%B8%BDDetecting%20Access%20Token%20Manipulate%E5%AD%A6%E4%B9%A0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>2020黑帽Detecting Access Token Manipulate学习 | hazel'blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">hazel'blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">35</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">7</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">31</span></a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/10/14/paper/2020%E9%BB%91%E5%B8%BDDetecting%20Access%20Token%20Manipulate%E5%AD%A6%E4%B9%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images/81193478873_avatar.png">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="临渊羡鱼，不如退而结网">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          2020黑帽Detecting Access Token Manipulate学习
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-10-14 00:00:00" itemprop="dateCreated datePublished" datetime="2021-10-14T00:00:00+08:00">2021-10-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 15:49:57" itemprop="dateModified" datetime="2021-12-22T15:49:57+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper-reading/" itemprop="url" rel="index"><span itemprop="name">paper reading</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>这篇文章主要目的是帮助安全从业人员理解：Windows下访问令牌是怎么工作的；攻击者是如何利用合法的Windows功能来横向移动并损害整个ActiveDirectory域信；他们检测和响应其环境中的访问令牌操作的能力。</p>
+<h3 id="Windows-Security-Internals"><a href="#Windows-Security-Internals" class="headerlink" title="Windows Security Internals"></a>Windows Security Internals</h3><h4 id="Logon-Sessions-and-Access-Tokens"><a href="#Logon-Sessions-and-Access-Tokens" class="headerlink" title="Logon Sessions and Access Tokens"></a>Logon Sessions and Access Tokens</h4><p>简单的说，用户登陆到windows系统之后，不管该用户是本地登陆的，还是远程登陆，系统都会为这个用户分配一个新的**会话ID(SID)**。也就是说会话与用户的登录是相关连的，没有用户登录就不存在会话。因此，会话的含义是指用户登录之后的一种运行的环境。会话管理器(\Windows\System32\Smss.exe)是系统中第一个创建的用户态模式进程，负责完成执行体和内核的初始化工作的内核模式系统线程在最后阶段创建了实际的Smss进程。</p>
+<p>会话(session)是由进程和其他的系统对象(比如窗口站、桌面和窗口)构成的，它们代表了一个用户的工作站登录会话。会话具体是由如下几个部分组成的：</p>
+<p>   \1. 每个会话包含一个单独的win32k.sys</p>
+<p>   \2. 专门的换页池区域</p>
+<p>   \3. 私有windows子系统和登陆进程的拷贝</p>
+<p>   \4. 系统空间中被映射的空间,被称为会话空间的区域</p>
+<p>现在会话同进程做一个比较，发现他们之间有一些相似之处：</p>
+<p>   \1. 都提供一个执行的环境</p>
+<p>   \2. 都有一个私有空间</p>
+<p>   进程是为了内部的执行的线程提供一个空间和环境，而会话则是为内部所有的进程提供一个执行的空间和环境。当用户登陆到系统中之后，用户下所有的进程都属于这个会话空间，在每个进程的PEB当中就有SessionID。Windows创建的第一个会话被称为会话0，是系统用户SYSTEM的会话通常称为会话0，服务就是运行在此会话中。而令牌就像是一个标识符，标识该账号的一切应用和操作。</p>
+<p><a target="_blank" rel="noopener" href="https://docs.microsoft.com/zh-cn/windows/desktop/SecAuthZ/access-tokens"><strong>访问令牌</strong></a>是用来描述进程或线程安全上下文的对象，令牌所包含的信息是与该 user 账户相关的进程或线程的身份和权限信息。当 user 登录时，系统通过将 user 输入的密码与储存在安全数据库中的密码进行对比。若密码正确，系统此时会为 user 生成一个访问令牌。之后，该 user 执行的每个进程都会拥有一个该访问令牌的副本。每个线程默认直接继承进程的token，线程还可以通过模拟，改变自己的token，让自己拥有别的用户的token。</p>
+<p>令牌产生过程：使用凭据(用户密码)进行认证；</p>
+<p>登录Session创建；</p>
+<p>Windows返回用户sid和用户组sid；</p>
+<p>LSA(Local Security Authority)创建一个Token；</p>
+<p>依据该token创建进程、线程(如果CreaetProcess时自己指定了 Token, LSA会用该Token， 否则就继承父进程Token进行运行)</p>
+<p>首先了解下令牌的四个模拟级别，分别是：Anonymous，Identification，Impersonation，Delegation</p>
+<p>Anonymous：服务器无法模拟或识别客户端。</p>
+<p>Identification：服务器可以获取客户端的身份和特权，但不能模拟客户端。</p>
+<p>Impersonation：服务器可以在本地系统上模拟客户端的安全上下文。</p>
+<p>Delegation：服务器可以在远程系统上模拟客户端的安全上下文。</p>
+<p>所以当令牌具有Impersonation和Delegation级别的时候才可以进行模拟。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wpsD52E.tmp.jpg" alt="img"><br>    言而总之，只要我们有SeAssignPrimaryToken或者SeImpersonate权限，就可以通过模拟Primary令牌来提升权限，而Primary令牌可以通过DuplicateTokenEx调用一个Impersonation令牌来转换。</p>
+<p>所以一个模拟令牌的过程大概是：OpenProcess(获取目标进程上下文)-&gt;OpenProcessToken(获得进程访问令牌的句柄)–&gt;DuplicateTokenEx(创建一个主/模拟令牌)–&gt;CreateProcessWithTokenW(创建进程)</p>
+<h4 id="How-Attackers-Abuse-Access-Token"><a href="#How-Attackers-Abuse-Access-Token" class="headerlink" title="How Attackers Abuse Access Token"></a>How Attackers Abuse Access Token</h4><p>攻击者可以使用内置的Windows API函数从现有进程复制访问令牌，这就是所谓的令牌窃取。然后可以将这些令牌应用于现有进程（即Token Impersonation/Theft）或用于生成新进程（即Create Process with Token）。攻击者必须已经处于特权用户上下文（即管理员）中才能窃取令牌。然而，攻击者通常使用令牌窃取将其安全上下文从管理员级别提升到系统级别。然后，如果帐户在远程系统上具有适当的权限，则攻击者可以使用令牌向远程系统进行身份验证，作为该令牌的帐户。</p>
+<p>在ATT&amp;CK框架中，对于令牌操作有五种技术介绍：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wpsD53E.tmp.jpg" alt="img"> </p>
+<h4 id="Token-Impersonation-Theft"><a href="#Token-Impersonation-Theft" class="headerlink" title="Token Impersonation/Theft"></a>Token Impersonation/Theft</h4><p>攻击者可以使用DuplicateToken（Ex）创建一个新的访问令牌来复制现有令牌。然后，该令牌可与ImpersonalLoggedOnUser一起使用，以允许调用线程模拟登录用户的安全上下文，或与SetThreadToken一起将模拟令牌分配给线程。</p>
+<p><strong>检测：</strong></p>
+<p>如果攻击者使用标准命令行shell，分析人员可以通过审核命令行活动来检测令牌操纵。具体来说，分析人员应该寻找runas命令的使用。默认情况下，Windows中未启用详细的命令行日志记录。</p>
+<p>分析人员还可以监视Windows API（如DuplicateToken（Ex）、ImpersonalLoggeDonUser和SetThreadToken）的使用情况，并将活动与其他可疑行为关联起来，以减少由于用户和管理员正常的良性使用而导致的误报。 </p>
+<h4 id="Create-Process-with-Token"><a href="#Create-Process-with-Token" class="headerlink" title="Create Process with Token"></a>Create Process with Token</h4><p>攻击者可能会使用重复的令牌创建一个新进程，以升级权限并绕过访问控制。攻击者可以使用DuplicateToken（Ex）复制所需的访问令牌，并将其与CreateProcessWithTokenW一起使用，以创建在模拟用户的安全上下文下运行的新进程。这对于在不同用户的安全上下文下创建新进程非常有用。</p>
+<p><strong>检测：</strong></p>
+<p>如果攻击者使用标准命令行shell，同上。</p>
+<p>如果攻击者使用直接调用Windows令牌API的有效负载，分析人员只能通过仔细分析用户网络活动、检查正在运行的进程以及与其他端点和网络行为的关联来检测令牌操纵。 </p>
+<p>分析人员还可以监视Windows API，同上。</p>
+<h4 id="Make-and-Impersonate-Token"><a href="#Make-and-Impersonate-Token" class="headerlink" title="Make and Impersonate Token"></a>Make and Impersonate Token</h4><p> 攻击者可以制作和模拟令牌以提升权限并绕过访问控制。如果攻击者拥有用户名和密码，但用户未登录系统，则攻击者可以使用LogonUser功能为用户创建登录会话。该函数将返回新会话的访问令牌的副本，攻击者可以使用SetThreadToken将令牌分配给线程。</p>
+<p><strong>检测：</strong></p>
+<p>同上</p>
+<h4 id="Parent-PID-Spoofing"><a href="#Parent-PID-Spoofing" class="headerlink" title="Parent PID Spoofing"></a>Parent PID Spoofing</h4><p>攻击者可以欺骗新进程的父进程标识符（PPID），以逃避进程监视防御或提升权限。除非明确指定，否则新进程通常直接从其父进程或调用进程派生。显式分配新进程的PPID的一种方法是通过CreateProcess API调用，该调用支持定义要使用的PPID的参数。此功能由Windows功能（如用户帐户控制（UAC））使用，以便在系统生成请求的提升进程后正确设置PPID（通常通过svchost.exe或approve.exe）而不是当前用户上下文。</p>
+<p>攻击者可能会利用这些机制来逃避防御，例如阻止直接从Office文档生成的进程，以及针对异常/潜在恶意父子进程关系的分析，例如将PowerShell/Rundll32的PPID欺骗为explorer.exe，而不是将Office文档作为Spearphishing Attachment的一部分。此欺骗可以通过Visual Basic在恶意Office文档或任何可以执行本机API的代码中执行。</p>
+<p>显式分配PPID还可以启用提升的权限，赋予父进程适当的访问权限。例如，特权用户上下文（即管理员）中的攻击者可能会生成一个新进程，并将父进程分配为作为系统运行的进程（如lsass.exe），导致新进程通过继承的访问令牌提升。</p>
+<p><strong>检测：</strong></p>
+<p>查找存储PPID信息的各个字段之间的不一致性，例如通过Windows事件跟踪（ETW）收集的数据中的EventHeader ProcessId、Windows事件日志中的创建者进程ID/名称以及ProcessId和ParentProcessID（也由ETW和其他实用程序（如任务管理器和Process Explorer）生成）。ETW提供的EventHeader ProcessId标识实际的父进程。</p>
+<p>监视和分析对CreateProcess/CreateProcessA的API调用，特别是来自用户/潜在恶意进程的API调用，并使用显式分配PPID的参数（例如：进程创建标志0x8XXX，表示正在使用扩展启动信息创建进程）。恶意使用CreateProcess/CreateProcessA也可能通过调用UpdateProctThreadAttribute进行，这可能是更新进程创建属性所必需的。这可能会从正常UAC提升行为中产生误报，因此如果可能，请与系统基线/对正常系统活动的理解进行比较。</p>
+<h4 id="SID-History-Injection"><a href="#SID-History-Injection" class="headerlink" title="SID-History Injection"></a>SID-History Injection</h4><p>对手可以使用SID历史记录注入来升级权限和绕过访问控制。Windows安全标识符（SID）是标识用户或组帐户的唯一值。Windows security在安全描述符和访问令牌中都使用SID。帐户可以在SID-History Active Directory属性中保存其他SID，从而允许在域之间进行可互操作的帐户迁移（例如，SID-History中的所有值都包含在访问令牌中）。</p>
+<p>使用域管理员（或同等）权限，可以将获取的或已知的SID值插入到SID历史记录中，以启用对任意用户/组（如企业管理员）的模拟。此操作可能会导致通过横向移动技术（如远程服务、SMB/Windows管理员共享或Windows远程管理）提升对本地资源的访问和/或访问无法访问的域。</p>
+<p><strong>检测：</strong></p>
+<p>使用PowerShell Get-ADUser 命令行工具检查用户SID历史记录属性中的数据，尤其是具有来自同一域的SID历史记录值的用户。还可以监视域控制器上的帐户管理事件，以查看SID历史记录的成功更改和失败更改。</p>
+<p>监视对DsAddSidHistory函数的Windows API调用。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/windows%E4%BB%A4%E7%89%8C/" rel="tag"># windows令牌</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/10/11/paper/2020%E9%BB%91%E5%B8%BDDemystifying%20Modern%20Windows%20Rootkits%E5%AD%A6%E4%B9%A0/" rel="prev" title="2020黑帽Demystifying Modern Windows Rootkits学习">
+      <i class="fa fa-chevron-left"></i> 2020黑帽Demystifying Modern Windows Rootkits学习
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/10/18/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/%E5%8A%A0%E5%A3%B3%E7%9F%A5%E8%AF%86/" rel="next" title="加壳知识">
+      加壳知识 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Windows-Security-Internals"><span class="nav-number">1.</span> <span class="nav-text">Windows Security Internals</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Logon-Sessions-and-Access-Tokens"><span class="nav-number">1.1.</span> <span class="nav-text">Logon Sessions and Access Tokens</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#How-Attackers-Abuse-Access-Token"><span class="nav-number">1.2.</span> <span class="nav-text">How Attackers Abuse Access Token</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Token-Impersonation-Theft"><span class="nav-number">1.3.</span> <span class="nav-text">Token Impersonation&#x2F;Theft</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Create-Process-with-Token"><span class="nav-number">1.4.</span> <span class="nav-text">Create Process with Token</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Make-and-Impersonate-Token"><span class="nav-number">1.5.</span> <span class="nav-text">Make and Impersonate Token</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Parent-PID-Spoofing"><span class="nav-number">1.6.</span> <span class="nav-text">Parent PID Spoofing</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SID-History-Injection"><span class="nav-number">1.7.</span> <span class="nav-text">SID-History Injection</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ZouFeIYu"
+      src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images/81193478873_avatar.png">
+  <p class="site-author-name" itemprop="name">ZouFeIYu</p>
+  <div class="site-description" itemprop="description">临渊羡鱼，不如退而结网</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">31</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/erkeai" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;erkeai" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:563783592@qq.com" title="E-Mail → mailto:563783592@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-feather"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ZouFeIYu</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">85k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">1:17</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/function%20()%20%7B%0A%20%20%20%20%20%20for%20(var%20_len2%20=%20arguments.length,%20args%20=%20new%20Array(_len2),%20_key2%20=%200;%20_key2%20%3C%20_len2;%20_key2++)%20%7B%0A%20%20%20%20%20%20%20%20args%5B_key2%5D%20=%20arguments%5B_key2%5D;%0A%20%20%20%20%20%20%7D%0A%0A%20%20%20%20%20%20return%20obj%5Bval%5D.apply(obj,%20args);%0A%20%20%20%20%7D">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"erkeai.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="加壳脱壳对比我们先看没有加壳的pe文件，PE文件入口是401000  加壳后入口地址如下，入口地址变成了409c80  查看401000位置，可见代码段是空的,即加壳程序将原程序代码段加密&#x2F;压缩后保存到其他地方,并且将原程序代码段清空了。  继续往下看，可以看到跳转到OEP的指令，设置一个断点运行起来。  运行后如下，可看到原程序。加壳程序执行的整个流程如下 1.执行解压&#x2F;解密例程 2.解压&#x2F;解密">
+<meta property="og:type" content="article">
+<meta property="og:title" content="手动脱UPX壳">
+<meta property="og:url" content="https://erkeai.github.io/2021/12/19/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/%E6%89%8B%E5%8A%A8%E8%84%B1UPX%E5%A3%B3/index.html">
+<meta property="og:site_name" content="hazel&#39;blog">
+<meta property="og:description" content="加壳脱壳对比我们先看没有加壳的pe文件，PE文件入口是401000  加壳后入口地址如下，入口地址变成了409c80  查看401000位置，可见代码段是空的,即加壳程序将原程序代码段加密&#x2F;压缩后保存到其他地方,并且将原程序代码段清空了。  继续往下看，可以看到跳转到OEP的指令，设置一个断点运行起来。  运行后如下，可看到原程序。加壳程序执行的整个流程如下 1.执行解压&#x2F;解密例程 2.解压&#x2F;解密">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214162015301.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214170024538.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214170853897.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214171034553.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214173928228.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wpsBF18.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214195748271.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214200245457.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214204923883.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214171034553.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211219110628313.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211219111016142.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211219111712077.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211219112120480.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211219113450399.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211216184247952.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps3267.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps3268.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps326A.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps327A.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps327B.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps327C.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps3283.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps3284.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps3285.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps3286.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A25.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A26.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A27.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A28.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A29.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A2A.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A2B.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A2C.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A2D.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wpsD2F7.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wpsD2F8.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wpsD2F9.tmp.jpg">
+<meta property="article:published_time" content="2021-12-18T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-12-22T08:00:44.177Z">
+<meta property="article:author" content="ZouFeIYu">
+<meta property="article:tag" content="导入表">
+<meta property="article:tag" content="OEP">
+<meta property="article:tag" content="ESP定律">
+<meta property="article:tag" content="UPX">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214162015301.png">
+
+<link rel="canonical" href="https://erkeai.github.io/2021/12/19/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/%E6%89%8B%E5%8A%A8%E8%84%B1UPX%E5%A3%B3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>手动脱UPX壳 | hazel'blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">hazel'blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">35</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">7</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">31</span></a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/12/19/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/%E6%89%8B%E5%8A%A8%E8%84%B1UPX%E5%A3%B3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images/81193478873_avatar.png">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="临渊羡鱼，不如退而结网">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          手动脱UPX壳
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-12-19 00:00:00" itemprop="dateCreated datePublished" datetime="2021-12-19T00:00:00+08:00">2021-12-19</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 16:00:44" itemprop="dateModified" datetime="2021-12-22T16:00:44+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">脱壳学习</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h4 id="加壳脱壳对比"><a href="#加壳脱壳对比" class="headerlink" title="加壳脱壳对比"></a>加壳脱壳对比</h4><p>我们先看没有加壳的pe文件，PE文件入口是401000</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214162015301.png" alt="image-20211214162015301"></p>
+<p>加壳后入口地址如下，入口地址变成了409c80</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214170024538.png" alt="image-20211214170024538"></p>
+<p>查看401000位置，可见代码段是空的,即加壳程序将原程序代码段加密/压缩后保存到其他地方,并且将原程序代码段清空了。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214170853897.png" alt="image-20211214170853897"></p>
+<p>继续往下看，可以看到跳转到OEP的指令，设置一个断点运行起来。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214171034553.png" alt="image-20211214171034553"></p>
+<p>运行后如下，可看到原程序。加壳程序执行的整个流程如下</p>
+<p>1.执行解压/解密例程</p>
+<p>2.解压/解密原程序的各个区段的数据</p>
+<p>3.跳往OEP处</p>
+<p>4.执行原程序代码</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214173928228.png" alt="image-20211214173928228"></p>
+<p>原代码段是空的,在合适的时间,解压/解密程序会将解压/解密后的代码段数据重新写到这里,所以我们可以对这里设置<strong>内存访问断点</strong>,当解压/解密例程向这里写入数据的时候就会断下来。（点击M-&gt;如下图下断点）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wpsBF18.tmp.jpg" alt="img"></p>
+<p>断下来以后看到这里401000开始处内存单元第一个字节将被赋值为AL的值，此时AL值为6A,我们再来看看原程序401000处的第一个字节，可以看到也是6A</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214195748271.png" alt="image-20211214195748271"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214200245457.png" alt="image-20211214200245457"></p>
+<p>​    如果我们逐字节的跟踪,可以看到解密/解压例程将原程序代码恢复的整个过程。但是并不是所有的壳都是按照这个顺序来解密/解压原程序区段的,这里是最常规的情况。</p>
+<p>​    如果大家仔细跟踪这个流程的话,就会发现这是一个循环,逐字节读取加密过的字节,接着进行数学运算(例如说:加法,乘法,等等)来解密,运算完毕得到原始字节值,然后将其恢复到原处。</p>
+<p>​    接下来,我们清除掉前面设置的内存访问断点(<strong>右键breakpoint-&gt;remove memory breakpoint</strong>),单击菜单项中Animate into(自动步入<strong>ctrl+f7</strong>)选项,将能看到原程序代码段被逐字节还原的动画过程,原程序各个区段被还原后,就会断在我们前面设置的jmp OEP处的断点处。</p>
+<h4 id="脱壳"><a href="#脱壳" class="headerlink" title="脱壳"></a>脱壳</h4><h5 id="ESP定律"><a href="#ESP定律" class="headerlink" title="ESP定律"></a>ESP定律</h5><p>​    又称堆栈平衡定律**(如果要返回父程序，则当我们在堆栈中进行堆栈的操作的时候，一定要保证在RET这条指令之前，ESP指向的是我们压入栈中的地址)<strong>，是应用频率最高的脱壳方法之一。ESP（Extended Stack Pointer）为扩展栈指针寄存器，是指针寄存器的一种，用于存放</strong>函数栈顶指针<strong>。与之对应的是EBP（Extended Base Pointer），扩展基址指针寄存器，用于存放</strong>函数栈底指针**。<u>ESP为栈指针，用于指向栈的栈顶（下一个压入栈的活动记录的顶部），而EBP为帧指针，指向当前活动记录的底部。</u></p>
+<p>​    加壳后的程序入口点最开始是<code>pushad</code>,就是把所有寄存器压入栈，在壳的最后有一个<code>popad</code>将所有寄存器出栈，对ESP的0019FF54下硬件访问断点。也就是说当程序要访问这些堆栈，从而恢复原来寄存器的值，准备跳向苦苦寻觅的OEP的时候，OD帮助我们中断下来。</p>
+<p>​    <strong>总结：</strong>我们可以把壳假设为一个子程序，当壳把代码解压前和解压后，他必须要做的是遵循堆栈平衡的原理，让ESP执行到OEP的时候，使ESP=0019FF54。<strong>载入程序后只有esp寄存器内容发生变化，那么这个程序多半可以用ESP定律。</strong></p>
+<p>​    首先f7执行pushad,然后在ESP处选择Follow in dump，就可以在数据窗口中定位到刚刚PUSHAD指令保存到堆栈中的寄存器环境了,我们选中前4个字节,我们通过单击鼠标右键选择Breakpoint-Hardware,on access-Dword给这4个字节设置硬件访问断点。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214204923883.png" alt="image-20211214204923883"></p>
+<p>​    然后点击f9我们可以看到，有一个判断。如果不为0 那么就跳向 00409DFA,我们在这一行的下面一行按F4,直接跳过这个判断，然后继续按F8，就到了程序入口，或者直接在最后的jmp下断点，然后f7到OEP。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214171034553.png" alt="image-20211214171034553"></p>
+<h5 id="dump"><a href="#dump" class="headerlink" title="dump"></a>dump</h5><p>​    然后使用工具PETools将程序dump出来,双击程序会显示不是一个有效的win32程序，这时候我们就需要修复IAT表了。</p>
+<p>​    下图中403238是IAT的其中一个元素，里面保存的是GetModuleHandleA这个API函数的入口地址，我们dump出来的程序的IAT部分跟这里是一样的，属于同一个动态库的API函数地址都是连续存放的,不同的动态库函数地址列表是<strong>用零隔开</strong>的。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211219110628313.png" alt="image-20211219110628313"></p>
+<p>​    上图中有三个77开头的地址，我们点击窗口M按钮，看看这个三个地址属于什么dll</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211219111016142.png" alt="image-20211219111016142"></p>
+<p>​    要修复IAT，我们需要知道的是开始地址和结束地址，IAT起始地址是403184，有些强壳可能会将IAT前后都填充上垃圾数据,让我们定位IAT的起始位置和结束位置更加困难。但是我们知道IAT中的数值都是属于某个动态库代码段范围内的,<strong>如果我们发现某数值不属于任何一个动态库的代码段的话,就说明该数值是垃圾数据。</strong></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211219111712077.png" alt="image-20211219111712077"></p>
+<p>我们看到最后一个元素地址是75xxxxxx，属于COMDLG32.DLL，所以40328c是IAT结束地址，</p>
+<p>begin:403184</p>
+<p>end:40328c</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211219112120480.png" alt="image-20211219112120480"></p>
+<p>1)IAT的起始地址,这里是403184,减去映像基址400000就得到了3184(RVA:相对虚拟地址)。</p>
+<p>2)IAT的大小</p>
+<p> IAT的大小 = 40328C - 403184 = 108(十六进制)</p>
+<p>3)OEP = 401000(虚拟地址)- 映像基址400000 = 1000(OEP的RVA)。</p>
+<p>然后点击Get Imports,不知道为啥userdll会显示无效，先点击fix dump，然后选择dumped.exe</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211219113450399.png" alt="image-20211219113450399"></p>
+<p>依然显示无效32文件，使用PEtools rebuildPE,就可以运行起来了。</p>
+<h4 id="最后一次异常法"><a href="#最后一次异常法" class="headerlink" title="最后一次异常法"></a>最后一次异常法</h4><p>​    新开一个例子,在debug options-exception，各个选项全部选择然后运行起来</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211216184247952.png" alt="image-20211216184247952"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps3267.tmp.jpg" alt="img"></p>
+<p>​    这里我们可以看到产生了好几处异常,但是都不是位于第一个区段,说明这些异常不是在原程序运行期间发生的,是在壳的解密例程执行期间产生的异常,最后一次是46e88f处的这个异常。</p>
+<p>​    好,现在我们重新启动OD,将EXCEPTIONS菜单项中忽略的异常选项的对勾都去掉,仅保留Ignore memory access violations in KERNEL32这个选项的对勾。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps3268.tmp.jpg" alt="img"> </p>
+<p>​    这里不是,我们按SHIFT + F9忽略异常继续运行,我们知道最后一次异常是46E88F处的INT 3指令引发的。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps326A.tmp.jpg" alt="img"> </p>
+<p>​    这里是壳的解密例程执行过程中产生的最后一次异常,接着就是执行原程序的代码了。</p>
+<p>​    接着我们可以对代码段设置<strong>内存访问断点</strong>,为什么不在一开始设置内存访问断点呢?<strong>原因是很多壳会检测程序在开始时是否自身被设置内存访问断点,如果执行到了最后一次异常处的话,很可能已经绕过了壳的检测时机</strong>,我们来试一试。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps327A.tmp.jpg" alt="img"> </p>
+<p>​        我们按SHIFT + F9忽略该异常运行起来。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps327B.tmp.jpg" alt="img"> </p>
+<p>​        我们可以看到断在了OEP处,下面我们来看看该壳在开始的时候是否有检测内存访问断点。</p>
+<p>​        我们重新加载该程序,将忽略的异常选项都勾选上,接着打开区段列表窗口,给第一个区段设置内存访问断点,过了很久断在了OEP处。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps327C.tmp.jpg" alt="img"> </p>
+<p>​        虽然这里我们直接给第一个区段设置内存访问断点直接定位到了OEP。</p>
+<h4 id="利用壳最常用的API函数来定位OEP"><a href="#利用壳最常用的API函数来定位OEP" class="headerlink" title="利用壳最常用的API函数来定位OEP"></a>利用壳最常用的API函数来定位OEP</h4><pre><code> 将忽略的异常选项都勾选上,我们来定位一下壳最常用的API函数,比如GetProcAddress,LoadLibrary。ExitThread有些壳会用。我们首先来看看GetProcAddress。
+</code></pre>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps3283.tmp.jpg" alt="img"> </p>
+<p>​    我们可以看到该壳使用了GetProcAddress,接着使用bp GetProcAddress命令给该API函数设置一个断点。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps3284.tmp.jpg" alt="img"> </p>
+<p>​    如果在命令栏中使用bp命令设置断点失败的话,可以尝试手工设置断点，运行起来。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps3285.tmp.jpg" alt="img"> </p>
+<p>​    这里我们并不需要其断下来,我们只需要知道壳在哪些地方调用GetProcAddress,所以我们在断下来的这一行上面单击鼠标右键选择-Breakpoint-Conditional log,来设置条件记录。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps3286.tmp.jpg" alt="img"> </p>
+<p>​    这里我们将Pause program这一项勾选上Never,记录的表达式设置为[ESP],也就是记录返回地址,这样我们就能知道哪些地方调用GetProcAddress。接着在日志窗口中单击鼠标右键选择-Clear Log(清空日志)。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A25.tmp.jpg" alt="img"> </p>
+<p>​    运行起来,我们可以看到程序的主窗口弹了出来,打开日志窗口,看看最后一次GetProcAddress(排除掉第一个区段中调用的位置)是在哪里被调用的。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A26.tmp.jpg" alt="img"> </p>
+<p>​    我们可以看到基本上GetProcAddress都是解密例程中调用的,除了428C2B这一处以外(这里是第一个区段中调用的,也就是原程序本身调用的)。所以我们要定位的应该是47009A这一处。接下来我们重新来编辑一下条件断点中断的条件,将中断条件设置为[ESP] == 47009A。</p>
+<p>​    并且将Pause program这一项勾选上On condition，重新启动OllyDbg。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A27.tmp.jpg" alt="img"> </p>
+<p>​    编辑条件断点，设置Condition为[ESP] == 47009A,接着将Pause program这一项勾选上On condition，运行起来。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A28.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A29.tmp.jpg" alt="img"> </p>
+<p>​    断了下来。<u>我们可以在对代码段设置内存访问断点之前尝试一下这种方法,这样就可以绕过很多壳对内存断点的检测,但是有一些壳也会对API函数断点进行检测,所以说我们需要各种方式都尝试一下,找到最合适的。</u></p>
+<p>​    对当前这个壳定位GetProcAddress的调用处是可行的,我们现在已经在OEP附近了。如果定位GetProcAddress的调用处失败的话,我们可以换其他的API函数,这里我们再来看看日志窗口,可以看到一处线程结束记录。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A2A.tmp.jpg" alt="img"> </p>
+<p>​    因此接下来给ExitThread设置断点,并且将菜单项Debugging options-Events中的Break on thread end(在线程结束位置中断下来)勾选上。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A2B.tmp.jpg" alt="img"> </p>
+<p>​        运行起来。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A2C.tmp.jpg" alt="img"> </p>
+<p>​        断在了线程结束的位置。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A2D.tmp.jpg" alt="img"> </p>
+<p>​        接着我们给代码段设置内存访问断点就能够马上定位到OEP。</p>
+<h4 id="利用应用程序调用的第一个API函数来定位OEP"><a href="#利用应用程序调用的第一个API函数来定位OEP" class="headerlink" title="利用应用程序调用的第一个API函数来定位OEP"></a>利用应用程序调用的第一个API函数来定位OEP</h4><p>​    这种方法就是直接给应用程序调用的第一个API函数设置断点,比如说,很多程序(VC++)一开始会调用GetVersion,GetModuleHandleA,对于bitarts_evaluations.c来说我们可以断GetVersion,对于CRACKME UPX来说我们可以断GetModuleHandleA。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wpsD2F7.tmp.jpg" alt="img"></p>
+<p>运行起来。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wpsD2F8.tmp.jpg" alt="img"> </p>
+<p>这里我们断在了GetVersion的入口点处,从堆栈中我们可以看到返回地址位于第一个区段。我们直接在返回地址上面单击鼠标右键选择-Follow in Disassembler。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wpsD2F9.tmp.jpg" alt="img"> </p>
+<p>​    这里我们又定位到了OEP。以上就给大家演示的如何利用应用程序调用的第一个API函数来定位OEP了。如果我们遇到有的壳检测GetVersion入口处的INT 3断点的话,我们可以尝试在该API函数的返回指令RET处下断。</p>
+<p>​    其实还有很多适用于特定壳定位OEP的方法,基本上也是根据上面的这些基本方法变通来的。</p>
+<p>​    如果壳检测INT 3断点或者硬件断点的话,使用ESP定律给堆栈中的寄存器初始值设置硬件断点也是不起作用的,只能换其他方法。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%AF%BC%E5%85%A5%E8%A1%A8/" rel="tag"># 导入表</a>
+              <a href="/tags/OEP/" rel="tag"># OEP</a>
+              <a href="/tags/ESP%E5%AE%9A%E5%BE%8B/" rel="tag"># ESP定律</a>
+              <a href="/tags/UPX/" rel="tag"># UPX</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/11/24/paper/Malware%20Variant%20Identification%20Using%20Incremental%20Clustering/" rel="prev" title="Malware Variant Identification Using Incremental Clustering">
+      <i class="fa fa-chevron-left"></i> Malware Variant Identification Using Incremental Clustering
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/12/20/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/%E6%89%8B%E8%84%B1AsPack%E5%A3%B3/" rel="next" title="手脱AsPack壳">
+      手脱AsPack壳 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8A%A0%E5%A3%B3%E8%84%B1%E5%A3%B3%E5%AF%B9%E6%AF%94"><span class="nav-number">1.</span> <span class="nav-text">加壳脱壳对比</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%84%B1%E5%A3%B3"><span class="nav-number">2.</span> <span class="nav-text">脱壳</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#ESP%E5%AE%9A%E5%BE%8B"><span class="nav-number">2.1.</span> <span class="nav-text">ESP定律</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#dump"><span class="nav-number">2.2.</span> <span class="nav-text">dump</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%80%E5%90%8E%E4%B8%80%E6%AC%A1%E5%BC%82%E5%B8%B8%E6%B3%95"><span class="nav-number">3.</span> <span class="nav-text">最后一次异常法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%A9%E7%94%A8%E5%A3%B3%E6%9C%80%E5%B8%B8%E7%94%A8%E7%9A%84API%E5%87%BD%E6%95%B0%E6%9D%A5%E5%AE%9A%E4%BD%8DOEP"><span class="nav-number">4.</span> <span class="nav-text">利用壳最常用的API函数来定位OEP</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%A9%E7%94%A8%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E8%B0%83%E7%94%A8%E7%9A%84%E7%AC%AC%E4%B8%80%E4%B8%AAAPI%E5%87%BD%E6%95%B0%E6%9D%A5%E5%AE%9A%E4%BD%8DOEP"><span class="nav-number">5.</span> <span class="nav-text">利用应用程序调用的第一个API函数来定位OEP</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ZouFeIYu"
+      src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images/81193478873_avatar.png">
+  <p class="site-author-name" itemprop="name">ZouFeIYu</p>
+  <div class="site-description" itemprop="description">临渊羡鱼，不如退而结网</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">31</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/erkeai" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;erkeai" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:563783592@qq.com" title="E-Mail → mailto:563783592@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-feather"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ZouFeIYu</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">85k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">1:17</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
