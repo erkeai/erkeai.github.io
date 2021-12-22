@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
 <meta name="generator" content="Hexo 5.4.0">
-  <link rel="icon" type="image/png" sizes="16x16" href="/function%20()%20%7B%0A%20%20%20%20%20%20for%20(var%20_len2%20=%20arguments.length,%20args%20=%20new%20Array(_len2),%20_key2%20=%200;%20_key2%20%3C%20_len2;%20_key2++)%20%7B%0A%20%20%20%20%20%20%20%20args%5B_key2%5D%20=%20arguments%5B_key2%5D;%0A%20%20%20%20%20%20%7D%0A%0A%20%20%20%20%20%20return%20obj%5Bval%5D.apply(obj,%20args);%0A%20%20%20%20%7D">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.ico">
 
 <link rel="stylesheet" href="/css/main.css">
 
@@ -313,6 +314,134 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/12/22/sample/%E7%AE%80%E5%8D%95%E7%9A%84%E9%97%B4%E8%B0%8D%E6%9C%A8%E9%A9%AC%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images/81193478873_avatar.png">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="临渊羡鱼，不如退而结网">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/12/22/sample/%E7%AE%80%E5%8D%95%E7%9A%84%E9%97%B4%E8%B0%8D%E6%9C%A8%E9%A9%AC%E5%88%86%E6%9E%90/" class="post-title-link" itemprop="url">简单的间谍木马分析</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-12-22 00:00:00 / 修改时间：09:50:52" itemprop="dateCreated datePublished" datetime="2021-12-22T00:00:00+08:00">2021-12-22</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%A0%B7%E6%9C%AC%E5%88%86%E6%9E%90/" itemprop="url" rel="index"><span itemprop="name">样本分析</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="简单的间谍木马分析"><a href="#简单的间谍木马分析" class="headerlink" title="简单的间谍木马分析"></a>简单的间谍木马分析</h1><h3 id="0-前言"><a href="#0-前言" class="headerlink" title="0.前言"></a>0.前言</h3><p>此篇笔记记录一下分析实战样本11_1的样本，技术已经过时，只是为了了解一下间谍木马的特征和行为。</p>
+<h3 id="1-静态分析"><a href="#1-静态分析" class="headerlink" title="1.静态分析"></a>1.静态分析</h3><ul>
+<li>由下图可知程序没有加壳是一个控制台程序。</li>
+</ul>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/1.png" alt="image-20210416161119304"></p>
+<ul>
+<li>查看导入表，可以看到对资源节操作的API,还有一些注册表相关的API</li>
+</ul>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/2.png" alt="image-20210416162024328"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/3.png" alt="image-20210416162311061"></p>
+<ul>
+<li>使用ResHack查看资源数据, 可以发现一段未经加密的PE数据,  后续会分析这段PE</li>
+</ul>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/4.png" alt="image-20210416163141671"></p>
+<ul>
+<li><p>IDA查看字符串，可以看到GinaDll,Windows的开机密码认证模块一般是由Gina DLL完成的。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/5.png" alt="image-20210419092154616"></p>
+<h3 id="2-火绒剑行为检测"><a href="#2-火绒剑行为检测" class="headerlink" title="2.火绒剑行为检测"></a>2.火绒剑行为检测</h3><p>查看行为，发现样本在同目录下释放了一个dll,经过对比发现，释放的dll就是资源中的PE数据<strong>（为什么）</strong>，然后对注册表写入dll的路径,并且最后摧毁了自己的进程。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/8.png" alt="image-20210419103650288"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/6.png" alt="image-20210419094915222"></p>
+<h3 id="3-IDA分析"><a href="#3-IDA分析" class="headerlink" title="3.IDA分析"></a>3.IDA分析</h3><h4 id="3-1-main分析"><a href="#3-1-main分析" class="headerlink" title="3.1 main分析"></a>3.1 main分析</h4><p>​        观察main函数代码,  可以发现程序首先通过<code>GetModuleFileNameA</code>获取自身程序的全路径, 在调用<code>401080</code>后, 然后通过<code>_strrchr</code>截取<code>\</code>之前的内容,  与<code>\\msgina32.dll</code>进行字符串拼接  然后将拼接后的字符串作为参数传入堆栈调用<code>401000</code></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/7.png" alt="image-20210419095821170"></p>
+<p>​        接下来分析401080与401000</p>
+<h4 id="3-2-401080分析"><a href="#3-2-401080分析" class="headerlink" title="3.2 401080分析"></a>3.2 401080分析</h4><p>​        可以明显看到资源节数据的操作，然后通过 <code>VirtualAlloc </code>申请一段内存空间用于存放资源中的PE数据, 在将资源中的数据取出后,  通过一系列文件操作将PE数据保存到<code>xx\msgina32.dll</code>文件中,  xx的路径就是main函数中通过<code>GetModuleFileNameA</code>取出的当前程序的运行路径。这里有个函数为<code>401299</code>,  这个函数就是类似printf的打印输出函数，这里我们将这个函数重命名,  防止后面的分析中再次出现  ,  可以节省时间。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/9.png" alt="image-20210420110324830"></p>
+<p>​    到这里<code>401080</code>这个函数功能已经确定了,  取资源节数据并写入文件 ,  文件名为<code>msgina32.dll</code>,  路径为程序同路径。</p>
+<h4 id="3-3-401000分析"><a href="#3-3-401000分析" class="headerlink" title="3.3 401000分析"></a>3.3 401000分析</h4><p>​    该函数的参数是释放出的dll文件的全路径，可以看到一系列注册表操作,   函数功能是将dll全路径写入注册表路径为<code>SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon</code>, 名为<code>GinaDLL</code>的注册表项。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/10.png" alt="image-20210421092749755"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/11.png" alt="image-20210421092844415"></p>
+<h4 id="3-4-exe总结"><a href="#3-4-exe总结" class="headerlink" title="3.4 exe总结"></a>3.4 exe总结</h4><p>​    整个exe的功能就是为了持久化安装dll文件：将自身资源中的PE数据写入与自身路径相同,  文件名为<code>msgina32.dll</code>的dll文件；将dll文件写入注册表；程序结束。</p>
+<p>​    所以说重要功能应该在dll里面，exe文件只是为了dll文件服务。  </p>
+<h3 id="4-IDA分析dll"><a href="#4-IDA分析dll" class="headerlink" title="4.IDA分析dll"></a>4.IDA分析dll</h3><h4 id="4-1-dllmain分析"><a href="#4-1-dllmain分析" class="headerlink" title="4.1 dllmain分析"></a>4.1 dllmain分析</h4><p>​    将<code>dll</code>文件拖入IDA，<code>查看dllmain</code>函数，首先是<code>DisableThreadLibraryCalls</code>禁用指定的DLL的<code>DLL_THREAD_ATTACH</code>和<code>DLL_THREAD_DETACH</code>通知，这样可以减小某些程序的工作集大小。</p>
+<p>​    通过<code>GetSystemDirectoryW</code>获取系统目录,  与<code>\MSGina</code>拼接后获取正常的GinaDll ,  然后通过<code>LoadLibraryW</code>加载获取dll句柄, 存入全局变量<code>hLibModule</code>,  然后dllmain函数执行结束</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/12.png" alt="image-20210421094451437"></p>
+<p>根据前面exe的注册表操作可以知道，这是为了替换正常的GinalDll,</p>
+<h4 id="4-2-dll导出函数"><a href="#4-2-dll导出函数" class="headerlink" title="4.2 dll导出函数"></a>4.2 dll导出函数</h4><p>查看dll导出函数,依次查看导出函数代码,  发现绝大多数导出函数都调用了<code>10001000</code>函数,  这个函数很明显用于导出函数的转发。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/13.png" alt="image-20210421095103186"></p>
+<p><code>DllRegister</code>与<code>DllUnregister</code>也是很简单的函数,  对于注册表值的安装/卸载操作，通过查询百度相关文档信息,  我们知道<code>WlxLoggedOutSAS</code>是在windows注销时会调用的函数,接下来看看它想在注销时做什么。</p>
+<h4 id="4-3-WlxLoggedOutSAS分析"><a href="#4-3-WlxLoggedOutSAS分析" class="headerlink" title="4.3 WlxLoggedOutSAS分析"></a>4.3 WlxLoggedOutSAS分析</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/14.png" alt="image-20210421100642564"></p>
+<p>观察代码, 样本首先调用10001000进行正常功能的转发,  然后调用edi,  通过回溯寄存器(<strong>如何？</strong>),  我们知道了edi是正常的<code>WlxLoggedOutSAS</code>,  然后样本执行了10001570函数,  观察参数发现一个有趣的字符串<code>UN %s DM %s PW %s OLD %s</code>,  这种携带占位符的字符串常用于输出, 替换, 拼接等,  接下来我们就需要看看10001570处的函数</p>
+<h4 id="4-4-10001570分析"><a href="#4-4-10001570分析" class="headerlink" title="4.4 10001570分析"></a>4.4 10001570分析</h4><p>首先将传入的参数通过<code>_vsnwprintf</code>进行格式化, 然后打开文件<code>msutil32.sys</code>,  接着格式化时间,  然后调用<code>fwprintf</code>将数据写入流中,  通过寄存器回溯, 我们可以找到esi来源就是wfopen的返回值, 也就是代表文件<code>msutil32.sys</code></p>
+<p>然后调用<code>FormatMessageW</code>转化一些数据, 观察参数大致能猜出来是系统调用时传递的数据. 最后关闭文件,结束程序。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/15.png" alt="image-20210421100908023"></p>
+<h4 id="4-5-总结"><a href="#4-5-总结" class="headerlink" title="4.5 总结"></a>4.5 总结</h4><p>​    根据分析,  整个dll的作用就是劫持WlxLoggedOutSAS函数,  获取到函数参数后加入一些例如时间戳信息后写入文件<code>msutil32.sys</code>,  这也说明这个sys文件并不像它表现出的是个驱动文件,  而是一个简单的日志文件。</p>
+<p>​    由于GinaDll在新系统中已经不再使用, 因此想要复现需要XP或者更旧的系统,  这样在点击注销后, 样本会记录用户的账户密码,  也就是个最简单的间谍木马</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/12/22/sample/RainbowCat/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -492,134 +621,6 @@
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/23.png" alt="image23"></p>
 <p>遗留问题：IDA伪代码的问题以及MBR调试的问题（MBR运行在16位环境直接和硬件打交道，此阶段Windows根本没加载，OllyDbg或者WinDebug这种常用的调试器当然用不了。这时该用–Bochs（发音同“box”））</p>
 <p>参考链接：<a target="_blank" rel="noopener" href="https://bbs.pediy.com/thread-262873.htm">看雪论坛彩虹猫样本分析</a></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/12/22/sample/%E7%AE%80%E5%8D%95%E7%9A%84%E9%97%B4%E8%B0%8D%E6%9C%A8%E9%A9%AC%E5%88%86%E6%9E%90/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images/81193478873_avatar.png">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="临渊羡鱼，不如退而结网">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/12/22/sample/%E7%AE%80%E5%8D%95%E7%9A%84%E9%97%B4%E8%B0%8D%E6%9C%A8%E9%A9%AC%E5%88%86%E6%9E%90/" class="post-title-link" itemprop="url">简单的间谍木马分析</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2021-12-22 00:00:00 / 修改时间：09:50:52" itemprop="dateCreated datePublished" datetime="2021-12-22T00:00:00+08:00">2021-12-22</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%A0%B7%E6%9C%AC%E5%88%86%E6%9E%90/" itemprop="url" rel="index"><span itemprop="name">样本分析</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>2.1k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>2 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="简单的间谍木马分析"><a href="#简单的间谍木马分析" class="headerlink" title="简单的间谍木马分析"></a>简单的间谍木马分析</h1><h3 id="0-前言"><a href="#0-前言" class="headerlink" title="0.前言"></a>0.前言</h3><p>此篇笔记记录一下分析实战样本11_1的样本，技术已经过时，只是为了了解一下间谍木马的特征和行为。</p>
-<h3 id="1-静态分析"><a href="#1-静态分析" class="headerlink" title="1.静态分析"></a>1.静态分析</h3><ul>
-<li>由下图可知程序没有加壳是一个控制台程序。</li>
-</ul>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/1.png" alt="image-20210416161119304"></p>
-<ul>
-<li>查看导入表，可以看到对资源节操作的API,还有一些注册表相关的API</li>
-</ul>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/2.png" alt="image-20210416162024328"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/3.png" alt="image-20210416162311061"></p>
-<ul>
-<li>使用ResHack查看资源数据, 可以发现一段未经加密的PE数据,  后续会分析这段PE</li>
-</ul>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/4.png" alt="image-20210416163141671"></p>
-<ul>
-<li><p>IDA查看字符串，可以看到GinaDll,Windows的开机密码认证模块一般是由Gina DLL完成的。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/5.png" alt="image-20210419092154616"></p>
-<h3 id="2-火绒剑行为检测"><a href="#2-火绒剑行为检测" class="headerlink" title="2.火绒剑行为检测"></a>2.火绒剑行为检测</h3><p>查看行为，发现样本在同目录下释放了一个dll,经过对比发现，释放的dll就是资源中的PE数据<strong>（为什么）</strong>，然后对注册表写入dll的路径,并且最后摧毁了自己的进程。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/8.png" alt="image-20210419103650288"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/6.png" alt="image-20210419094915222"></p>
-<h3 id="3-IDA分析"><a href="#3-IDA分析" class="headerlink" title="3.IDA分析"></a>3.IDA分析</h3><h4 id="3-1-main分析"><a href="#3-1-main分析" class="headerlink" title="3.1 main分析"></a>3.1 main分析</h4><p>​        观察main函数代码,  可以发现程序首先通过<code>GetModuleFileNameA</code>获取自身程序的全路径, 在调用<code>401080</code>后, 然后通过<code>_strrchr</code>截取<code>\</code>之前的内容,  与<code>\\msgina32.dll</code>进行字符串拼接  然后将拼接后的字符串作为参数传入堆栈调用<code>401000</code></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/7.png" alt="image-20210419095821170"></p>
-<p>​        接下来分析401080与401000</p>
-<h4 id="3-2-401080分析"><a href="#3-2-401080分析" class="headerlink" title="3.2 401080分析"></a>3.2 401080分析</h4><p>​        可以明显看到资源节数据的操作，然后通过 <code>VirtualAlloc </code>申请一段内存空间用于存放资源中的PE数据, 在将资源中的数据取出后,  通过一系列文件操作将PE数据保存到<code>xx\msgina32.dll</code>文件中,  xx的路径就是main函数中通过<code>GetModuleFileNameA</code>取出的当前程序的运行路径。这里有个函数为<code>401299</code>,  这个函数就是类似printf的打印输出函数，这里我们将这个函数重命名,  防止后面的分析中再次出现  ,  可以节省时间。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/9.png" alt="image-20210420110324830"></p>
-<p>​    到这里<code>401080</code>这个函数功能已经确定了,  取资源节数据并写入文件 ,  文件名为<code>msgina32.dll</code>,  路径为程序同路径。</p>
-<h4 id="3-3-401000分析"><a href="#3-3-401000分析" class="headerlink" title="3.3 401000分析"></a>3.3 401000分析</h4><p>​    该函数的参数是释放出的dll文件的全路径，可以看到一系列注册表操作,   函数功能是将dll全路径写入注册表路径为<code>SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon</code>, 名为<code>GinaDLL</code>的注册表项。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/10.png" alt="image-20210421092749755"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/11.png" alt="image-20210421092844415"></p>
-<h4 id="3-4-exe总结"><a href="#3-4-exe总结" class="headerlink" title="3.4 exe总结"></a>3.4 exe总结</h4><p>​    整个exe的功能就是为了持久化安装dll文件：将自身资源中的PE数据写入与自身路径相同,  文件名为<code>msgina32.dll</code>的dll文件；将dll文件写入注册表；程序结束。</p>
-<p>​    所以说重要功能应该在dll里面，exe文件只是为了dll文件服务。  </p>
-<h3 id="4-IDA分析dll"><a href="#4-IDA分析dll" class="headerlink" title="4.IDA分析dll"></a>4.IDA分析dll</h3><h4 id="4-1-dllmain分析"><a href="#4-1-dllmain分析" class="headerlink" title="4.1 dllmain分析"></a>4.1 dllmain分析</h4><p>​    将<code>dll</code>文件拖入IDA，<code>查看dllmain</code>函数，首先是<code>DisableThreadLibraryCalls</code>禁用指定的DLL的<code>DLL_THREAD_ATTACH</code>和<code>DLL_THREAD_DETACH</code>通知，这样可以减小某些程序的工作集大小。</p>
-<p>​    通过<code>GetSystemDirectoryW</code>获取系统目录,  与<code>\MSGina</code>拼接后获取正常的GinaDll ,  然后通过<code>LoadLibraryW</code>加载获取dll句柄, 存入全局变量<code>hLibModule</code>,  然后dllmain函数执行结束</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/12.png" alt="image-20210421094451437"></p>
-<p>根据前面exe的注册表操作可以知道，这是为了替换正常的GinalDll,</p>
-<h4 id="4-2-dll导出函数"><a href="#4-2-dll导出函数" class="headerlink" title="4.2 dll导出函数"></a>4.2 dll导出函数</h4><p>查看dll导出函数,依次查看导出函数代码,  发现绝大多数导出函数都调用了<code>10001000</code>函数,  这个函数很明显用于导出函数的转发。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/13.png" alt="image-20210421095103186"></p>
-<p><code>DllRegister</code>与<code>DllUnregister</code>也是很简单的函数,  对于注册表值的安装/卸载操作，通过查询百度相关文档信息,  我们知道<code>WlxLoggedOutSAS</code>是在windows注销时会调用的函数,接下来看看它想在注销时做什么。</p>
-<h4 id="4-3-WlxLoggedOutSAS分析"><a href="#4-3-WlxLoggedOutSAS分析" class="headerlink" title="4.3 WlxLoggedOutSAS分析"></a>4.3 WlxLoggedOutSAS分析</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/14.png" alt="image-20210421100642564"></p>
-<p>观察代码, 样本首先调用10001000进行正常功能的转发,  然后调用edi,  通过回溯寄存器(<strong>如何？</strong>),  我们知道了edi是正常的<code>WlxLoggedOutSAS</code>,  然后样本执行了10001570函数,  观察参数发现一个有趣的字符串<code>UN %s DM %s PW %s OLD %s</code>,  这种携带占位符的字符串常用于输出, 替换, 拼接等,  接下来我们就需要看看10001570处的函数</p>
-<h4 id="4-4-10001570分析"><a href="#4-4-10001570分析" class="headerlink" title="4.4 10001570分析"></a>4.4 10001570分析</h4><p>首先将传入的参数通过<code>_vsnwprintf</code>进行格式化, 然后打开文件<code>msutil32.sys</code>,  接着格式化时间,  然后调用<code>fwprintf</code>将数据写入流中,  通过寄存器回溯, 我们可以找到esi来源就是wfopen的返回值, 也就是代表文件<code>msutil32.sys</code></p>
-<p>然后调用<code>FormatMessageW</code>转化一些数据, 观察参数大致能猜出来是系统调用时传递的数据. 最后关闭文件,结束程序。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/15.png" alt="image-20210421100908023"></p>
-<h4 id="4-5-总结"><a href="#4-5-总结" class="headerlink" title="4.5 总结"></a>4.5 总结</h4><p>​    根据分析,  整个dll的作用就是劫持WlxLoggedOutSAS函数,  获取到函数参数后加入一些例如时间戳信息后写入文件<code>msutil32.sys</code>,  这也说明这个sys文件并不像它表现出的是个驱动文件,  而是一个简单的日志文件。</p>
-<p>​    由于GinaDll在新系统中已经不再使用, 因此想要复现需要XP或者更旧的系统,  这样在点击注销后, 样本会记录用户的账户密码,  也就是个最简单的间谍木马</p>
-</li>
-</ul>
 
       
     </div>
