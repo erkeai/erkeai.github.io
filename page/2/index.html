@@ -119,7 +119,7 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">13</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">25</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -129,7 +129,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">16</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">20</span></a>
 
   </li>
   </ul>
@@ -155,6 +155,169 @@
 
           <div class="content index posts-expand">
             
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/08/15/wkp/Chapter%205%20Debugging/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images/81193478873_avatar.png">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="临渊羡鱼，不如退而结网">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/08/15/wkp/Chapter%205%20Debugging/" class="post-title-link" itemprop="url">Chapter 5 Debugging</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-08-15 00:00:00" itemprop="dateCreated datePublished" datetime="2021-08-15T00:00:00+08:00">2021-08-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 12:51:26" itemprop="dateModified" datetime="2021-12-22T12:51:26+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">驱动开发</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="Windows调试工具"><a href="#Windows调试工具" class="headerlink" title="Windows调试工具**"></a>Windows调试工具**</h3><p>主要简单介绍了Cdb、Ntsd、Kd、Windbg四个调试器，但是Windbg是唯一具有图形用户界面的调试器</p>
+<h3 id="Windbg介绍"><a href="#Windbg介绍" class="headerlink" title="Windbg介绍**"></a>Windbg介绍**</h3><p>Windbg主要有三种命令：</p>
+<p>标准命令，这些命令被内置到调试器中，它们对正在调试的目标进行操作。</p>
+<p>元命令，这些命令以“.”开始。它们操作调试过程本身，而不是直接操作被调试的目标。</p>
+<p>Bang（扩展）命令，这些命令以“!”开头，提供了调试器的强大功能。所有的扩展命令都是在扩展dll中实现的。默认情况下，调试器加载一组预定义的扩展dll，但可以从调试器目录或其他源加载其他dll.</p>
+<p><strong>Note:不用双击内核调试直接本地打开即可</strong></p>
+<p>因为目前windbg正在调试内核，调试器不在notepad.exe进程上下文中，为了达到目的，需要枚举系统中的进程并切换到notepad.exe</p>
+<p>！process 0 0       //枚举所有进程</p>
+<p>.process /i /r /p       //切换到进程</p>
+<p> kernel调试时windbg并不会加载用户态dll，但是切换到指定进程后可以加载用户态调试符号，如下：</p>
+<p>.reload /user /f</p>
+<h3 id="线程介绍"><a href="#线程介绍" class="headerlink" title="线程介绍"></a>线程介绍</h3><p>输入命令 k显示当前线程堆栈，带有符号的地址的一般格式是“模块名！函数名+偏移量”。该偏移量是可选的，如果它恰好是这个函数的开始，则可以为零。</p>
+<p>命令  ~ns表示切换线程</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6954.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6955.tmp.jpg" alt="img"> </p>
+<p>进程ID显示为十六进制，输入下面的命令可以将其转化为十进制，与任务管理器对比发现是正确的</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6956.tmp.jpg" alt="img"> </p>
+<p>也可以在十进制前加个前缀“0n”这样可以得到十六进制的结果</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6957.tmp.jpg" alt="img"> </p>
+<p>显示当前活动的线程</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6958.tmp.jpg" alt="img"> </p>
+<p>显示当前线程的teb(线程环境块)，该命令显示的是幕后真实的结构，可以用dt命令查看实际结构</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6959.tmp.jpg" alt="img"> </p>
+<p>以下只显示了部分信息</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps695A.tmp.jpg" alt="img"> </p>
+<p>我们可以点击查看NtTib</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps695B.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps695C.tmp.jpg" alt="img"> </p>
+<h4 id="断点"><a href="#断点" class="headerlink" title="断点"></a>断点</h4><p>下个断点</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps695D.tmp.jpg" alt="img"> </p>
+<p>可以用bl命令查看断点，e表示启用，d表示禁用</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps695E.tmp.jpg" alt="img"> </p>
+<p>因为下了断点，所以我们打开文件的时候windbg会断在这里</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps695F.tmp.jpg" alt="img"> </p>
+<p>我们现在可以看看调用堆栈是什么样的</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6960.tmp.jpg" alt="img"> </p>
+<p>如果想知道正在打开的是什么文件。我们可以根据CreateFileW函数的调用约定来获得这些信息。由于这是一个64位进程(处理器是Intel/AMD)，调用约定声明第一个整数/指针参数在RCX、RDX、R8和R9寄存器中传递。由于CreateFileW中的文件名是第一个参数，因此相关的寄存器是RCX。我们用命令r rcx查看寄存器，紧接着用 db 地址查看指向的内存，但是因为字符是ASCII所以看起来不是很方便，我们用 du 地址查看Unicode地址</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6970.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6971.tmp.jpg" alt="img"> </p>
+<p>如果不想用地址，也可以在寄存器前面加“@”</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6972.tmp.jpg" alt="img"> </p>
+<p>再下一个断点</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6973.tmp.jpg" alt="img"> </p>
+<p>u（unassemble）命令列出即将执行的8条指令，注意该值0x55已被复制到EAX寄存器中。这是NtCreateFile的系统服务编号，如第1章所述。所示的系统所有指令是导致转换到内核，然后执行NtCreateFile系统服务本身的指令。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6974.tmp.jpg" alt="img"> </p>
+<p>可以用指令p(f10)单步运行，也可以用t(f11)步入函数中，单步执行到ret后，我们要知道在x64调用约定中，函数的返回值存储在EAX或RAX中。对于系统调用，它是一个无状态，所以EAX包含了返回的状态：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6975.tmp.jpg" alt="img"> </p>
+<p>下一个NtWriteFile的断点，然后修改文件在保存的时候会断下来，紧接着用k查看调用堆栈</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6976.tmp.jpg" alt="img"> </p>
+<p>用u指令查看到，8 是NtWriteFile系统服务编号</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6977.tmp.jpg" alt="img"> </p>
+<h3 id="本地内核调试"><a href="#本地内核调试" class="headerlink" title="本地内核调试"></a>本地内核调试</h3><p>本地内核调试（LKD）与内核调试的区别就是无法下断点，只能看见系统当前运行状态。</p>
+<p>按照书上的步骤，先在管理员权限下的cmd输入命令</p>
+<p>bcdedit /debug on</p>
+<p>然后重启系统，以管理员身份打开windbg，选择attach to kernel，然后选择Local，点击ok</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6978.tmp.jpg" alt="img"> </p>
+<h3 id="本地内核调试详细教程"><a href="#本地内核调试详细教程" class="headerlink" title="本地内核调试详细教程"></a>本地内核调试详细教程</h3><p>​    输入!process 0 0显示如下<img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6979.tmp.jpg" alt="img">    输入.reload同样没用，按照他的提示输入命令!sym noisy，然后输入.reload，同时查看一下符号路径是否正确。最后得到现在的进程情况</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps697A.tmp.jpg" alt="img"> </p>
+<p>PROCESS后的是进程的EPROCESS地址（内核空间）；</p>
+<p>SessionId表示进程所处的会话；</p>
+<p>Cid是独一无二的进程ID(Client ID);</p>
+<p>Peb是进程环境块(PEB)的地址，这个地址在用户空间中；</p>
+<p>ParentCid是Parent Client ID）父进程的进程ID。注意，父进程可能不再存在，并且可以重用此ID；</p>
+<p>DirBase是该进程的Master Page Directory的物理地址，用作虚拟地址转换的基础。在x64上，这被称为Pagr Map Level 4，在x86上，它是Page Directory Pointer Table(PDPT);</p>
+<p>ObjectTable是指向进程的私有句柄表的指针；</p>
+<p>HandleCount是进程的句柄数；</p>
+<p>Image是可执行文件名或者是对于那些与可执行文件没有关联的程序的特殊进程名称（exp: Secure System,system）。</p>
+<p>!process命令至少接受两个参数，第一个参数用EPROCESS地址表示感兴趣的进程，0表示所有进程。第二个参数是所需的详细信息级别，其中零表示最少的详细信息量（一个位掩码）。可以添加第三个参数来搜索特定的可执行文件。    列出所有正在运行的csrss.exe。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps697B.tmp.jpg" alt="img"> </p>
+<p>可以通过指定地址以及更高级别的详细信息来列出相关进程的详细信息</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps697C.tmp.jpg" alt="img"> </p>
+<p>其余的命令等到具体用到的时候再一一查阅</p>
+<h3 id="内核驱动程序调试教程"><a href="#内核驱动程序调试教程" class="headerlink" title="内核驱动程序调试教程"></a>内核驱动程序调试教程</h3><p>我们调试在第四章写好的驱动程序，首先安装驱动，但是不能加载，因为加载就会进入驱动入口。（我们需要在入口下一个断点。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps697D.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps697E.tmp.jpg" alt="img"> </p>
+<p>具体的调试过程其实和平时双机调试程序的时候差不多，因为这部分已经熟悉就不详细写了。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -254,7 +417,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/06/15/wkp/Chapter%202%20Getting%20Started%20with%20Kernel%20Development/">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/07/31/wkp/Chapter%204%20Driver%20from%20Start%20to%20Finish/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images/81193478873_avatar.png">
@@ -268,7 +431,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2021/06/15/wkp/Chapter%202%20Getting%20Started%20with%20Kernel%20Development/" class="post-title-link" itemprop="url">Windows Kernel Programming读书笔记</a>
+            <a href="/2021/07/31/wkp/Chapter%204%20Driver%20from%20Start%20to%20Finish/" class="post-title-link" itemprop="url">Chapter 4 Driver from Start to Finish</a>
         </h2>
 
         <div class="post-meta">
@@ -278,14 +441,14 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2021-06-15 00:00:00" itemprop="dateCreated datePublished" datetime="2021-06-15T00:00:00+08:00">2021-06-15</time>
+              <time title="创建时间：2021-07-31 00:00:00" itemprop="dateCreated datePublished" datetime="2021-07-31T00:00:00+08:00">2021-07-31</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-22 11:07:12" itemprop="dateModified" datetime="2021-12-22T11:07:12+08:00">2021-12-22</time>
+                <time title="修改时间：2021-12-22 12:50:28" itemprop="dateModified" datetime="2021-12-22T12:50:28+08:00">2021-12-22</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -303,7 +466,193 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>275</span>
+              <span>4.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>​    在本章中，将使用我们在前几章中学到的许多概念，并构建一个简单但完整的驱动程序和客户机应用程序，同时填补一些缺失的细节。我们将部署驱动程序并使用它的功能——在内核模式下执行用户模式不可用的一些操作。</p>
+<h4 id="1-介绍"><a href="#1-介绍" class="headerlink" title="1.介绍"></a>1.介绍</h4><p>​    我们将要用一个简单的内核驱动来解决的问题是用Windows API设置线程优先级的不灵活性。在用户模式下，一个线程的优先级是由其进程PriorityClass与具有有限数量级别的每个线程基础上的偏移量的组合决定的。</p>
+<p>​    改变进程/优先级：SetPriorityClass,该函数设置的优先级是线程的默认优先级，也可以使用SetThreadPriority设置线程优先级（都是用偏移量设置），下面的表格展示了基于进程优先级类和线程的优先级偏移量的可用线程优先级。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps691D.tmp.jpg" alt="img"> </p>
+<p>​    实时优先级类并不意味着Windows是一个实时操作系统；此外，由于实时优先级非常高，并且与许多做重要工作的内核线程竞争，这样的进程必须使用管理员特权运行；否则，试图将优先级类设置为实时会将值设置为“高”。</p>
+<p>​    只有一小部分优先级可以直接设置。我们希望<strong>创建一个驱动程序，以规避这些限制，并允许将线程的优先级设置为任何数字，而不管其进程优先级类如何。</strong></p>
+<h4 id="2-驱动初始化"><a href="#2-驱动初始化" class="headerlink" title="2.驱动初始化"></a>2.驱动初始化</h4><p>​    创建一个新的项目命名为PriorityBooster并且删掉INF文件,新建一个cpp文件，大多数软件驱动程序需要在驱动器条目中执行以下操作：</p>
+<ul>
+<li><p>设置一个卸载例程；</p>
+</li>
+<li><p>设置驱动程序所支持的调度例程；</p>
+</li>
+<li><p>创建一个设备对象；</p>
+</li>
+<li><p>创建一个到设备对象的符号链接。</p>
+<p>一旦执行了所有这些操作，驱动程序就已经准备好接受请求了。第一步是添加一个卸载例程，并从驱动程序对象指向它。以下是新的具有卸载程序的DriverEntry，当然我们需要根据我们实际工作中的需要添加代码。</p>
+</li>
+</ul>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps691E.tmp.jpg" alt="img"> </p>
+<p>​    接下来我们需要设置我们要支持的调度例程，实际上，所有的驱动程序都必须支持IRP_MJ_CREATE和IRP_MJ_CLOSE，否则就无法为该驱动程序的任何设备打开手柄。所以我们将以下内容添加到DriverEntry中。</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">DriverObject-&gt;MajorFunction[IRP_MJ_CREATE] = PriorityBoosterCreateClose;</span><br><span class="line"></span><br><span class="line">DriverObject-&gt;MajorFunction[IRP_MJ_CLOSE] = PriorityBoosterCreateClose;</span><br></pre></td></tr></table></figure>
+
+<p>​    所有的major function都有同样的类型（它们是函数指针数组的一部分），因此我们需要给函数PriorityBoosterCreateClose加一个类型NTSTATUS</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps691F.tmp.jpg" alt="img"> </p>
+<h5 id="传递信息给驱动"><a href="#传递信息给驱动" class="headerlink" title="传递信息给驱动"></a>传递信息给驱动</h5><p>​    我们的目的是为了设置现成的优先级，所以我们需要一种方式告诉驱动程序是哪个线程以及设置什么值。从我们的目的处罚，我们需要用到WriteFile或者 DeviceIoControl,一般的思维是使用前者，但是在这里，后者是一种向驱动程序传递数据的通用机制。由于更改线程的优先级不是纯粹的写操作，所以我们将使用<strong>DeviceIoControl</strong>。此函数具有以下原型（我们主要关注三个参数）：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6920.tmp.jpg" alt="img"> </p>
+<p>​    操作的控制代码标识要执行的特定操作以及执行该操作的设备的类型。每个控制代码的文档都提供了lpInBuffer，nInBufferSize，lpOutBuffer和nOutBufferSize参数的使用细节。</p>
+<p>​    在驱动程序方面，DeviceIoControl对应于IRP_MJ_DEVICE_CONTROL的major function代码。我们将其添加到调度例程的初始化中：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6931.tmp.jpg" alt="img"> </p>
+<h5 id="客户端-驱动程序通信协议"><a href="#客户端-驱动程序通信协议" class="headerlink" title="客户端/驱动程序通信协议"></a>客户端/驱动程序通信协议</h5><p>​    前面提到我们需要ControlCode以及Inputbuffer（包括线程id以及设置的优先级）这些信息片段必须可由驱动程序和客户端同时使用。客户端将提供数据，而驱动程序将对其采取行动。这意味着这些定义必须包含在驱动程序和客户端代码必须包含的单独文件中。</p>
+<p>​    基于此我需要创建一个头文件，这个头文件需要定义驱动程序期望从客户端获得的数据结构和用于更改线程优先级的控制代码。（请注意为什么不用DWORD，因为该类型只在用户模式下定义，ULONG在用户以及内核模式下都有定义）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6932.tmp.jpg" alt="img"> </p>
+<p>​    ControlCode必须使用CTL_CODE宏构建，该宏接受组成最终ControlCode的四个参数。CTL_CODE的定义如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#define CTL_CODE( DeviceType, Function, Method, Access ) (</span><br><span class="line"></span><br><span class="line">((DeviceType) &lt;&lt; 16) | ((Access) &lt;&lt; 14) | ((Function) &lt;&lt; 2) | (Method))</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p><strong>DeviceType</strong>定义设备类型，可以是WDK头文件中的某个FILE_DEVICE_XXX常量，但是这个变量是针对于基于硬件的驱动程序。（我们的是基于软件的，尽管如此，微软的文档还是规定，第三方驱动程序应该从0x8000开始。</p>
+</li>
+<li><p><strong>Function</strong> 一个表示特定操作的升序数字。如果没有其他内容，那么这个数字在同一驱动程序的不同控制代码之间必须有所不同。同样，任何数字都可以，但官方文件显示，第三方驱动程序应该从0x800开始。</p>
+</li>
+<li><p><strong>Method</strong>  ControlCode中最重要的部分。它指示Client提供的输入和输出缓冲区如何传递给驱动程序。对于我们的驱动程序，我们将使用最简单的值METHOD_NEITHER。</p>
+</li>
+<li><p><strong>Access</strong> 指示此操作是来自FILE_WRITE_ACCESS、FILE_READ_ACCESS还是FILE_ANY_ACCESS。典型的驱动程序只使用FILE_ANY_ACCESS并处理IRP_MJ_DEVICE_CONTROL处理程序中的实际请求。</p>
+</li>
+</ul>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6933.tmp.jpg" alt="img"> </p>
+<h5 id="创建设备对象"><a href="#创建设备对象" class="headerlink" title="创建设备对象"></a>创建设备对象</h5><p>​    一个典型的软件驱动程序只需要一个设备对象，其中有一个符号链接指向它，这样用户模式客户端就可以获得句柄。用IoCreateDevice实现该功能。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6934.tmp.jpg" alt="img"> </p>
+<ul>
+<li><p><strong>DeviceExtensionSize</strong> 除了sizeof(DEVICE_OBJECT)之外，还将分配的额外字节。可用于将某些数据结构与设备相关联。它对于仅创建一个设备对象的软件驱动程序不那么有用，因为设备所需的状态可以简单地由全局变量来管理。</p>
+</li>
+<li><p><strong>Devicetype</strong> 与某些类型的基于硬件的驱动程序相关。对于软件驱动程序，应该使用值FILE_DEVICE_UNKNOWN。</p>
+</li>
+<li><p><strong>Exclusive</strong> 是否应该允许多个文件对象打开同一设备？大多数驱动程序应该指定false，但在某些情况下，TRUE更合适；它强制单个客户端到设备。</p>
+</li>
+<li><p><strong>DeviceObject</strong> 返回的指针，作为指针传递给一个指针。如果成功，Io创建device将从非页面池中分配结构，并将生成的指针存储在取消引用的参数中</p>
+</li>
+</ul>
+<p>​    在调用IoCreateDevice之前，我们必须创建一个UNICODE_STRING来保存内部设备的名称.</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6935.tmp.jpg" alt="img"> </p>
+<p>​    设备名称可以是任何东西，但是应该在设备对象管理器目录中。有两种方法可以用一个常量字符串来初始化一个UNICODE_STRING。第一个是使用<strong>RtlInitUnicodeString</strong>。但是RtlInitUnicode字符串必须计算字符串中的字符数，才能适当地初始化长度和最大长度。有一种更快的方法,使用<strong>RTL_CONSTANT_STRING宏</strong>，在编译时静态计算字符串的长度，这意味着它只能对常量字符串正确操作。</p>
+<p>​    如果一切顺利，我们现在有了一个指向设备对象的指针。下一步是通过提供一个符号链接，使用户模式调用者可以访问此设备对象。以下行创建符号链接并将其连接到我们的设备对象：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6936.tmp.jpg" alt="img"> </p>
+<p>​    IoCreateSymbolicLink通过接受符号链接和链接的目标来完成工作。注意，如果创建失败，我们必须通过调用IoDeleteDevice来撤销到这里我们所做的所有操作（目前我们只是创建了对象，所以删除就好了）。如果驱动器条目返回任何故障状态，则不调用卸载例程。如果我们有更多的初始化步骤要做，我们将必须记住在那之前撤销所有内容，直到出现失败。（第五章有更好的处理方式）</p>
+<p>​    符号链接这一步成功后，DriverEntry就返回成功，驱动程序就可以接受请求了。</p>
+<p>​    卸载程序：在我们的例子中，有两件事（设备对象创建和符号链接创建）。我们将按相反的顺序撤销它们：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6937.tmp.jpg" alt="img"> </p>
+<h5 id="客户端代码"><a href="#客户端代码" class="headerlink" title="客户端代码"></a>客户端代码</h5><p>​    客户端项目（控制台桌面项目）<strong>首先需要</strong>include由驱动端创建的头文件并且需要在主函数中接受命令行参数（线程ID和优先级），请求驱动程序将线程的优先级更改为给定的值。</p>
+<p>​    <strong>然后需要</strong>打开设备句柄（note:<strong>如果驱动程序此时没有加载，这意味着没有设备对象，也没有符号链接，我们将得到一个错误号2</strong>）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6938.tmp.jpg" alt="img"> </p>
+<p>​    打开设备对象后将参数传给ThreadData结构体，<strong>然后</strong>开始DeviceIoControl</p>
+<p>​    该函数主要调用IRP_MJ_DEVICE_CONTROL主函数例程到达驱动程序。</p>
+<h5 id="创建和关闭派遣函数"><a href="#创建和关闭派遣函数" class="headerlink" title="创建和关闭派遣函数"></a>创建和关闭派遣函数</h5><p>所需要的只需以一个成功的状态完成请求。以下是完整的创建/关闭调度例行程序实现，IoCompleteRequest函数的第一个参数是将IRP返回给它的创建者（通常是I/O manager）,第二个参数是驱动程序可以向其客户端提供的临时优先级提升值。在大多数情况下，零的值是最好的(IO_NO_INCREMENT被定义为零)，因为请求同步完成，因此调用者不必获得优先级提升。详细可见第六章</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6939.tmp.jpg" alt="img"> </p>
+<h5 id="DeviceToControl派遣函数"><a href="#DeviceToControl派遣函数" class="headerlink" title="DeviceToControl派遣函数"></a>DeviceToControl派遣函数</h5><p>这一部分是项目的核心工作，<strong>首先需要</strong>IRP信息，关键是查看与当前设备层相关联的IO_STACK_LOCATION内部。调用IoGetCurrentIrpStackLocation将返回一个指向正确的IO_STACK_LOCATION的指针。IO_STACK_LOCATION的主要组成部分是一个名为Parameters的巨大联合成员，它包含一组结构，每种类型的IRP都一个。在IRP_MJ_DEVICE_CONTROL的情况下，要看的结构是DeviceIoControl。在该结构中，我们可以找到客户端所传递的信息，如控制代码、缓冲区及其长度。在我们的例子中，实际上只有一个IO_STACK_LOCATION.</p>
+<p><strong>其次需要</strong>检查控制代码是否是驱动程序支持的，如果没有，我们只将状态设置为成功以外的东西，我们需要的最后一段通用代码是在switch块之后完善IRP，无论它是否成功。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps693A.tmp.jpg" alt="img"> </p>
+<p><strong>然后第一步</strong>是检查我们收到的缓冲区是否大到足以包含一个线程数据对象。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps693B.tmp.jpg" alt="img"> </p>
+<p><strong>接下来</strong>让我们看看优先级是否在1到31的范围内，如果没有，则中止：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps693C.tmp.jpg" alt="img"> </p>
+<p>设置优先级之前，<strong>我们需要</strong>获得内核空间中真是的线程对象的指针，用到PsLookupThreadByThreadId函数，通过线程Id获得（note:include ntfis.h）。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps693D.tmp.jpg" alt="img"> </p>
+<p>函数的第一个参数是一个句柄，这个ID它是一个作为句柄输入的ID。其原因与进程和线程id的生成方式有关。这些都是由全局私有内核句柄表生成的，所以句柄“值”是实际的id。ULongToHandle宏提供了必要的转换。（请记住，64位系统上的句柄是64位，但客户端提供的线程ID总是32位。）</p>
+<p>KeSetPriorityThread需要的参数是一个PKTHREAD，但是PETHREAD的第一个成员就是前者类型，所以两者可以相互转换</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps693E.tmp.jpg" alt="img"> </p>
+<h5 id="安装和测试"><a href="#安装和测试" class="headerlink" title="安装和测试"></a>安装和测试</h5><p><strong>1.管理员打开cmd</strong></p>
+<p>sc create booster type= kernel binPath= c:\PriorityBooster.sys</p>
+<p>booster是注册表键值，所以必须是独一无二的</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps693F.tmp.jpg" alt="img"> </p>
+<p><strong>2.加载驱动</strong></p>
+<p>sc start booster<strong>（note:生成文件后缀没有recipe只有sys）</strong></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6940.tmp.jpg" alt="img"> </p>
+<p>然后采用ProcessExplorer查看cmd.exe的一个线程，将其作为实践对象</p>
+<p><strong>3.使用线程ID和所需的优先级运行客户端：</strong></p>
+<p>booster 3384 25</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6951.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6952.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6953.tmp.jpg" alt="img"> </p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/07/16/Q_record/%E5%8F%8C%E6%9C%BA%E8%B0%83%E8%AF%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images/81193478873_avatar.png">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="临渊羡鱼，不如退而结网">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/07/16/Q_record/%E5%8F%8C%E6%9C%BA%E8%B0%83%E8%AF%95/" class="post-title-link" itemprop="url">双机调试</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-07-16 00:00:00" itemprop="dateCreated datePublished" datetime="2021-07-16T00:00:00+08:00">2021-07-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 11:33:26" itemprop="dateModified" datetime="2021-12-22T11:33:26+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%BC%80%E5%8F%91%E9%97%AE%E9%A2%98%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">开发问题笔记</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>611</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -322,7 +671,248 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h3 id="Chapter-2-Getting-Started-with-Kernel-Development"><a href="#Chapter-2-Getting-Started-with-Kernel-Development" class="headerlink" title="Chapter 2: Getting Started with Kernel Development"></a>Chapter 2: Getting Started with Kernel Development</h3><h4 id="1-编写驱动程序"><a href="#1-编写驱动程序" class="headerlink" title="1.编写驱动程序"></a>1.编写驱动程序</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp2/wps68FF.tmp.jpg" alt="img"> </p>
+          <h3 id="双机调试"><a href="#双机调试" class="headerlink" title="双机调试"></a>双机调试</h3><p>双机调试</p>
+<p>1.打开源代码文件a.cpp</p>
+<p>2.!process 0 0 进程名</p>
+<p>3.显示eprocess结构体地址，输命令 .process /i /r /p 地址</p>
+<p>4.g</p>
+<p>5..reload /user /f</p>
+<p>6.在cpp下断点，g</p>
+<p><strong>双机调试应用实例：</strong></p>
+<p>ps（调试的时候记得看microsoft file有没有文件；virtualKD：将target64复制到虚拟机，然后启动程序）</p>
+<p>首先虚拟机按f8关闭强制签名</p>
+<p>运行AutoRun.exe，然后在Windbg打开源代码文件，再break(注意这里打开的exe与cpp一定要是同一个文件)</p>
+<p>!process 0 0 进程名(显示进程名)</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/ProjectRecord2/wps6917.tmp.jpg" alt="img"> </p>
+<p>显示eprocess结构体地址，输命令 .process /i /r /p 地址，然后输入g继续运行，再.reload /user /f加载符号</p>
+<p>在cpp中下断点，断在CreateService函数的位置，一步一步调试到要到的位置，这个位置的选定要结合IDA，首先IDA打开CreateService的dll,下图中圈出来的前三个是该函数的开头字节码。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/ProjectRecord2/wps6918.tmp.jpg" alt="img"> </p>
+<p>下图是该函数的伪代码，调试发现函数进的是箭头指向的函数，所以直接动态调试进该函数，我们动态调试的目的是需要看该函数的第二个参数是什么。但是由于参数地址后面加了3090，所以在静态分析的时候不能准确判断。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/ProjectRecord2/wps6919.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/ProjectRecord2/wps691A.tmp.jpg" alt="img"> </p>
+<p>在windbg中动态调试查看第二个参数压入栈的寄存器的值，在IDA中找到该地址的值，就可以得到我们要的函数字节码</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/ProjectRecord2/wps691B.tmp.jpg" alt="img"> </p>
+<p>对比发现是4800h开头的值</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/ProjectRecord2/wps691C.tmp.jpg" alt="img"> </p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/07/06/wkp/Chapter%203%20Kernel%20Programming%20Basics/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images/81193478873_avatar.png">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="临渊羡鱼，不如退而结网">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/07/06/wkp/Chapter%203%20Kernel%20Programming%20Basics/" class="post-title-link" itemprop="url">Chapter 3 Kernel Programming Basics</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-07-06 00:00:00" itemprop="dateCreated datePublished" datetime="2021-07-06T00:00:00+08:00">2021-07-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 12:37:54" itemprop="dateModified" datetime="2021-12-22T12:37:54+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">驱动开发</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6901.tmp.jpg" alt="img"> </p>
+<h5 id="未处理的异常"><a href="#未处理的异常" class="headerlink" title="未处理的异常"></a>未处理的异常</h5><p>用户模式情况下会崩溃该进程，内核模式下会崩溃系统，导致蓝屏（实质上是一种保护机制，如果允许代码继续执行可能会造成一些不可逆转的损坏）。</p>
+<h5 id="终止"><a href="#终止" class="headerlink" title="终止"></a>终止</h5><p>进程会自动释放内存和资源，包括关闭句柄，没有资源泄露。而对于内核驱动来说，如果没有释放资源，这些资源不会被自动释放，只有在下一次系统启动时才能被释放。</p>
+<h5 id="函数返回值"><a href="#函数返回值" class="headerlink" title="函数返回值"></a>函数返回值</h5><p>要注意处理内核模式下的函数返回值，因为一些简单的API函数也有可能失败，失败造成的结果相比用户模式比较严重。</p>
+<h5 id="IRQL"><a href="#IRQL" class="headerlink" title="IRQL"></a>IRQL</h5><p>中断请求级别，当一个用户模式代码正在执行时，<strong>总是</strong>为0；内核模式下<strong>大部分时间</strong>为0.</p>
+<h5 id="C-使用"><a href="#C-使用" class="headerlink" title="C++使用"></a>C++使用</h5><p>C++作为一种语言几乎完全支持内核代码，C++的一个术语RAII(资源获取就是初始化)，是C++常用的管理资源、避免内存泄漏的方法，保证在任何情况下，使用对象是先构造对象，然后析构对象。但是在内核钟没有C++运行，所以<strong>一些C++特性不能被使用：</strong></p>
+<ul>
+<li><p>new和delete不被支持并且不会被编译，这是因为它们的正常操作是从用户模式堆中分配，这和内核无关。但是内核API会有替换函数，但是模仿的函数更类似malloc和free,</p>
+</li>
+<li><p>将不会调用具有非默认构造函数的全局变量，当然这些情况可以<strong>通过这些方式避免</strong>：<strong>避免使用构造函数中的任何代码，而是创建一些要从驱动程序代码中显式调用的Init函数</strong>；<strong>只将指针分配为全局变量，并动态地创建实际实例。编译器将生成正确的代码来调用构造函数。</strong></p>
+</li>
+<li><p>C++异常处理关键字（try,catch,throw）不进行编译。这是因为C++异常处理机制需要它自己的运行时，异常处理只能使用结构化异常处理(SEH)来完成——这是一种处理异常的内核机制</p>
+</li>
+<li><p>在内核中无法使用标准的C++库。</p>
+</li>
+</ul>
+<p>严格地说，驱动程序可以用纯C语编写，没有任何问题。如果您更喜欢使用该路由，请使用具有C扩展名的文件，而不是CPP，这将自动调用C编译器。</p>
+<h4 id="2-Debug与Release"><a href="#2-Debug与Release" class="headerlink" title="2.Debug与Release"></a>2.Debug与Release</h4><p>​    Debug默认不适用优化但是更易于调试。Release利用编译器优化来尽可能快地生成代码，在内核中是checked\Free.从编译角度看，内核调试定义符号DBG，并将其设置为1（用户模式定_DEBUG），这实际上是KdPrint宏所做的：在debug构建中，它编译为调用DbgPrint，而在Realse中，它什么都不编译，所以vKdPrint调用在Realse中没有影响。</p>
+<h4 id="3-内核API"><a href="#3-内核API" class="headerlink" title="3.内核API"></a>3.内核API</h4><p>​    内核驱动程序使用从内核组件导出的函数，大多数都是在内核模块本身(NtOskrnl.exe)中实现的，但有些功能可以由其他内核模块实现，比如HAL(hal.dll)。</p>
+<p>​    大多数函数都以实现该功能地组件前缀开头，比如Nt，Ex。</p>
+<p>​    如果内核驱动程序需要调用系统服务，则它不应该受到对用户模式调用者施加的相同的检查和约束。这就是Zw函数发挥作用的地方。调用Zw函数会将前面的调用者模式设置为KernelMode（0），然后调用本机函数。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6911.tmp.jpg" alt="img"> </p>
+<p>​    调用Zw函数将前一个调用者模式设置为KernelMode（0），然后调用本机函数。例如，调用ZwCreateFile将上一个调用方设置为kernelMode，然后调用NtCreateFile，从而使NtCreateFile绕过一些安全性和缓冲区检查，否则将执行这些检查。</p>
+<p>​    <strong>内核驱动都推荐用Zw，可以避免不必要的检查。</strong></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6912.tmp.jpg" alt="img"> </p>
+<h4 id="4-函数和错误代码"><a href="#4-函数和错误代码" class="headerlink" title="4.函数和错误代码"></a>4.函数和错误代码</h4><p>​    大多数内核API函数返回一个指示操作成功或失败的状态。这是一个类型NTSTATUS，一个有符号的32位整数。值STATUS_SUCCESS（0）表示成功，负值表示存在某种错误。</p>
+<p>​    大多数代码路径都不关心错误的确切性质，因此测试最重要的位就足够了。这可以通过NT_SUCCESS宏来完成。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6913.tmp.jpg" alt="img"> </p>
+<p>​    在某些情况下，NTSTATUS将从函数返回并最终到用户模式。在这些情况下，STATUS_xxx值将通过<strong>GetLastError</strong>函数转换为用户模式可用的某些ERROR_yyy值。请注意，这些都不是相同的数字。首先，用户模式下的错误代码具有正值，其次，该映射并不是一对一的。</p>
+<h4 id="5-字符串"><a href="#5-字符串" class="headerlink" title="5.字符串"></a>5.字符串</h4><p>​    _UNICODE_STRING，操作该结构通常用Rtl开头的函数。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6914.tmp.jpg" alt="img"> </p>
+<h4 id="6-动态分配内存"><a href="#6-动态分配内存" class="headerlink" title="6.动态分配内存"></a>6.动态分配内存</h4><p>​    驱动通常都需要动态分配内存，驱动一般提供两种内存池，</p>
+<p>​    分页池—如果需要，可以调出的内存池。</p>
+<p>​    非分页池—从不分页并保证保留在RAM中的内存池（慎用）</p>
+<p>​    某些函数中的tag参数允许用4字节值标记分配。通常，此值最多由4个ASCII字符组成，这些字符在逻辑上标识驱动程序或驱动程序的某些部分。这些标记可用于指示内存泄漏—如果在卸载驱动程序后仍保留任何带有驱动程序标记的分配。</p>
+<h4 id="7-链表"><a href="#7-链表" class="headerlink" title="7.链表"></a>7.链表</h4><p>​    系统上的所有进程都由EPROCESS结构管理，连接在一个循环的双链表中，它的头存储在内核变量PsActiveProcessHead中。</p>
+<p>​    CONTAINING_RECORD是一个宏，根据一个结构体变量成员的地址来获取该结构体变量的地址,成员变量的地址-成员变量和结构体首地址间的偏移量，就是结构体的首地址了。<br>​    CONTAINING_RECORD (entry, PDO_DEVICE_DATA, Link);<br>​    entry是一个PDO_DEVICE_DATA结构中Link成员的地址，表达式得到的是其所在结构体变量的地址。<br>​    LIST_ENTRY是一个链表节点成员，一些结构中会定义一个此类型的成员，以便把很多结构体变量连成一个链表。在自定义结构中，最好把链表节点成员定义在最前，这样该成员的地址就是结构体的地址，不需要这样转换。</p>
+<h4 id="8-驱动对象"><a href="#8-驱动对象" class="headerlink" title="8.驱动对象"></a>8.驱动对象</h4><p>​    Driver在启动时对Driver_Object初始化，MajorFunction指定驱动支持哪些操作比如读写创建等等，通常这些都需要IRP_MJ前缀以前的MajorFunction队列由内核初始化，一个驱动至少要有Creat和Close操作。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6915.tmp.jpg" alt="img"> </p>
+<h4 id="9-设备对象"><a href="#9-设备对象" class="headerlink" title="9.设备对象"></a>9.设备对象</h4><p>​    客户端与驱动程序对话的实际通信端点是<strong>设备对象</strong>，要与Driver_Object通信，必须创建一个DeviceObject与之连接，一个驱动对象可以有多个设备对象，以链表方式存在。</p>
+<p>​    CreateFile函数第一个参数是文件名，其实应该是驱动对象名。CreateFile的file其实意味着文件对象。打开一个文件或者设备句柄会创建内核结构FILE_OBJECT的实例。更准确地说，CreateFile接受一个<strong>符号链接</strong>（一个知道如何指向另外一个内核对象得内核对象。类似文件的快捷方式）。</p>
+<p>​    大部分的符号链接都在这个Global??目录里，指向设备目录下的内部设备名称。用户模式调用者不能直接访问此目录中的名称。但是内核调用者可以使用IoGetDevice对象指针API访问它们。</p>
+<p>​    驱动程序使用IoCreateDevice函数创建设备对象。此函数分配并初始化设备对象结构，并将其指针返回给调用者。设备对象实例存储在DRIVER_OBJECT结构的DeviceObject成员中。如果创建了多个设备对象，它们将形成一个单独的链接列表，其中DEVICE_OBJECT的成员NextDevice指向下一个设备对象。注意，设备对象插入到列表的顶部，因此创建的第一个设备对象最后存储；其NextDevice指向NULL。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6916.tmp.jpg" alt="img"> </p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/06/15/wkp/Chapter%202%20Getting%20Started%20with%20Kernel%20Development/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images/81193478873_avatar.png">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="临渊羡鱼，不如退而结网">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/06/15/wkp/Chapter%202%20Getting%20Started%20with%20Kernel%20Development/" class="post-title-link" itemprop="url">Chapter 2 Getting Started with Kernel Development</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-06-15 00:00:00" itemprop="dateCreated datePublished" datetime="2021-06-15T00:00:00+08:00">2021-06-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 12:57:22" itemprop="dateModified" datetime="2021-12-22T12:57:22+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">驱动开发</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>231</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="1-编写驱动程序"><a href="#1-编写驱动程序" class="headerlink" title="1.编写驱动程序"></a>1.编写驱动程序</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp2/wps68FF.tmp.jpg" alt="img"> </p>
 <h4 id="2-加载驱动"><a href="#2-加载驱动" class="headerlink" title="2.加载驱动"></a>2.加载驱动</h4><h5 id="创建服务"><a href="#创建服务" class="headerlink" title="创建服务"></a>创建服务</h5><p>sc create sample type= kernel binPath= c:\dev\sample\x64\debug\sample.sys</p>
 <p>查看注册表创建成功</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp2/wps6900.tmp.jpg" alt="img"> </p>
@@ -363,7 +953,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2021/06/10/wkp/Chapter%201%20Windows%20Internals%20Overview/" class="post-title-link" itemprop="url">Windows Kernel Programming读书笔记</a>
+            <a href="/2021/06/10/wkp/Chapter%201%20Windows%20Internals%20Overview/" class="post-title-link" itemprop="url">Chapter 1 Windows Internals Overview</a>
         </h2>
 
         <div class="post-meta">
@@ -380,7 +970,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-22 10:58:39" itemprop="dateModified" datetime="2021-12-22T10:58:39+08:00">2021-12-22</time>
+                <time title="修改时间：2021-12-22 12:38:10" itemprop="dateModified" datetime="2021-12-22T12:38:10+08:00">2021-12-22</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -398,7 +988,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>669</span>
+              <span>637</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -417,7 +1007,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h3 id="Chapter-1-Windows-Internals-Overview"><a href="#Chapter-1-Windows-Internals-Overview" class="headerlink" title="Chapter 1 Windows Internals Overview"></a>Chapter 1 Windows Internals Overview</h3><h4 id="1-进程"><a href="#1-进程" class="headerlink" title="1.进程"></a>1.进程</h4><p>​    包括可执行代码和数据、主Token、私有句柄表、私有虚拟地址空间、线程。</p>
+          <h4 id="1-进程"><a href="#1-进程" class="headerlink" title="1.进程"></a>1.进程</h4><p>​    包括可执行代码和数据、主Token、私有句柄表、私有虚拟地址空间、线程。</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp1/wps68FC.tmp.jpg" alt="img"> </p>
 <h4 id="2-虚拟内存"><a href="#2-虚拟内存" class="headerlink" title="2.虚拟内存"></a>2.虚拟内存</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp1/wps68FD.tmp.jpg" alt="img"> </p>
 <p>​    页：虚拟内存单元，通常4kb,大页2MB(\x64\x86\ARM64)、4MB(ARM),大页面一般用TLB.(状态：free、committed、reserved)</p>
@@ -464,7 +1054,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2021/06/08/Q_record/%E4%BC%AA%E8%A3%85%E6%88%90%E7%99%BD%E5%90%8D%E5%8D%95%E7%9A%84%E6%96%B9%E6%B3%95/" class="post-title-link" itemprop="url">编程遇见的堆栈问题</a>
+            <a href="/2021/06/08/Q_record/%E4%BC%AA%E8%A3%85%E6%88%90%E7%99%BD%E5%90%8D%E5%8D%95%E7%9A%84%E6%96%B9%E6%B3%95/" class="post-title-link" itemprop="url">伪装成白名单的方法</a>
         </h2>
 
         <div class="post-meta">
@@ -481,7 +1071,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-22 10:41:07" itemprop="dateModified" datetime="2021-12-22T10:41:07+08:00">2021-12-22</time>
+                <time title="修改时间：2021-12-22 11:33:02" itemprop="dateModified" datetime="2021-12-22T11:33:02+08:00">2021-12-22</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -827,7 +1417,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-count">20</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -840,7 +1430,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-count">25</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -884,12 +1474,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">21k</span>
+    <span title="站点总字数">37k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">19 分钟</span>
+    <span title="站点阅读时长">34 分钟</span>
 </div>
 
         

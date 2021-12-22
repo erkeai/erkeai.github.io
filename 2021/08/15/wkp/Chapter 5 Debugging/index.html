@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/function%20()%20%7B%0A%20%20%20%20%20%20for%20(var%20_len2%20=%20arguments.length,%20args%20=%20new%20Array(_len2),%20_key2%20=%200;%20_key2%20%3C%20_len2;%20_key2++)%20%7B%0A%20%20%20%20%20%20%20%20args%5B_key2%5D%20=%20arguments%5B_key2%5D;%0A%20%20%20%20%20%20%7D%0A%0A%20%20%20%20%20%20return%20obj%5Bval%5D.apply(obj,%20args);%0A%20%20%20%20%7D">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"erkeai.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Windows调试工具**主要简单介绍了Cdb、Ntsd、Kd、Windbg四个调试器，但是Windbg是唯一具有图形用户界面的调试器 Windbg介绍**Windbg主要有三种命令： 标准命令，这些命令被内置到调试器中，它们对正在调试的目标进行操作。 元命令，这些命令以“.”开始。它们操作调试过程本身，而不是直接操作被调试的目标。 Bang（扩展）命令，这些命令以“!”开头，提供了调试器的强大功">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Chapter 5 Debugging">
+<meta property="og:url" content="https://erkeai.github.io/2021/08/15/wkp/Chapter%205%20Debugging/index.html">
+<meta property="og:site_name" content="hazel&#39;blog">
+<meta property="og:description" content="Windows调试工具**主要简单介绍了Cdb、Ntsd、Kd、Windbg四个调试器，但是Windbg是唯一具有图形用户界面的调试器 Windbg介绍**Windbg主要有三种命令： 标准命令，这些命令被内置到调试器中，它们对正在调试的目标进行操作。 元命令，这些命令以“.”开始。它们操作调试过程本身，而不是直接操作被调试的目标。 Bang（扩展）命令，这些命令以“!”开头，提供了调试器的强大功">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6954.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6955.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6956.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6957.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6958.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6959.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps695A.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps695B.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps695C.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps695D.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps695E.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps695F.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6960.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6970.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6971.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6972.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6973.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6974.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6975.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6976.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6977.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6978.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6979.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps697A.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps697B.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps697C.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps697D.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps697E.tmp.jpg">
+<meta property="article:published_time" content="2021-08-14T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-12-22T04:51:26.091Z">
+<meta property="article:author" content="ZouFeIYu">
+<meta property="article:tag" content="windbg">
+<meta property="article:tag" content="内核调试">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6954.tmp.jpg">
+
+<link rel="canonical" href="https://erkeai.github.io/2021/08/15/wkp/Chapter%205%20Debugging/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Chapter 5 Debugging | hazel'blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">hazel'blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">25</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">5</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">20</span></a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/08/15/wkp/Chapter%205%20Debugging/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images/81193478873_avatar.png">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="临渊羡鱼，不如退而结网">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Chapter 5 Debugging
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-08-15 00:00:00" itemprop="dateCreated datePublished" datetime="2021-08-15T00:00:00+08:00">2021-08-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 12:51:26" itemprop="dateModified" datetime="2021-12-22T12:51:26+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">驱动开发</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="Windows调试工具"><a href="#Windows调试工具" class="headerlink" title="Windows调试工具**"></a>Windows调试工具**</h3><p>主要简单介绍了Cdb、Ntsd、Kd、Windbg四个调试器，但是Windbg是唯一具有图形用户界面的调试器</p>
+<h3 id="Windbg介绍"><a href="#Windbg介绍" class="headerlink" title="Windbg介绍**"></a>Windbg介绍**</h3><p>Windbg主要有三种命令：</p>
+<p>标准命令，这些命令被内置到调试器中，它们对正在调试的目标进行操作。</p>
+<p>元命令，这些命令以“.”开始。它们操作调试过程本身，而不是直接操作被调试的目标。</p>
+<p>Bang（扩展）命令，这些命令以“!”开头，提供了调试器的强大功能。所有的扩展命令都是在扩展dll中实现的。默认情况下，调试器加载一组预定义的扩展dll，但可以从调试器目录或其他源加载其他dll.</p>
+<p><strong>Note:不用双击内核调试直接本地打开即可</strong></p>
+<p>因为目前windbg正在调试内核，调试器不在notepad.exe进程上下文中，为了达到目的，需要枚举系统中的进程并切换到notepad.exe</p>
+<p>！process 0 0       //枚举所有进程</p>
+<p>.process /i /r /p       //切换到进程</p>
+<p> kernel调试时windbg并不会加载用户态dll，但是切换到指定进程后可以加载用户态调试符号，如下：</p>
+<p>.reload /user /f</p>
+<h3 id="线程介绍"><a href="#线程介绍" class="headerlink" title="线程介绍"></a>线程介绍</h3><p>输入命令 k显示当前线程堆栈，带有符号的地址的一般格式是“模块名！函数名+偏移量”。该偏移量是可选的，如果它恰好是这个函数的开始，则可以为零。</p>
+<p>命令  ~ns表示切换线程</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6954.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6955.tmp.jpg" alt="img"> </p>
+<p>进程ID显示为十六进制，输入下面的命令可以将其转化为十进制，与任务管理器对比发现是正确的</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6956.tmp.jpg" alt="img"> </p>
+<p>也可以在十进制前加个前缀“0n”这样可以得到十六进制的结果</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6957.tmp.jpg" alt="img"> </p>
+<p>显示当前活动的线程</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6958.tmp.jpg" alt="img"> </p>
+<p>显示当前线程的teb(线程环境块)，该命令显示的是幕后真实的结构，可以用dt命令查看实际结构</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6959.tmp.jpg" alt="img"> </p>
+<p>以下只显示了部分信息</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps695A.tmp.jpg" alt="img"> </p>
+<p>我们可以点击查看NtTib</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps695B.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps695C.tmp.jpg" alt="img"> </p>
+<h4 id="断点"><a href="#断点" class="headerlink" title="断点"></a>断点</h4><p>下个断点</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps695D.tmp.jpg" alt="img"> </p>
+<p>可以用bl命令查看断点，e表示启用，d表示禁用</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps695E.tmp.jpg" alt="img"> </p>
+<p>因为下了断点，所以我们打开文件的时候windbg会断在这里</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps695F.tmp.jpg" alt="img"> </p>
+<p>我们现在可以看看调用堆栈是什么样的</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6960.tmp.jpg" alt="img"> </p>
+<p>如果想知道正在打开的是什么文件。我们可以根据CreateFileW函数的调用约定来获得这些信息。由于这是一个64位进程(处理器是Intel/AMD)，调用约定声明第一个整数/指针参数在RCX、RDX、R8和R9寄存器中传递。由于CreateFileW中的文件名是第一个参数，因此相关的寄存器是RCX。我们用命令r rcx查看寄存器，紧接着用 db 地址查看指向的内存，但是因为字符是ASCII所以看起来不是很方便，我们用 du 地址查看Unicode地址</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6970.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6971.tmp.jpg" alt="img"> </p>
+<p>如果不想用地址，也可以在寄存器前面加“@”</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6972.tmp.jpg" alt="img"> </p>
+<p>再下一个断点</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6973.tmp.jpg" alt="img"> </p>
+<p>u（unassemble）命令列出即将执行的8条指令，注意该值0x55已被复制到EAX寄存器中。这是NtCreateFile的系统服务编号，如第1章所述。所示的系统所有指令是导致转换到内核，然后执行NtCreateFile系统服务本身的指令。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6974.tmp.jpg" alt="img"> </p>
+<p>可以用指令p(f10)单步运行，也可以用t(f11)步入函数中，单步执行到ret后，我们要知道在x64调用约定中，函数的返回值存储在EAX或RAX中。对于系统调用，它是一个无状态，所以EAX包含了返回的状态：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6975.tmp.jpg" alt="img"> </p>
+<p>下一个NtWriteFile的断点，然后修改文件在保存的时候会断下来，紧接着用k查看调用堆栈</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6976.tmp.jpg" alt="img"> </p>
+<p>用u指令查看到，8 是NtWriteFile系统服务编号</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6977.tmp.jpg" alt="img"> </p>
+<h3 id="本地内核调试"><a href="#本地内核调试" class="headerlink" title="本地内核调试"></a>本地内核调试</h3><p>本地内核调试（LKD）与内核调试的区别就是无法下断点，只能看见系统当前运行状态。</p>
+<p>按照书上的步骤，先在管理员权限下的cmd输入命令</p>
+<p>bcdedit /debug on</p>
+<p>然后重启系统，以管理员身份打开windbg，选择attach to kernel，然后选择Local，点击ok</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6978.tmp.jpg" alt="img"> </p>
+<h3 id="本地内核调试详细教程"><a href="#本地内核调试详细教程" class="headerlink" title="本地内核调试详细教程"></a>本地内核调试详细教程</h3><p>​    输入!process 0 0显示如下<img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6979.tmp.jpg" alt="img">    输入.reload同样没用，按照他的提示输入命令!sym noisy，然后输入.reload，同时查看一下符号路径是否正确。最后得到现在的进程情况</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps697A.tmp.jpg" alt="img"> </p>
+<p>PROCESS后的是进程的EPROCESS地址（内核空间）；</p>
+<p>SessionId表示进程所处的会话；</p>
+<p>Cid是独一无二的进程ID(Client ID);</p>
+<p>Peb是进程环境块(PEB)的地址，这个地址在用户空间中；</p>
+<p>ParentCid是Parent Client ID）父进程的进程ID。注意，父进程可能不再存在，并且可以重用此ID；</p>
+<p>DirBase是该进程的Master Page Directory的物理地址，用作虚拟地址转换的基础。在x64上，这被称为Pagr Map Level 4，在x86上，它是Page Directory Pointer Table(PDPT);</p>
+<p>ObjectTable是指向进程的私有句柄表的指针；</p>
+<p>HandleCount是进程的句柄数；</p>
+<p>Image是可执行文件名或者是对于那些与可执行文件没有关联的程序的特殊进程名称（exp: Secure System,system）。</p>
+<p>!process命令至少接受两个参数，第一个参数用EPROCESS地址表示感兴趣的进程，0表示所有进程。第二个参数是所需的详细信息级别，其中零表示最少的详细信息量（一个位掩码）。可以添加第三个参数来搜索特定的可执行文件。    列出所有正在运行的csrss.exe。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps697B.tmp.jpg" alt="img"> </p>
+<p>可以通过指定地址以及更高级别的详细信息来列出相关进程的详细信息</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps697C.tmp.jpg" alt="img"> </p>
+<p>其余的命令等到具体用到的时候再一一查阅</p>
+<h3 id="内核驱动程序调试教程"><a href="#内核驱动程序调试教程" class="headerlink" title="内核驱动程序调试教程"></a>内核驱动程序调试教程</h3><p>我们调试在第四章写好的驱动程序，首先安装驱动，但是不能加载，因为加载就会进入驱动入口。（我们需要在入口下一个断点。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps697D.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps697E.tmp.jpg" alt="img"> </p>
+<p>具体的调试过程其实和平时双机调试程序的时候差不多，因为这部分已经熟悉就不详细写了。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/windbg/" rel="tag"># windbg</a>
+              <a href="/tags/%E5%86%85%E6%A0%B8%E8%B0%83%E8%AF%95/" rel="tag"># 内核调试</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/08/11/reverse/Reverse1/" rel="prev" title="buuctf_reverse">
+      <i class="fa fa-chevron-left"></i> buuctf_reverse
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/08/31/reverse/2019%E7%BA%A2%E5%B8%BD%E6%9D%AFEasyRE/" rel="next" title="buuctf_2019红帽杯EasyRe">
+      buuctf_2019红帽杯EasyRe <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Windows%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7"><span class="nav-number">1.</span> <span class="nav-text">Windows调试工具**</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Windbg%E4%BB%8B%E7%BB%8D"><span class="nav-number">2.</span> <span class="nav-text">Windbg介绍**</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E4%BB%8B%E7%BB%8D"><span class="nav-number">3.</span> <span class="nav-text">线程介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%AD%E7%82%B9"><span class="nav-number">3.1.</span> <span class="nav-text">断点</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%AC%E5%9C%B0%E5%86%85%E6%A0%B8%E8%B0%83%E8%AF%95"><span class="nav-number">4.</span> <span class="nav-text">本地内核调试</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%AC%E5%9C%B0%E5%86%85%E6%A0%B8%E8%B0%83%E8%AF%95%E8%AF%A6%E7%BB%86%E6%95%99%E7%A8%8B"><span class="nav-number">5.</span> <span class="nav-text">本地内核调试详细教程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E6%A0%B8%E9%A9%B1%E5%8A%A8%E7%A8%8B%E5%BA%8F%E8%B0%83%E8%AF%95%E6%95%99%E7%A8%8B"><span class="nav-number">6.</span> <span class="nav-text">内核驱动程序调试教程</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ZouFeIYu"
+      src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images/81193478873_avatar.png">
+  <p class="site-author-name" itemprop="name">ZouFeIYu</p>
+  <div class="site-description" itemprop="description">临渊羡鱼，不如退而结网</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/erkeai" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;erkeai" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:563783592@qq.com" title="E-Mail → mailto:563783592@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-feather"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ZouFeIYu</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">37k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">34 分钟</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

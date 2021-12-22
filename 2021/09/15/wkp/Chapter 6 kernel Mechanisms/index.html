@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/function%20()%20%7B%0A%20%20%20%20%20%20for%20(var%20_len2%20=%20arguments.length,%20args%20=%20new%20Array(_len2),%20_key2%20=%200;%20_key2%20%3C%20_len2;%20_key2++)%20%7B%0A%20%20%20%20%20%20%20%20args%5B_key2%5D%20=%20arguments%5B_key2%5D;%0A%20%20%20%20%20%20%7D%0A%0A%20%20%20%20%20%20return%20obj%5Bval%5D.apply(obj,%20args);%0A%20%20%20%20%7D">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"erkeai.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="中断请求级别（IRQL）前面提到了线程和线程的优先级，当想要执行的线程比可用的处理器更多时，就会考虑到这些优先级。同时，硬件设备需要通知系统有什么事情需要注意。一个简单的例子是由磁盘驱动器执行的I&#x2F;O操作。一旦操作完成，磁盘驱动器将通过请求中断来通知完成。此中断连接到中断控制器硬件，该硬件随后将请求发送到处理器进行处理。下一个问题是，哪个线程应该执行关联的中断服务例程(ISR)？ 每个硬件中断都与">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Chapter 6 kernel Mechanisms">
+<meta property="og:url" content="https://erkeai.github.io/2021/09/15/wkp/Chapter%206%20kernel%20Mechanisms/index.html">
+<meta property="og:site_name" content="hazel&#39;blog">
+<meta property="og:description" content="中断请求级别（IRQL）前面提到了线程和线程的优先级，当想要执行的线程比可用的处理器更多时，就会考虑到这些优先级。同时，硬件设备需要通知系统有什么事情需要注意。一个简单的例子是由磁盘驱动器执行的I&#x2F;O操作。一旦操作完成，磁盘驱动器将通过请求中断来通知完成。此中断连接到中断控制器硬件，该硬件随后将请求发送到处理器进行处理。下一个问题是，哪个线程应该执行关联的中断服务例程(ISR)？ 每个硬件中断都与">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps697F.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6980.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6991.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6992.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6993.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6994.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6995.tmp.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6996.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6997.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6998.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6999.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps699A.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps699B.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps699C.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps699D.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps699E.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps69AF.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps69B0.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps69B1.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps69B2.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps69B3.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps69B4.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps69B5.tmp.jpg">
+<meta property="article:published_time" content="2021-09-14T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-12-22T04:56:32.631Z">
+<meta property="article:author" content="ZouFeIYu">
+<meta property="article:tag" content="内核机制">
+<meta property="article:tag" content="SEH">
+<meta property="article:tag" content="IRQL">
+<meta property="article:tag" content="互斥体">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps697F.tmp.jpg">
+
+<link rel="canonical" href="https://erkeai.github.io/2021/09/15/wkp/Chapter%206%20kernel%20Mechanisms/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Chapter 6 kernel Mechanisms | hazel'blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">hazel'blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">25</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">5</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">20</span></a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/09/15/wkp/Chapter%206%20kernel%20Mechanisms/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images/81193478873_avatar.png">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="临渊羡鱼，不如退而结网">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Chapter 6 kernel Mechanisms
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-09-15 00:00:00" itemprop="dateCreated datePublished" datetime="2021-09-15T00:00:00+08:00">2021-09-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 12:56:32" itemprop="dateModified" datetime="2021-12-22T12:56:32+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">驱动开发</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>8.9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>8 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="中断请求级别（IRQL）"><a href="#中断请求级别（IRQL）" class="headerlink" title="中断请求级别（IRQL）"></a>中断请求级别（IRQL）</h3><p>前面提到了线程和线程的优先级，当想要执行的线程比可用的处理器更多时，就会考虑到这些优先级。同时，硬件设备需要通知系统有什么事情需要注意。一个简单的例子是由磁盘驱动器执行的I/O操作。一旦操作完成，磁盘驱动器将通过请求中断来通知完成。此中断连接到中断控制器硬件，该硬件随后将请求发送到处理器进行处理。下一个问题是，哪个线程应该执行关联的中断服务例程(ISR)？</p>
+<p>每个硬件中断都与一个优先级相关，称为中断请求级(IRQL)。每个处理器的上下文都有自己的IRQL，就像任何寄存器一样。IRQL应该像任何其他CPU寄存器一样被处理。</p>
+<p>其基本规则是，处理器要执行具有最高IRQL的代码。例如，如果一个CPU的IRQL在某个点为零，并且会出现一个相关IRQL为5的中断；将其状态（上下文）保存在当前线程的内核堆栈中，将其IRQL提升到5，然后执行与中断关联的ISR；一旦ISR完成，IRQL将降到它以前的级别，恢复之前执行的代码，就好像中断不存在一样。当ISR正在执行时，其他IRQL为5或更少的中断不能中断该处理器。但是，如果新中断的IRQL高于5，CPU将再次保存其状态，将IRQL提升到新级别，执行与第二个中断相关的第二个ISR，完成后，将回落到IRQL5，恢复其状态并继续执行原始ISR。本质上，只是暂时提高与IRQL相等或较低的IRQL块代码。中断发生时事件的基本序列。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps697F.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6980.tmp.jpg" alt="img"> </p>
+<p>上面两个图描述的场景种，所有ISR的执行都是由首先被中断的同一线程完成的。Windows没有一个特殊的线程来处理中断；它们都由当时在被中断的处理器上运行的任何线程来处理。当处理器的IRQL为2或更高时，上下文切换是不可能的，所以在这些ISR执行时，其他线程无法偷偷溜进来。</p>
+<p>下面有一些重要的IRQL:</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6991.tmp.jpg" alt="img"> </p>
+<p>其中Device IRQL用于硬件中断的一系列级别（x64/ARM/ARM64为3至11，x86为3至26）。最高级别HIGH_LEVEL被处理链表操作的一些API所使用。实际值分别为15（x64/ARM/ARM64）和31（x86）。</p>
+<p>当处理器的IRQL被提高到2或更高时，都会对执行代码施加某些限制：</p>
+<p>访问非物理内存中的内存是致命的，会导致系统崩溃。这意味着从非分页池访问数据总是安全的，而从分页池或用户提供的缓冲区访问数据则不安全，应该避免。</p>
+<p>等待任何调度程序内核对象（例如互斥锁或事件）会导致系统崩溃，除非等待超时为零，这仍然是允许的。</p>
+<h4 id="提升或降低IRQL"><a href="#提升或降低IRQL" class="headerlink" title="提升或降低IRQL"></a>提升或降低IRQL</h4><p>在内核模式下，IRQL可以用KeRaiseIrql函数来提高，然后用KeLowerIrql来降低。下面是一个代码片段，它将IRQL提升到DISPATCH_LEVEL（2），然后在这个IRQL上执行一些指令后将其降低回来。(**note:**如果您提高了IRQL，请确保您在相同的函数中降低了它。此外，确保KeRaiseIrql实际上提高了IRQL，KeLowerIrql实际上降低了它；否则，系统就会崩溃。)</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6992.tmp.jpg" alt="img"> </p>
+<h4 id="线程优先级vsIRQL"><a href="#线程优先级vsIRQL" class="headerlink" title="线程优先级vsIRQL"></a>线程优先级vsIRQL</h4><p>IRQL是一个处理器的一个属性。优先级是一个线程的一个属性。线程优先级仅在IRQL&lt;2上有意义。一旦一个正在执行的线程将IRQL提高到2或更高，它的优先级就不再意味着任何东西。理论上它将继续执行，直到它将IRQL降低到2以下。</p>
+<h4 id="延迟过程调用"><a href="#延迟过程调用" class="headerlink" title="延迟过程调用"></a>延迟过程调用</h4><p>延迟过程调用(DPC)是[Windows](<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/Microsoft">https://baike.baidu.com/item/Microsoft</a> Windows/3304184)的机制，允许高优先级任务如中断处理程序延迟所需的低优先级任务稍后执行。这使得<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E7%A8%8B%E5%BA%8F/310766">设备驱动程序</a>与其他低层事件消费者更快地执行其处理的高优先级部分，调度非关键的附件处理稍后以较低优先级执行。</p>
+<p>用一个实例说明一下</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6993.tmp.jpg" alt="img"> </p>
+<p>用户模式线程将打开一个文件的句柄，并使用ReadFile函数执行读取操作。由于该线程可以进行异步调用，因此它几乎会立即恢复控制，并可以执行其他工作。接收此请求的驱动程序调用文件系统驱动程序(例如NTFS)，它可以调用它下面的其他驱动程序，直到请求到达磁盘驱动程序，该驱动程序在实际的磁盘硬件上启动操作。</p>
+<p>当硬件完成读取操作时，它会发出一个中断。这将导致与该中断相关联的ISR在Device IRQL上执行（请注意，处理该请求的线程是任意的，因为该中断是异步到达的）。一个典型的ISR会访问设备的硬件，以获得操作的结果。它的最后操作应该是完成最初的请求。</p>
+<p>完成请求是通过调用IoCompleteRequest。但是有一个问题是该函数只能在IRQL&lt;= DISPATCH_LEVEL(2)的情况下被调用，这一位置ISR不能调用该函数，那么ISR做什么呢？</p>
+<p>允许ISR尽快调用IoCompleteRequest（以及其他具有类似限制的函数）的机制是<strong>延迟过程调用(DPC)。DPC是一个用于封装函数的对象，封装的函数函数在IRQL DISPATCH_LEVEL调用。</strong>在这个IRQL中，允许调用IoCompleteRequest。</p>
+<p>DPC是通过DPC对象实现的。当设备驱动程序或其他内核态程序发出DPC请求时，操作系统内核创建DPC对象，投寄到DPC队列尾部。当Windows操作系统的<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/IRQL">IRQL</a>降低到Dispatch/DPC级，操作系统检查DPC队列，逐个执行挂起的DPC，直至队列为空或者发生IRQL更高的中断。</p>
+<p>注册了ISR的驱动程序提前准备了一个DPC(从非分页池分配KDPC结构，并使用回调函数KeInitializeDpc初始化它)；然后，当调用ISR时，就在退出该函数之前，ISR请求DPC通过KeInsertQueueDpc排队来尽快执行它。当DPC函数执行时，它会调用IoCompleteRequest。所以DPC作为一种妥协——它运行在IRQL DISPATCH_LEVEL(2)上，这意味着不会发生调度，没有分页内存访问，等等。</p>
+<p>Note:默认情况下，KeInsertQueueDpc将DPC排队到当前处理器的DPC队列。<strong>当ISR返回时</strong>，在IRQL可以降回到零之前，将检查在处理器的队列中是否存在DPC。如果有，处理器下降到IRQLDISPATCH_LEVEL（2），然后以FirstInFirstOut(FIFO)的方式处理队列中的DPC，调用各自的函数，直到队列为空。只有这样，处理器的IRQL才能降至零，并恢复执行在中断到达时被干扰的原始代码。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6994.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6995.tmp.png" alt="img"> </p>
+<h4 id="异步过程调用"><a href="#异步过程调用" class="headerlink" title="异步过程调用"></a>异步过程调用</h4><p>APCs也是封装要调用的函数的数据结构，但是与DPC相反，APC的目标是特定的线程，因此只有该线程才能执行该函数。这意味着每个线程都有一个与其关联的APC队列。</p>
+<p>有几种类型的APC:</p>
+<p>用户模式APCs:只有当线程进入可警报状态时，这些操作才会在IRQLPASSIVE_LEVEL的用户模式下执行。这通常是通过调用一个API来实现的，如SleepEx,WaitForSingleObjectEx, WaitForMultipleObjectsEx和类似的API。可以将这些函数的最后一个参数设置为TRUE，以使线程处于可警报状态（等待状态）。在这种状态下，它会查看它的APC队列，如果不是空的，则APC执行，直到队列为空。</p>
+<p>正常的内核模式APCs:这些操作在IRQL PASSIVE_LEVEL的内核模式下执行，抢占用户模式代码和用户模式APCs。</p>
+<p>特殊的内核APCs：这些操作在IRQLAPC_LEVEL（1）的内核模式下执行，并抢占用户模式代码、普通内核APCs和用户模式APCs。输入/输出系统使用这些APCs来完成输入/输出操作。</p>
+<h5 id="Critical-Regions-and-Guarded-Regions"><a href="#Critical-Regions-and-Guarded-Regions" class="headerlink" title="Critical Regions and Guarded Regions"></a>Critical Regions and Guarded Regions</h5><p>Critical Region阻止用户模式和正常的内核APC执行（特殊的内核APC仍然可以执行）。线程通过KeEnterCriticalRegion\KeLeaveCriticalRegion进入\离开一个关键区域。内核中的一些函数需要在一个关键区域内，特别是在使用执行资源时（请参阅本章后面的“执行资源”一节）。</p>
+<p>Guarded Region可阻止所有APCs的执行。线程通过KeEnterGuardedRegion\KeLeaveGuardedRegion进入\离开一个保护区域。两个函数调用数量必须相同。</p>
+<p>note:将IRQL提高到APC_LEVEL将禁用所有apc的交付。</p>
+<h3 id="结构化异常处理（SEH）"><a href="#结构化异常处理（SEH）" class="headerlink" title="结构化异常处理（SEH）"></a>结构化异常处理（SEH）</h3><p>异常与中断有些相似，主要的区别是异常是同步的，并且在技术上具有可重复性。如果发生异常，内核会捕获此异常，并允许如有可能的代码处理异常。这种机制称为**结构化异常处理(SEH)**，可用于用户模式代码和内核模式代码。</p>
+<p>内核异常处理程序是基于**中断调度表(IDT)**调用的，该表还支持中断向量和ISR之间的映射。</p>
+<p>常见的异常：</p>
+<p>Division by zero (0) ;</p>
+<p>Breakpoint (3):内核透明地处理它，将控制件传递给附加的调试器;</p>
+<p>Invalid opcode (6):如果CPU遇到未知指令，则会引发此故障;</p>
+<p>Pagefault(14):如果用于将虚拟地址转换为物理地址的页面表条目将有效位设置为零，这表示(就CPU而言)该页面没有驻留在物理内存中，则CPU会引发此故障。</p>
+<p>由于以前的CPU故障，内核还引发了其他一些异常。例如，如果引发了页面故障，则内存管理器的页面故障处理程序将尝试找到未驻留在RAM中的页面—如果该页面根本不存在，则内存管理器将引发访问冲突异常—一旦引发异常，内核将为处理程序搜索发生异常的函数（除了它透明处理的一些异常，如断点（3））—如果没有找到，它将向上搜索<strong>调用堆栈</strong>，直到找到这样的处理程序—如果调用堆栈已耗尽，则系统将会崩溃。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6996.tmp.jpg" alt="img"> </p>
+<h4 id="try-except"><a href="#try-except" class="headerlink" title="__try/__except"></a>__try/__except</h4><p>下图是关于第四章的读取用户模式缓冲区的部分，如果因为缓冲区没有数据这样的错误，造成系统崩溃就不好了。Except中的EXCEPTION_EXECUTE_HANDLER表明任何一场都会被处理，也可以调用GetExceptionCode函数查看实际的异常，如果不能，可以告诉内核继续寻找调用堆栈上的处理程序：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6997.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6998.tmp.jpg" alt="img"> </p>
+<p>非法访问是只有当被禁止访问的地址在用户空间中时才能被捕获。如果它位于内核空间中，那么它将不会被捕获，并且仍然会导致系统崩溃。这应该是有意义的，因为已经发生了一些不好的事情，而且内核不会让驱动程序侥幸逃脱惩罚。另一方面，用户模式地址不受驱动程序的控制，因此可以捕获和处理这种异常。</p>
+<p>驱动程序（和用户模式代码）也可以使用SEH机制来抛出自定义异常。内核提供了泛型函数ExRaiseStatus，以引发任何异常和一些特定的函数如ExRaiseAccessViolation。</p>
+<h4 id="try-finally"><a href="#try-finally" class="headerlink" title="__try/__finally"></a>__try/__finally</h4><p>这是关于确保某些代码无论如何都能执行——代码是干净地退出还是由于异常而中途退出。SEH的异常结束处理模型主要由try-finally语句来完成。终止处理就是保证应用程序在一段被保护的代码发生中断后（无论是异常还是其他）还能够执行清理工作，清理工作包括关闭文件、清理内存等。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6999.tmp.jpg" alt="img"> </p>
+<p>如上面的例子，如果在分配和释放之间由return语句或者有异常，那么资源将不会被释放，这个时候就需要用到__try/__finally，确保能执行释放操作。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps699A.tmp.jpg" alt="img"> </p>
+<p>这样的话即使__try结构中有return语句，也会在__finally区块调用完再返回。如果发生异常，__finally块首先运行，然后内核在调用堆栈中搜索处理程序。</p>
+<h4 id="用c-RAII替代-try-finally"><a href="#用c-RAII替代-try-finally" class="headerlink" title="用c++ RAII替代__try/__finally"></a>用c++ RAII替代__try/__finally</h4><p>RAII（资源获取就是初始化），是C++语言的一种管理资源、避免泄漏的惯用法。C++标准保证任何情况下，已构造的对象最终会销毁，即它的析构函数最终会被调用。</p>
+<h4 id="系统崩溃"><a href="#系统崩溃" class="headerlink" title="系统崩溃"></a>系统崩溃</h4><p>我们已经知道，如果在内核模式下发生未处理的异常，系统就会崩溃，通常是“死亡蓝屏”。在本节中，我们将讨论当系统崩溃时会发生什么，以及如何处理它。</p>
+<p>BSOD是一种保护机制，如果泵应该被信任的内核代码做了一些无法预料的坏事，那么停止一切，避免一些重要的文件或者注册表项损坏，是最安全的方法。</p>
+<p>如果系统崩溃，则可以将事件条目写入事件日志。<strong>最重要的设置是生成转储文件。</strong>转储文件会捕获崩溃时的系统状态，因此以后可以通过将转储文件加载到调试器中来进行分析。转储不是在崩溃时写入目标文件的，而是写入第一页文件的。只有当系统重新启动内核时，当系统注意到页面文件中存在转储信息时，它才会将数据复制到目标文件中。其原因与在系统崩溃时，将某些东西写入一个新文件可能太危险有关；系统可能不够稳定。最好的办法是将数据写入已经以任何方式打开的页面文件。缺点是，页面文件必须足够大，才能包含转储，否则将不会写入转储文件。内存转储主要有：小内存转储、内核内存转储、完整内存转储</p>
+<p>、自动内存转储、灵活内存转储（win10+：这类似于一个完整的内存转储，除了如果崩溃的系统托管客户虚拟机，它们当时使用的内存不会被捕获。这有助于减少可能托管许多虚拟机的服务器系统上的转储文件大小。）</p>
+<h5 id="崩溃dump信息"><a href="#崩溃dump信息" class="headerlink" title="崩溃dump信息"></a>崩溃dump信息</h5><p>一旦您有了崩溃转储，您可以通过选择文件/打开转储文件并导航到该文件，在WinDbg中打开它。</p>
+<h5 id="分析一个dump文件"><a href="#分析一个dump文件" class="headerlink" title="分析一个dump文件"></a>分析一个dump文件</h5><p>~ns命令用来切换处理器，!running列出崩溃时在所有处理器上运行的线程,添加-t作为一个选项，将显示每个线程的调用堆栈。</p>
+<p>!stacks命令列出了所有线程的所有线程堆栈。一个更有用的变体是一个搜索字符串，它只列出了包含该字符串的模块或函数出现的线程。这允许在整个系统中定位驱动程序的代码（因为它在崩溃时可能还没有运行，但它在某些线程的调用堆栈上）。</p>
+<h4 id="系统挂起"><a href="#系统挂起" class="headerlink" title="系统挂起"></a>系统挂起</h4><p>系统崩溃是通常被调查的最常见的转储类型。但是，您可能需要使用另一种类型的转储文件：一个挂起的系统。一个挂起的系统是一个无响应的或接近无响应的系统。事情似乎在某种程度上被停止或被锁定——系统不会崩溃，所以我们要处理的第一个问题是如何转储系统？</p>
+<p>Note：转储文件包含某些系统状态，它不必与崩溃或任何其他坏状态相关。有一些工具（包括内核调试器）可以随时生成转储文件。</p>
+<h5 id="线程同步"><a href="#线程同步" class="headerlink" title="线程同步"></a>线程同步</h5><p>一个比较好的例子是一个驱动用链接列表去收集数据列表，因为该驱动程序可以被来自一个或多个进程中的多个线程的多个客户端调用，所以对于数据的访问操作涉及到了线程之间的同步互锁操作。</p>
+<h5 id="互锁操作"><a href="#互锁操作" class="headerlink" title="互锁操作"></a>互锁操作</h5><p>互锁函数集提供了利用硬件原子执行的方便操作，这意味着不涉及软件对象。如果使用这些函数可以完成工作，那么应该使用它们，因为它们可以尽可能有效。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps699B.tmp.jpg" alt="img"> </p>
+<h5 id="调度对象"><a href="#调度对象" class="headerlink" title="调度对象"></a>调度对象</h5><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps699C.tmp.jpg" alt="img"> </p>
+<p>Objects：指定要等待的对象。请注意，这些函数适用于对象，而不是句柄。如果您有一个句柄（可能由用户模式提供），请调用对象对象句柄以获取指向该对象的指针。</p>
+<p>WaitReason：等待原因的列表很长，但是驱动程序通常应该将其设置为Executive，除非它因为用户请求而等待，如果是这样，请指定UserRequest。</p>
+<p>WaitMode：大多数驱动程序应该指定KernelMode。</p>
+<p>Alertable：指示线程是否处于可警报状态。可警报状态允许传递用户模式异步过程调用(APC)。如果等待模式为用户模式，则可以交付用户模式apc。大多数驱动程序都应该指定false。</p>
+<p>Timeout：指定要等待的时间。如果指定了NULL，等待是无限的，只要对象成为信号。</p>
+<p>Count：要等待运行的对象数。</p>
+<p>Object[]：要等待的对象指针数组。</p>
+<p>WaitType：指定是等待所有对象同时发出信号(WaitAll)还是仅等待一个对象(WaitAny)。</p>
+<p>WaitBlockArray：内部用于管理等待操作的结构数组。如果对象的数量是&lt;=THREAD_WAIT_OBJECTS（当前为3），那么这是可选的——内核将使用每个线程中存在的内置数组。如果对象数量较高，驱动程序必须从非分页池中分配正确的结构大小，并在等待结束后解除它们。</p>
+<p>KeWaitForSingleObject返回值：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps699D.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps699E.tmp.jpg" alt="img"> </p>
+<h5 id="Mutex"><a href="#Mutex" class="headerlink" title="Mutex"></a>Mutex</h5><p>互斥锁是许多可以随时访问共享资源的一个线程中的一个典型问题的经典对象。互斥锁在空闲时就会发出信号。一旦线程调用等待函数并满足等待，互斥锁就会变成无信号，线程就会成为互斥锁的所有者。</p>
+<p>Note： 如果线程是互斥的所有者，它是唯一可以释放互斥的线程。</p>
+<p>互斥锁可以通过同一线程多次获取。第二次尝试会自动成功，因为该线程是互斥锁的当前所有者。这也意味着线程需要以它所获得的相同的次数来释放互斥锁；只有这样，互斥锁才会再次获得自由（发出信号）。</p>
+<p>使用互斥锁需要从非页面池中分配一个KMUTEX结构。</p>
+<p>KeInitializeMutex必须调用一次初始化mutex；</p>
+<p>等待函数之一传递已分配的KMUTEX结构的地址；</p>
+<p>KeReleaseMutex：当作为互斥锁的所有者的一个线程想要释放它时，就会调用它。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps69AF.tmp.jpg" alt="img"> </p>
+<p>因为无论什么时候释放互斥锁都很重要，所以最好使用__tay/__finally，更方便的方式是c++的RAII。</p>
+<h5 id="Fast-Mutex"><a href="#Fast-Mutex" class="headerlink" title="Fast Mutex"></a>Fast Mutex</h5><p>快速互斥体是典型的互斥锁的替代品，提供更好的性能。它不是一个调度对象，所以它有自己的获取和释放互斥锁的API。<strong>只能用于内核模式。</strong>与常规的互斥锁相比，它具有以下特征：</p>
+<p>不能递归地获取一个Fast Mutex，这样做会导致死锁；</p>
+<p>当获得Fast Mutex时，CPU IRQL被提升到APC_LEVEL（1），这将阻止任何APC传递到该线程；</p>
+<p>Fast Mutex只能无限期地等待-没有办法指定超时。</p>
+<p>Fast Mutex比常规Mutex速度稍快。<strong>事实上，大多数需要互斥锁的驱动程序使用</strong>Fast Mutex<strong>，除非有令人信服的理由使用常规</strong>Mutex.</p>
+<p>结构体：FAST_MUTEX，函数：ExInitializeFastMutex、ExAcquireFastMutex、ExAcquireFastMutexUnsafe、ExReleaseFastMutex、ExReleaseFastMutexUnsafe。</p>
+<h5 id="信号量"><a href="#信号量" class="headerlink" title="信号量"></a>信号量</h5><p>通常KeInitializeSemaphore初始化为最大值，当值大于零时，信号量为有信号。</p>
+<h5 id="事件"><a href="#事件" class="headerlink" title="事件"></a>事件</h5><p>事件主要分为两种：需要手动重置的以及自动重置的。</p>
+<p>通知事件（手动重置）—设置此事件时，将释放任意数量的等待线程，并且事件状态保持设置（信号），直到明确重置。</p>
+<p>同步事件（自动重置）—设置此事件时，最多释放一个线程（无论有多少线程等待事件），一旦释放，事件将自动返回重置（无信号）状态。</p>
+<p>操作和用户模式雷同，不过函数需要加Ke前缀。</p>
+<h5 id="执行资源"><a href="#执行资源" class="headerlink" title="执行资源"></a>执行资源</h5><p>互斥锁虽然保证的资源不被破坏，但是是以牺牲并发性为代价，遇上只需要进行读取的线程操作，这样效率就降低了很多。</p>
+<p>内核提供了另一个面向此场景的同步原语，称为单个写入器、多个阅读器。此对象是<strong>执行资源</strong>，它是另一个特殊对象，它不是调度程序对象。</p>
+<p>结构：ERESOURCE</p>
+<p>函数：ExInitializeResourceLite、ExAcquireResourceExclusiveLite、ExAcquireResourceSharedLite、ExReleaseResourceLite</p>
+<p>要用acquire以及release函数需要禁用正常的内核APCs。Acquire之前可以调用KeEnterCtriticalRegion，释放之后可以用KeLeaveCtriticalRegion.</p>
+<h5 id="High-IRQL-同步"><a href="#High-IRQL-同步" class="headerlink" title="High IRQL 同步"></a>High IRQL 同步</h5><p>线程在有些情况下是不能等待的，特别是，当处理器的IRQL是DISPATCH_LEVEL(2或者更高)。</p>
+<p>当只有一个CPU时，可以如下图操作，但是现实情况往往不止一个CPU</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps69B0.tmp.jpg" alt="img"> </p>
+<p>如果一个CPU的IRQL提高到2，如果一个DPC需要执行，它可能会干扰另一个IRQL可能为零的CPU。在这种情况下，这两个函数可能同时执行，访问共享资源。</p>
+<p>为了解决上述问题，需要像互斥锁这样的东西，但它可以在处理器之间同步，而不是线程。这是因为当CPU的IRQL为2或更高时，线程本身就会失去了意义，因为调度程序不能在该CPU上工作。这种对象实际上确实存在，即 Spin Lock。</p>
+<h5 id="Spin-Lock"><a href="#Spin-Lock" class="headerlink" title="Spin Lock"></a>Spin Lock</h5><p>自旋锁是内存中的一个简单位，它通过API提供原子测试和修改操作。当一个CPU试图获得一个旋转锁，但它目前并未被释放，CPU继续在旋转锁上旋转，忙着等待它被另一个CPU释放(记住，使线程进入等待状态不能在IRQL DISPATCH_LEVEL或更高的地方完成)。</p>
+<p>在前面说的场景中，需要分配和初始化一个自旋锁。每个需要访问共享数据的函数都需要将IRQL提高到2（如果还没有），获取自旋锁，对共享数据执行工作，最后释放自旋锁并降低IRQL（如果适用；不适用于DPC）。</p>
+<p>结构：KSPIN_LOCK</p>
+<p>函数：KeInitializeSpinLock</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps69B1.tmp.jpg" alt="img"> </p>
+<p>获取自旋锁总是一个分两步进行的过程：首先，将IRQL提高到适当的级别，这是任何试图同步访问共享资源的函数的最高级别。在前面的示例中，此关联的IRQL为2。第二，获取旋转锁。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps69B2.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps69B3.tmp.jpg" alt="img"> </p>
+<h5 id="Work-Items"><a href="#Work-Items" class="headerlink" title="Work Items"></a>Work Items</h5><p>work items是用来描述系统线程池的函数的术语。驱动程序可以分配和初始化工作项，指向驱动程序希望执行的函数，然后工作项可以排队到池中。这与DPC非常相似，主要的区别是工作项总是在IRQLPASSIVE_LEVEL上执行，这意味着该机制可以用于从在IRQL2上运行的函数在IRQL0上执行操作。例如，如果DPC例程需要执行IRQL2中不允许的操作（例如打开文件），那么它可以使用工作项来执行这些操作。</p>
+<p>内核提供了两个函数允许驱动创建线程：PsCreateSystemThread、</p>
+<p>IoCreateSystemThread。</p>
+<p>函数IoAllocateWorkItem初始化工作项，函数会返回一个指向不透明的IO_WORKITEM指针。完成后必须用IoFreeWorkItem释放。</p>
+<p>如果需要动态地分配相应大小的IO_WORITEM，使用IoSizeofWorkItem，然后调用IoInitializeWorkItem，完成后用IoUninitializeWorkItem.</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps69B4.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps69B5.tmp.jpg" alt="img"> </p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%86%85%E6%A0%B8%E6%9C%BA%E5%88%B6/" rel="tag"># 内核机制</a>
+              <a href="/tags/SEH/" rel="tag"># SEH</a>
+              <a href="/tags/IRQL/" rel="tag"># IRQL</a>
+              <a href="/tags/%E4%BA%92%E6%96%A5%E4%BD%93/" rel="tag"># 互斥体</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/09/09/reverse/joker1/" rel="prev" title="buuctf_joker">
+      <i class="fa fa-chevron-left"></i> buuctf_joker
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/10/11/reverse/Maze/" rel="next" title="buuctf_Maze">
+      buuctf_Maze <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%AD%E6%96%AD%E8%AF%B7%E6%B1%82%E7%BA%A7%E5%88%AB%EF%BC%88IRQL%EF%BC%89"><span class="nav-number">1.</span> <span class="nav-text">中断请求级别（IRQL）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8F%90%E5%8D%87%E6%88%96%E9%99%8D%E4%BD%8EIRQL"><span class="nav-number">1.1.</span> <span class="nav-text">提升或降低IRQL</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E4%BC%98%E5%85%88%E7%BA%A7vsIRQL"><span class="nav-number">1.2.</span> <span class="nav-text">线程优先级vsIRQL</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BB%B6%E8%BF%9F%E8%BF%87%E7%A8%8B%E8%B0%83%E7%94%A8"><span class="nav-number">1.3.</span> <span class="nav-text">延迟过程调用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%82%E6%AD%A5%E8%BF%87%E7%A8%8B%E8%B0%83%E7%94%A8"><span class="nav-number">1.4.</span> <span class="nav-text">异步过程调用</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Critical-Regions-and-Guarded-Regions"><span class="nav-number">1.4.1.</span> <span class="nav-text">Critical Regions and Guarded Regions</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E6%9E%84%E5%8C%96%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%EF%BC%88SEH%EF%BC%89"><span class="nav-number">2.</span> <span class="nav-text">结构化异常处理（SEH）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#try-except"><span class="nav-number">2.1.</span> <span class="nav-text">__try&#x2F;__except</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#try-finally"><span class="nav-number">2.2.</span> <span class="nav-text">__try&#x2F;__finally</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%94%A8c-RAII%E6%9B%BF%E4%BB%A3-try-finally"><span class="nav-number">2.3.</span> <span class="nav-text">用c++ RAII替代__try&#x2F;__finally</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E5%B4%A9%E6%BA%83"><span class="nav-number">2.4.</span> <span class="nav-text">系统崩溃</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%B4%A9%E6%BA%83dump%E4%BF%A1%E6%81%AF"><span class="nav-number">2.4.1.</span> <span class="nav-text">崩溃dump信息</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%88%86%E6%9E%90%E4%B8%80%E4%B8%AAdump%E6%96%87%E4%BB%B6"><span class="nav-number">2.4.2.</span> <span class="nav-text">分析一个dump文件</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E6%8C%82%E8%B5%B7"><span class="nav-number">2.5.</span> <span class="nav-text">系统挂起</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E5%90%8C%E6%AD%A5"><span class="nav-number">2.5.1.</span> <span class="nav-text">线程同步</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BA%92%E9%94%81%E6%93%8D%E4%BD%9C"><span class="nav-number">2.5.2.</span> <span class="nav-text">互锁操作</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%B0%83%E5%BA%A6%E5%AF%B9%E8%B1%A1"><span class="nav-number">2.5.3.</span> <span class="nav-text">调度对象</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Mutex"><span class="nav-number">2.5.4.</span> <span class="nav-text">Mutex</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Fast-Mutex"><span class="nav-number">2.5.5.</span> <span class="nav-text">Fast Mutex</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BF%A1%E5%8F%B7%E9%87%8F"><span class="nav-number">2.5.6.</span> <span class="nav-text">信号量</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BA%8B%E4%BB%B6"><span class="nav-number">2.5.7.</span> <span class="nav-text">事件</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E8%B5%84%E6%BA%90"><span class="nav-number">2.5.8.</span> <span class="nav-text">执行资源</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#High-IRQL-%E5%90%8C%E6%AD%A5"><span class="nav-number">2.5.9.</span> <span class="nav-text">High IRQL 同步</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Spin-Lock"><span class="nav-number">2.5.10.</span> <span class="nav-text">Spin Lock</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Work-Items"><span class="nav-number">2.5.11.</span> <span class="nav-text">Work Items</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ZouFeIYu"
+      src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images/81193478873_avatar.png">
+  <p class="site-author-name" itemprop="name">ZouFeIYu</p>
+  <div class="site-description" itemprop="description">临渊羡鱼，不如退而结网</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/erkeai" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;erkeai" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:563783592@qq.com" title="E-Mail → mailto:563783592@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-feather"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ZouFeIYu</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">37k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">34 分钟</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

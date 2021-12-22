@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/function%20()%20%7B%0A%20%20%20%20%20%20for%20(var%20_len2%20=%20arguments.length,%20args%20=%20new%20Array(_len2),%20_key2%20=%200;%20_key2%20%3C%20_len2;%20_key2++)%20%7B%0A%20%20%20%20%20%20%20%20args%5B_key2%5D%20=%20arguments%5B_key2%5D;%0A%20%20%20%20%20%20%7D%0A%0A%20%20%20%20%20%20return%20obj%5Bval%5D.apply(obj,%20args);%0A%20%20%20%20%7D">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"erkeai.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="未处理的异常用户模式情况下会崩溃该进程，内核模式下会崩溃系统，导致蓝屏（实质上是一种保护机制，如果允许代码继续执行可能会造成一些不可逆转的损坏）。 终止进程会自动释放内存和资源，包括关闭句柄，没有资源泄露。而对于内核驱动来说，如果没有释放资源，这些资源不会被自动释放，只有在下一次系统启动时才能被释放。 函数返回值要注意处理内核模式下的函数返回值，因为一些简单的API函数也有可能失败，失败造成的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Chapter 3 Kernel Programming Basics">
+<meta property="og:url" content="https://erkeai.github.io/2021/07/06/wkp/Chapter%203%20Kernel%20Programming%20Basics/index.html">
+<meta property="og:site_name" content="hazel&#39;blog">
+<meta property="og:description" content="未处理的异常用户模式情况下会崩溃该进程，内核模式下会崩溃系统，导致蓝屏（实质上是一种保护机制，如果允许代码继续执行可能会造成一些不可逆转的损坏）。 终止进程会自动释放内存和资源，包括关闭句柄，没有资源泄露。而对于内核驱动来说，如果没有释放资源，这些资源不会被自动释放，只有在下一次系统启动时才能被释放。 函数返回值要注意处理内核模式下的函数返回值，因为一些简单的API函数也有可能失败，失败造成的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6901.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6911.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6912.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6913.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6914.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6915.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6916.tmp.jpg">
+<meta property="article:published_time" content="2021-07-05T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-12-22T04:37:54.191Z">
+<meta property="article:author" content="ZouFeIYu">
+<meta property="article:tag" content="内核模式与用户模式">
+<meta property="article:tag" content="内核API">
+<meta property="article:tag" content="Driver&amp;Device Object">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6901.tmp.jpg">
+
+<link rel="canonical" href="https://erkeai.github.io/2021/07/06/wkp/Chapter%203%20Kernel%20Programming%20Basics/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Chapter 3 Kernel Programming Basics | hazel'blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">hazel'blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">25</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">5</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">20</span></a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/07/06/wkp/Chapter%203%20Kernel%20Programming%20Basics/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images/81193478873_avatar.png">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="临渊羡鱼，不如退而结网">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Chapter 3 Kernel Programming Basics
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-07-06 00:00:00" itemprop="dateCreated datePublished" datetime="2021-07-06T00:00:00+08:00">2021-07-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 12:37:54" itemprop="dateModified" datetime="2021-12-22T12:37:54+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">驱动开发</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6901.tmp.jpg" alt="img"> </p>
+<h5 id="未处理的异常"><a href="#未处理的异常" class="headerlink" title="未处理的异常"></a>未处理的异常</h5><p>用户模式情况下会崩溃该进程，内核模式下会崩溃系统，导致蓝屏（实质上是一种保护机制，如果允许代码继续执行可能会造成一些不可逆转的损坏）。</p>
+<h5 id="终止"><a href="#终止" class="headerlink" title="终止"></a>终止</h5><p>进程会自动释放内存和资源，包括关闭句柄，没有资源泄露。而对于内核驱动来说，如果没有释放资源，这些资源不会被自动释放，只有在下一次系统启动时才能被释放。</p>
+<h5 id="函数返回值"><a href="#函数返回值" class="headerlink" title="函数返回值"></a>函数返回值</h5><p>要注意处理内核模式下的函数返回值，因为一些简单的API函数也有可能失败，失败造成的结果相比用户模式比较严重。</p>
+<h5 id="IRQL"><a href="#IRQL" class="headerlink" title="IRQL"></a>IRQL</h5><p>中断请求级别，当一个用户模式代码正在执行时，<strong>总是</strong>为0；内核模式下<strong>大部分时间</strong>为0.</p>
+<h5 id="C-使用"><a href="#C-使用" class="headerlink" title="C++使用"></a>C++使用</h5><p>C++作为一种语言几乎完全支持内核代码，C++的一个术语RAII(资源获取就是初始化)，是C++常用的管理资源、避免内存泄漏的方法，保证在任何情况下，使用对象是先构造对象，然后析构对象。但是在内核钟没有C++运行，所以<strong>一些C++特性不能被使用：</strong></p>
+<ul>
+<li><p>new和delete不被支持并且不会被编译，这是因为它们的正常操作是从用户模式堆中分配，这和内核无关。但是内核API会有替换函数，但是模仿的函数更类似malloc和free,</p>
+</li>
+<li><p>将不会调用具有非默认构造函数的全局变量，当然这些情况可以<strong>通过这些方式避免</strong>：<strong>避免使用构造函数中的任何代码，而是创建一些要从驱动程序代码中显式调用的Init函数</strong>；<strong>只将指针分配为全局变量，并动态地创建实际实例。编译器将生成正确的代码来调用构造函数。</strong></p>
+</li>
+<li><p>C++异常处理关键字（try,catch,throw）不进行编译。这是因为C++异常处理机制需要它自己的运行时，异常处理只能使用结构化异常处理(SEH)来完成——这是一种处理异常的内核机制</p>
+</li>
+<li><p>在内核中无法使用标准的C++库。</p>
+</li>
+</ul>
+<p>严格地说，驱动程序可以用纯C语编写，没有任何问题。如果您更喜欢使用该路由，请使用具有C扩展名的文件，而不是CPP，这将自动调用C编译器。</p>
+<h4 id="2-Debug与Release"><a href="#2-Debug与Release" class="headerlink" title="2.Debug与Release"></a>2.Debug与Release</h4><p>​    Debug默认不适用优化但是更易于调试。Release利用编译器优化来尽可能快地生成代码，在内核中是checked\Free.从编译角度看，内核调试定义符号DBG，并将其设置为1（用户模式定_DEBUG），这实际上是KdPrint宏所做的：在debug构建中，它编译为调用DbgPrint，而在Realse中，它什么都不编译，所以vKdPrint调用在Realse中没有影响。</p>
+<h4 id="3-内核API"><a href="#3-内核API" class="headerlink" title="3.内核API"></a>3.内核API</h4><p>​    内核驱动程序使用从内核组件导出的函数，大多数都是在内核模块本身(NtOskrnl.exe)中实现的，但有些功能可以由其他内核模块实现，比如HAL(hal.dll)。</p>
+<p>​    大多数函数都以实现该功能地组件前缀开头，比如Nt，Ex。</p>
+<p>​    如果内核驱动程序需要调用系统服务，则它不应该受到对用户模式调用者施加的相同的检查和约束。这就是Zw函数发挥作用的地方。调用Zw函数会将前面的调用者模式设置为KernelMode（0），然后调用本机函数。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6911.tmp.jpg" alt="img"> </p>
+<p>​    调用Zw函数将前一个调用者模式设置为KernelMode（0），然后调用本机函数。例如，调用ZwCreateFile将上一个调用方设置为kernelMode，然后调用NtCreateFile，从而使NtCreateFile绕过一些安全性和缓冲区检查，否则将执行这些检查。</p>
+<p>​    <strong>内核驱动都推荐用Zw，可以避免不必要的检查。</strong></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6912.tmp.jpg" alt="img"> </p>
+<h4 id="4-函数和错误代码"><a href="#4-函数和错误代码" class="headerlink" title="4.函数和错误代码"></a>4.函数和错误代码</h4><p>​    大多数内核API函数返回一个指示操作成功或失败的状态。这是一个类型NTSTATUS，一个有符号的32位整数。值STATUS_SUCCESS（0）表示成功，负值表示存在某种错误。</p>
+<p>​    大多数代码路径都不关心错误的确切性质，因此测试最重要的位就足够了。这可以通过NT_SUCCESS宏来完成。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6913.tmp.jpg" alt="img"> </p>
+<p>​    在某些情况下，NTSTATUS将从函数返回并最终到用户模式。在这些情况下，STATUS_xxx值将通过<strong>GetLastError</strong>函数转换为用户模式可用的某些ERROR_yyy值。请注意，这些都不是相同的数字。首先，用户模式下的错误代码具有正值，其次，该映射并不是一对一的。</p>
+<h4 id="5-字符串"><a href="#5-字符串" class="headerlink" title="5.字符串"></a>5.字符串</h4><p>​    _UNICODE_STRING，操作该结构通常用Rtl开头的函数。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6914.tmp.jpg" alt="img"> </p>
+<h4 id="6-动态分配内存"><a href="#6-动态分配内存" class="headerlink" title="6.动态分配内存"></a>6.动态分配内存</h4><p>​    驱动通常都需要动态分配内存，驱动一般提供两种内存池，</p>
+<p>​    分页池—如果需要，可以调出的内存池。</p>
+<p>​    非分页池—从不分页并保证保留在RAM中的内存池（慎用）</p>
+<p>​    某些函数中的tag参数允许用4字节值标记分配。通常，此值最多由4个ASCII字符组成，这些字符在逻辑上标识驱动程序或驱动程序的某些部分。这些标记可用于指示内存泄漏—如果在卸载驱动程序后仍保留任何带有驱动程序标记的分配。</p>
+<h4 id="7-链表"><a href="#7-链表" class="headerlink" title="7.链表"></a>7.链表</h4><p>​    系统上的所有进程都由EPROCESS结构管理，连接在一个循环的双链表中，它的头存储在内核变量PsActiveProcessHead中。</p>
+<p>​    CONTAINING_RECORD是一个宏，根据一个结构体变量成员的地址来获取该结构体变量的地址,成员变量的地址-成员变量和结构体首地址间的偏移量，就是结构体的首地址了。<br>​    CONTAINING_RECORD (entry, PDO_DEVICE_DATA, Link);<br>​    entry是一个PDO_DEVICE_DATA结构中Link成员的地址，表达式得到的是其所在结构体变量的地址。<br>​    LIST_ENTRY是一个链表节点成员，一些结构中会定义一个此类型的成员，以便把很多结构体变量连成一个链表。在自定义结构中，最好把链表节点成员定义在最前，这样该成员的地址就是结构体的地址，不需要这样转换。</p>
+<h4 id="8-驱动对象"><a href="#8-驱动对象" class="headerlink" title="8.驱动对象"></a>8.驱动对象</h4><p>​    Driver在启动时对Driver_Object初始化，MajorFunction指定驱动支持哪些操作比如读写创建等等，通常这些都需要IRP_MJ前缀以前的MajorFunction队列由内核初始化，一个驱动至少要有Creat和Close操作。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6915.tmp.jpg" alt="img"> </p>
+<h4 id="9-设备对象"><a href="#9-设备对象" class="headerlink" title="9.设备对象"></a>9.设备对象</h4><p>​    客户端与驱动程序对话的实际通信端点是<strong>设备对象</strong>，要与Driver_Object通信，必须创建一个DeviceObject与之连接，一个驱动对象可以有多个设备对象，以链表方式存在。</p>
+<p>​    CreateFile函数第一个参数是文件名，其实应该是驱动对象名。CreateFile的file其实意味着文件对象。打开一个文件或者设备句柄会创建内核结构FILE_OBJECT的实例。更准确地说，CreateFile接受一个<strong>符号链接</strong>（一个知道如何指向另外一个内核对象得内核对象。类似文件的快捷方式）。</p>
+<p>​    大部分的符号链接都在这个Global??目录里，指向设备目录下的内部设备名称。用户模式调用者不能直接访问此目录中的名称。但是内核调用者可以使用IoGetDevice对象指针API访问它们。</p>
+<p>​    驱动程序使用IoCreateDevice函数创建设备对象。此函数分配并初始化设备对象结构，并将其指针返回给调用者。设备对象实例存储在DRIVER_OBJECT结构的DeviceObject成员中。如果创建了多个设备对象，它们将形成一个单独的链接列表，其中DEVICE_OBJECT的成员NextDevice指向下一个设备对象。注意，设备对象插入到列表的顶部，因此创建的第一个设备对象最后存储；其NextDevice指向NULL。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6916.tmp.jpg" alt="img"> </p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%86%85%E6%A0%B8%E6%A8%A1%E5%BC%8F%E4%B8%8E%E7%94%A8%E6%88%B7%E6%A8%A1%E5%BC%8F/" rel="tag"># 内核模式与用户模式</a>
+              <a href="/tags/%E5%86%85%E6%A0%B8API/" rel="tag"># 内核API</a>
+              <a href="/tags/Driver-Device-Object/" rel="tag"># Driver&Device Object</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/06/15/wkp/Chapter%202%20Getting%20Started%20with%20Kernel%20Development/" rel="prev" title="Chapter 2 Getting Started with Kernel Development">
+      <i class="fa fa-chevron-left"></i> Chapter 2 Getting Started with Kernel Development
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/07/16/Q_record/%E5%8F%8C%E6%9C%BA%E8%B0%83%E8%AF%95/" rel="next" title="双机调试">
+      双机调试 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%9C%AA%E5%A4%84%E7%90%86%E7%9A%84%E5%BC%82%E5%B8%B8"><span class="nav-number">1.</span> <span class="nav-text">未处理的异常</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%BB%88%E6%AD%A2"><span class="nav-number">2.</span> <span class="nav-text">终止</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E8%BF%94%E5%9B%9E%E5%80%BC"><span class="nav-number">3.</span> <span class="nav-text">函数返回值</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#IRQL"><span class="nav-number">4.</span> <span class="nav-text">IRQL</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#C-%E4%BD%BF%E7%94%A8"><span class="nav-number">5.</span> <span class="nav-text">C++使用</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-Debug%E4%B8%8ERelease"><span class="nav-number"></span> <span class="nav-text">2.Debug与Release</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E5%86%85%E6%A0%B8API"><span class="nav-number"></span> <span class="nav-text">3.内核API</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E5%87%BD%E6%95%B0%E5%92%8C%E9%94%99%E8%AF%AF%E4%BB%A3%E7%A0%81"><span class="nav-number"></span> <span class="nav-text">4.函数和错误代码</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="nav-number"></span> <span class="nav-text">5.字符串</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-%E5%8A%A8%E6%80%81%E5%88%86%E9%85%8D%E5%86%85%E5%AD%98"><span class="nav-number"></span> <span class="nav-text">6.动态分配内存</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#7-%E9%93%BE%E8%A1%A8"><span class="nav-number"></span> <span class="nav-text">7.链表</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#8-%E9%A9%B1%E5%8A%A8%E5%AF%B9%E8%B1%A1"><span class="nav-number"></span> <span class="nav-text">8.驱动对象</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#9-%E8%AE%BE%E5%A4%87%E5%AF%B9%E8%B1%A1"><span class="nav-number"></span> <span class="nav-text">9.设备对象</span></a></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ZouFeIYu"
+      src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images/81193478873_avatar.png">
+  <p class="site-author-name" itemprop="name">ZouFeIYu</p>
+  <div class="site-description" itemprop="description">临渊羡鱼，不如退而结网</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/erkeai" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;erkeai" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:563783592@qq.com" title="E-Mail → mailto:563783592@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-feather"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ZouFeIYu</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">37k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">34 分钟</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
