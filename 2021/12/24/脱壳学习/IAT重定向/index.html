@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.ico">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"erkeai.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="这章的内容主要是bitarts 5.0和telock0.98两款壳。 bitarts 5.0先将bitarts5.0拖进OD，可以看到和之前的两个壳不一样，并不是先pushad保存寄存器环境，我们F7往下走。  ​    走到PUAHAD处，按下F7，采用ESP定律等方法都不可，应该是和操作系统有关系，所以拖到了win7里面调试，采用OD自带的查找OEP的方式，断在了OEP处，但是需要修复一下数据">
+<meta property="og:type" content="article">
+<meta property="og:title" content="IAT重定向与修复">
+<meta property="og:url" content="https://erkeai.github.io/2021/12/24/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/IAT%E9%87%8D%E5%AE%9A%E5%90%91/index.html">
+<meta property="og:site_name" content="hazel&#39;blog">
+<meta property="og:description" content="这章的内容主要是bitarts 5.0和telock0.98两款壳。 bitarts 5.0先将bitarts5.0拖进OD，可以看到和之前的两个壳不一样，并不是先pushad保存寄存器环境，我们F7往下走。  ​    走到PUAHAD处，按下F7，采用ESP定律等方法都不可，应该是和操作系统有关系，所以拖到了win7里面调试，采用OD自带的查找OEP的方式，断在了OEP处，但是需要修复一下数据">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223102532879.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223144802823.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223152555356.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223155551633.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223161949175.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223164757546.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223172235665.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223191515908.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223192433842.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223192623695.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223192657530.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223192904468.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223193154146.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223193815875.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223194112602.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211224095817640.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211224103006040.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211224110457224.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211224111008728.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211224111227673.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wpsE4F3.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wpsE4F4.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wpsE4F5.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wpsE4F6.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wpsE4F7.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wpsE4F8.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wpsE508.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wpsE509.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211224141249340.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211224142331061.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211224144740642.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211224145814528.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211224151926378.png">
+<meta property="article:published_time" content="2021-12-23T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-12-24T07:26:59.675Z">
+<meta property="article:author" content="ZouFeIYu">
+<meta property="article:tag" content="IAT重定向">
+<meta property="article:tag" content="IAT修复">
+<meta property="article:tag" content="关键跳法">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223102532879.png">
+
+<link rel="canonical" href="https://erkeai.github.io/2021/12/24/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/IAT%E9%87%8D%E5%AE%9A%E5%90%91/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>IAT重定向与修复 | hazel'blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">hazel'blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">38</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">7</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">32</span></a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/12/24/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/IAT%E9%87%8D%E5%AE%9A%E5%90%91/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          IAT重定向与修复
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-12-24 00:00:00 / 修改时间：15:26:59" itemprop="dateCreated datePublished" datetime="2021-12-24T00:00:00+08:00">2021-12-24</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">脱壳学习</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>这章的内容主要是bitarts 5.0和telock0.98两款壳。</p>
+<h4 id="bitarts-5-0"><a href="#bitarts-5-0" class="headerlink" title="bitarts 5.0"></a>bitarts 5.0</h4><p>先将bitarts5.0拖进OD，可以看到和之前的两个壳不一样，并不是先pushad保存寄存器环境，我们F7往下走。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223102532879.png" alt="image-20211223102532879"></p>
+<p>​    走到PUAHAD处，按下F7，采用ESP定律等方法都不可，应该是和操作系统有关系，所以拖到了win7里面调试，采用OD自带的查找OEP的方式，断在了OEP处，但是需要修复一下数据：analysis-&gt; analysis code</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223144802823.png" alt="image-20211223144802823"></p>
+<p>看一下这个函数属于的dll，在数据区段不同的dll函数用00隔开</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223152555356.png" alt="image-20211223152555356"></p>
+<p>直接拉到底部标红的地方是最后一个IAT项，右键find references</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223155551633.png" alt="image-20211223155551633"></p>
+<p>后面的内容就不是IAT的内容了（可以右键find reference试一下，是空的)，所以IAT结束地址是460F28,往上拉我们可以看到80000008这样的值，明显不属于任何一个dll，右键find referenc也没有，所以IAT起始地址是460818</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223161949175.png" alt="image-20211223161949175"></p>
+<p>​    IMP REC需要的三条数据我们都有了:</p>
+<p>​    OEP = 271B0(RVA)</p>
+<p>​    IAT起始地址 = 60818(RVA)</p>
+<p>​    IAT 大小 = 710</p>
+<p>​    有一些垃圾数据，我们直接show invalid-右键cut thunk，最后成功</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223164757546.png" alt="image-20211223164757546"></p>
+<h4 id="telock0-98"><a href="#telock0-98" class="headerlink" title="telock0.98"></a>telock0.98</h4><p>​    照常用OD自带的功能找到OEP处，程序其实和前面的一样，只是壳不一样。先看看程序调用了那些API函数，右键选择-Search for-All intermodular calls。</p>
+<p>​    可以看到都被重定向到了其他段，这些间接CALL并不是去调用系统DLL的中API函数,而是转向了2Axxxx这类地址的一个区段</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223172235665.png" alt="image-20211223172235665"></p>
+<p>​    其中有一部分是直接调用API函数的，我们选择其中一个跟随，然后查看数据窗口，拉到最下面可以看到IAT的结束地址为460F28，往上看可以看到一些不一样的数据</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223191515908.png" alt="image-20211223191515908"></p>
+<p>这些就是IAT中重定向的一些项,当程序运行起来时,壳的解密例程会覆盖掉IAT中的某些项,将这些项重定向到解密例程中,我们拿4038A6这处为例，我们在前面程序知道这里是GetVersion，但是目前不知道，所以跟进去看看是什么</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223192433842.png" alt="image-20211223192433842"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223192623695.png" alt="image-20211223192623695"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223192657530.png" alt="image-20211223192657530"></p>
+<p>​    该地址不属于源程序区段，如果我们重启OD断在入口点处时,会发现这个时候该区段并不存在。**因此,这个内存块是在壳解密例程运行过程中创建的,**我们来看看它是什么时候被创建的。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223192904468.png" alt="image-20211223192904468"></p>
+<p>​    这里我们可以在区段列表窗口中看看刚刚创建的这个内存块，可以看到该内存块被标记为了Priv(私有的),也就是说该内存块是壳自己创建的。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223193154146.png" alt="image-20211223193154146"></p>
+<p>​    往下跟几步,可以看到这里的PUSH指令将GetVersion的地址压入到堆栈中,接着RET将会返回到GetVersion的入口处,这样就可以达到间接调用API函数的目的。</p>
+<p>​    也就是说,壳会将GetVersion的IAT项替换成自己创建的内存单元中的地址,起到了一个重定向的作用。因此我们在定位IAT的起始和结束位置的时候,不仅仅要判断是否为系统DLL中的地址,还是需要判断其是否为重定向过的地址。</p>
+<p>​    下面我们继续来定位IAT的起始和结束位置。往上看可以看到80000000,明显不属于任何一个内存单元。，并且前面的0006xxxx右键find referrence并没有东西。</p>
+<p>所以IAT的起始地址为460818,长度为710,OEP为4271B0。</p>
+<p>OEP = 271B0(RVA)</p>
+<p>IAT起始地址 = 60818(RVA)</p>
+<p>IAT长度 = 710</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223193815875.png" alt="image-20211223193815875"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211223194112602.png" alt="image-20211223194112602"></p>
+<p>可以看到有无效的IAT项，接下来进行修复</p>
+<h4 id="修复"><a href="#修复" class="headerlink" title="修复"></a>修复</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211224095817640.png" alt="image-20211224095817640"></p>
+<p>第一种是手动修复（非常麻烦），第二种是可以采用Imrpec的插件tElock1，这种方法会有一些遗留未修复，并且只针对特定的壳，第三种方法是imprec自带的功能（右键trace level123)，这几个选项只能对比较简单的壳起作用。</p>
+<p>​    还有一种方法叫<strong>关键跳法，这种方法就是定位壳填充IAT的时机,看看何时填充正确IAT项,何时填充重定向过的IAT项。</strong></p>
+<p>​    我们重新加载程序，首先定位到第一个函数Getversion，460ADC中的值为3D830870,在壳的解密例程执行过程中会将重定向过的值2706F7填充到460ADC这个内存单元中。为了能够定位何时该IAT项被写入,我们可以对460ADC设置内存写入断点,让壳在此处写入重定向过的IAT值的时候断下来。</p>
+<p>​    发现断在了这里。这里并不是是我们要定位的点,因为我们按F8键执行这一行会发现重定向过IAT值并没有被写进来,我们继续运行。过程中虽然460ADC处的值有变化，但是都不是我们想要的值2706F7</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211224103006040.png" alt="image-20211224103006040"></p>
+<p>我们可以看到当前ECX寄存器的值正好等于重定向过的IAT值2706F7。ECX = 2706F7,将被保存到EAX = 460ADC指向的IAT中,这里就是我们要定位的地方。我们按下F8键,2706F7就会被保存到460ADC中,这只是第一步,接下来我们需要定位关键跳转。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211224110457224.png" alt="image-20211224110457224"></p>
+<p>达到了46651A处JE指令处,我们看看寄存器窗口中EBX寄存器的值,当前EBX正好指向了GetVersion的函数名称字符串。继续往下我们可以看到会调用GetProcAddress获取GetVersion这个API函数的地址。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211224111008728.png" alt="image-20211224111008728"></p>
+<p>F8执行后，我们可以看到此时EAX保存了GetVersion这个API函数的地址。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211224111227673.png" alt="image-20211224111227673"></p>
+<p>（下面的图是我自己的忘记保存了，直接截取了教程的）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wpsE4F3.tmp.jpg" alt="img"></p>
+<p>继续往下我们可以看到会调用GetProcAddress获取GetVersion这个API函数的地址。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wpsE4F4.tmp.jpg" alt="img"> </p>
+<p>我们可以在堆栈窗口中看到参数情况,按F8键执行这个CALL。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wpsE4F5.tmp.jpg" alt="img"> </p>
+<p>我们可以看到此时EAX保存了GetVersion这个API函数的地址,我们继续往下跟。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wpsE4F6.tmp.jpg" alt="img"> </p>
+<p>这里有一个条件跳转,这个条件跳转是成立的,我们不跟过去,直接单击鼠标右键选择-Follow。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wpsE4F7.tmp.jpg" alt="img"> </p>
+<p>这里我们可以看到GetVersion的函数地址并不是被填充到IAT中,而是被写入到EDI指向的内存单元中,当前EDI为:</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wpsE4F8.tmp.jpg" alt="img"> </p>
+<p>保存了该API函数的地址以后,紧接着我们到了JMP指令处。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wpsE508.tmp.jpg" alt="img"> </p>
+<p>这里通过这个JMP我们又将回到这个过程的开始处,这里是一个循环,我们单击鼠标右键选择-Follow。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wpsE509.tmp.jpg" alt="img"> </p>
+<p>这里接下来又要将第二个重定向过的IAT值填充的下一个IAT项中,然后通过GetProcAddress获取对应的API函数地址,并将获取到的API函数地址保存到某处,接着又是第三个重定向过的IAT值,循环往复,直到所有IAT项都被处理完毕为止。</p>
+<p>接下来的任务就是需要将IAT项被重定向的流程修改为正确IAT项的处理流程。</p>
+<p>我们在460BAC处设置断点（因为这不是重定向），对460BAC这4个字节设置内存写入断点,运行起来,看看壳何时会将正确的IAT项填充进来。断在了下面这里,正确的IAT值将被写入。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211224141249340.png" alt="image-20211224141249340"></p>
+<p>我们从循环的起始位置开始跟，到这里跟之前IAT项被重定位的处理有明显区别,跳过的中间的大片代码。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211224142331061.png" alt="image-20211224142331061"></p>
+<p>可以看到这里是一个长跳转,<strong>跳转与否取决于是IAT项是否被重定向,也就是说这里是决定是IAT项是否被重定向的关键跳,我们可以将这个条件跳转替换为JMP。</strong></p>
+<p>​    但是这个跳转在程序一开始的时候并不存在,我们重启程序。我们可以看到在程序刚开始的时候,这里都是一些垃圾指令,壳会随后的某个时间点写入实际的功能代码。</p>
+<p>我们对460818~460f28这片IAT区域设置内存写入断点。这里我们对所有的IAT项都设置上了内存写入断点,当第一个IAT项被写入的时候就会断下来。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211224144740642.png" alt="image-20211224144740642"></p>
+<p>断下来后继续执行，直到整个IAT都被填充完毕为止,此时关键跳已经存在了。我们将该关键跳转JE替换成JMP,<strong>接着清除之前设置的内存断点</strong>,接着跟踪到OEP处。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211224145814528.png" alt="image-20211224145814528"></p>
+<p>到了OEP后的IAT:</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211224151926378.png" alt="image-20211224151926378"></p>
+<p>我们可以看到所有的IAT项都是正常的,我们成功修复了IAT,现在我们可以进行dump了。dump之后再用Imprec即可</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>ZouFeIYu
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://erkeai.github.io/2021/12/24/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/IAT%E9%87%8D%E5%AE%9A%E5%90%91/" title="IAT重定向与修复">https://erkeai.github.io/2021/12/24/脱壳学习/IAT重定向/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/IAT%E9%87%8D%E5%AE%9A%E5%90%91/" rel="tag"># IAT重定向</a>
+              <a href="/tags/IAT%E4%BF%AE%E5%A4%8D/" rel="tag"># IAT修复</a>
+              <a href="/tags/%E5%85%B3%E9%94%AE%E8%B7%B3%E6%B3%95/" rel="tag"># 关键跳法</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/12/22/sample/KimSuky%E7%BB%84%E7%BB%87%E6%A0%B7%E6%9C%AC%E5%88%86%E6%9E%90/" rel="prev" title="KimSuky样本分析">
+      <i class="fa fa-chevron-left"></i> KimSuky样本分析
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#bitarts-5-0"><span class="nav-number">1.</span> <span class="nav-text">bitarts 5.0</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#telock0-98"><span class="nav-number">2.</span> <span class="nav-text">telock0.98</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BF%AE%E5%A4%8D"><span class="nav-number">3.</span> <span class="nav-text">修复</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ZouFeIYu"
+      src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+  <p class="site-author-name" itemprop="name">ZouFeIYu</p>
+  <div class="site-description" itemprop="description">reading, coding, travelling</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">32</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/erkeai" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;erkeai" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:563783592@qq.com" title="E-Mail → mailto:563783592@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-feather"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ZouFeIYu</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">88k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">1:20</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
