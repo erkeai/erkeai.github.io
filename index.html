@@ -120,7 +120,7 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">38</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">40</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -130,7 +130,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">32</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">34</span></a>
 
   </li>
   </ul>
@@ -156,6 +156,305 @@
 
           <div class="content index posts-expand">
             
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/12/27/Cheese_point/SEH/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/12/27/Cheese_point/SEH/" class="post-title-link" itemprop="url">未命名</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-12-27 16:39:07" itemprop="dateCreated datePublished" datetime="2021-12-27T16:39:07+08:00">2021-12-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-28 14:05:00" itemprop="dateModified" datetime="2021-12-28T14:05:00+08:00">2021-12-28</time>
+              </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.7k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="SEH"><a href="#SEH" class="headerlink" title="SEH"></a>SEH</h2><p>​    异常主要分为软件和硬件（CPU引起的）两种。除了CPU能够捕获一个事件引发一个硬件异常以外，在代码中可以主动采用<code>RaiseException</code>引发一个软件异常</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211227163855765.png" alt="image-20211227163855765"></p>
+<h3 id="异常处理基本过程"><a href="#异常处理基本过程" class="headerlink" title="异常处理基本过程"></a>异常处理基本过程</h3><h4 id="IDT"><a href="#IDT" class="headerlink" title="IDT"></a>IDT</h4><p>​    Windows正常启动后，将运行在保护模式下，当有终端或者异常发生时，CPU会通过IDT(中断描述符表)来寻找处理函数。所以，IDT是CPU(硬件)和操作系统(软件)交接中断和异常的关口。<strong>每一个中断或异常向量在这个系统表中有对应的中断或异常处理程序入口地址。</strong></p>
+<p>​     IDT包含三种类型的中断描述符：任务门、中断门、陷阱门。</p>
+<pre><code>- 任务门：主要用于CPU的任务切换（当中断信号发生时，必须取代当前进程的那个进程的TSS（任务状态描述符表）选择符存放在任务门中）。
+- 中断门：主要用于描述中断处理程序的入口。
+- 陷阱门：主要用于描述异常处理程序的入口。
+</code></pre>
+<h4 id="异常处理准备工作"><a href="#异常处理准备工作" class="headerlink" title="异常处理准备工作"></a>异常处理准备工作</h4><p>​    当中断或者异常发生时，CPU会更具中断类型号转而执行对应的中断处理程序。各个异常处理函数除了针对本异常的特定处理外，<strong>通常会将异常信息进行封装</strong>，以便后续处理。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211227172903111.png" alt="image-20211227172903111"></p>
+<p>​    封装内容一部分是异常记录，另一部分是陷阱帧。</p>
+<p>​    异常记录的结构定义如下：其中第一个字段定义了异常产生原因，当然也可以使用<code>RaiseException</code>函数自己定义</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211227173222039.png" alt="image-20211227173222039"></p>
+<p>​    陷阱帧准确描述了发生异常时线程的状态（Windows任务调度是基于线程的），<code>_KTRAP_FRAME</code>该结构与处理器高度相关，不同平台有不同定义。（每个线程在内核中都有一个 <code>_KTrap_Frame</code> 结构体，包含每个寄存器的状态，用于操作系统对线程的管理，该结构体时操作系统进行维护的。）</p>
+<p>​    当需要把控制权交给用户注册的异常处理程序时，会将上述结构转换成一个名为<code>CONTEXT</code>的结构，它包含线程运行时处理器各主要寄存器的完整镜像，用于保存线程运行环境。其中第一个变量<code>ContextFlags</code>表示结构体中哪些部分（这些部分包括：控制寄存器、(整数)通用寄存器、段寄存器、浮点寄存器、调试寄存器、扩展寄存器）有效。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">typedef struct _CONTEXT</span><br><span class="line">&#123;</span><br><span class="line">    DWORD           ContextFlags    // -|               +00h</span><br><span class="line">    DWORD           Dr0             //  |               +04h</span><br><span class="line">    DWORD           Dr1             //  |               +08h</span><br><span class="line">    DWORD           Dr2             //  &gt;调试寄存器     +0Ch</span><br><span class="line">    DWORD           Dr3             //  |               +10h</span><br><span class="line">    DWORD           Dr6             //  |               +14h</span><br><span class="line">    DWORD           Dr7             // -|               +18h</span><br><span class="line"></span><br><span class="line">    FLOATING_SAVE_AREA FloatSave;   //浮点寄存器区      +1Ch~~~88h</span><br><span class="line"></span><br><span class="line">    DWORD           SegGs           //-|                +8Ch</span><br><span class="line">    DWORD           SegFs           // |\段寄存器       +90h</span><br><span class="line">    DWORD           SegEs           // |/               +94h</span><br><span class="line">    DWORD           SegDs           //-|                +98h</span><br><span class="line"></span><br><span class="line">    DWORD           Edi             //________          +9Ch</span><br><span class="line">    DWORD           Esi             // |  通用          +A0h</span><br><span class="line">    DWORD           Ebx             // |   寄           +A4h</span><br><span class="line">    DWORD           Edx             // |   存           +A8h</span><br><span class="line">    DWORD           Ecx             // |   器           +ACh</span><br><span class="line">    DWORD           Eax             //_|___组_          +B0h</span><br><span class="line"></span><br><span class="line">    DWORD           Ebp             //++++++            +B4h</span><br><span class="line">    DWORD           Eip             // |控制            +B8h</span><br><span class="line">    DWORD           SegCs           // |寄存            +BCh</span><br><span class="line">    DWORD           EFlag           // |器组            +C0h</span><br><span class="line">    DWORD           Esp             // |                +C4h</span><br><span class="line">    DWORD           SegSs           //++++++            +C8h</span><br><span class="line"></span><br><span class="line">    BYTE    ExtendedRegisters[MAXIMUM_SUPPORTED_EXTENSION];</span><br><span class="line">&#125; CONTEXT;</span><br><span class="line">    typedef     CONTEXT     *PCONTEXT;</span><br><span class="line">    #define     MAXIMUM_SUPPORTED_EXTENSION     512</span><br></pre></td></tr></table></figure>
+
+
+
+<p>​    异常处理函数会进一步调用内核的<code>nt!KiDispatchException</code>函数来处理异常，第一个参数和第二个参数正是前面封装的两个结构</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211228101900557.png" alt="image-20211228101900557"></p>
+<h4 id="内核态的异常处理过程"><a href="#内核态的异常处理过程" class="headerlink" title="内核态的异常处理过程"></a>内核态的异常处理过程</h4><p>​    当<code>PreviousMode</code>为<code>KernelMode</code>，<code>KiDispatchException</code>按照以下步骤分发异常：</p>
+<ul>
+<li>检测当前系统是否正在被内核调试器调试</li>
+<li>如果不存在内核调试器，或者在上一步就会选择不处理该异常，系统就会调用<code>nt!RtlDispatchException</code></li>
+<li>如果<code>nt!RtlDispatchException</code>没有处理该异常，系统会给调试器第2次处理机会</li>
+<li>如果不存在内核调试器或者在第2次机会调试器仍然不处理，系统就会认为这种情况下不能继续运行了，系统会直接调用<code>KeBugCheckEx</code>产生错误码（0x0000008E）的BSOD(蓝屏)</li>
+</ul>
+<p>当<code>PreviousMode</code>为<code>UserMode</code>，<code>KiDispatchException</code>按照以下步骤分发异常：</p>
+<ul>
+<li><p>检测当前系统是否正在被内核调试器调试(一般不予理会)</p>
+</li>
+<li><p>如果发生异常的程序正在被调试，那么将异常信息发送给正在调试它的用户态调试器；若否则跳过</p>
+</li>
+<li><p>如果没有用户态调试器或者没有处理该异常，那么在栈上放置<code> EXCEPTION_RECORD</code>和<code>CONTEXT</code>两个结构，并将控制权返回用户态ntdll中的<code> KiUserExceptionDispatcher</code>函数，由它调用<code>ntdll!RtlDispatchException</code>函数进行用户态的异常处理。（<strong>涉及SEH和VEH</strong>）</p>
+</li>
+<li><p>如果<code>ntdll!RtlDispatchException</code>未能处理该异常，那么异常处理过程会再次返回 <code>nt!KiDispatch Exception</code>，它将再次把异常信息发送给用户态的调试器，给调试器第2次处理机会。如果没有调试器存在，则不会进行第2次分发，而是直接结束进程。</p>
+</li>
+<li><p>如果第2次机会调试器仍不处理，<code>nt!KiDispatchException</code>会再次尝试把异常分发给进程的异常端口进行处理</p>
+</li>
+</ul>
+<h3 id="SEH概念以及基本知识"><a href="#SEH概念以及基本知识" class="headerlink" title="SEH概念以及基本知识"></a>SEH概念以及基本知识</h3><p>​    **SEH( Structured Exception Handling，结构化异常处理)**是 Windows操作系统用于自身除错的一种机制，也是开发人员处理程序错误或异常的强有力的武器。SEH是一种错误保护和修复机制，它告诉系统当程序运行出现异常或错误时由谁来处理，给了应用程序一个改正错误的机会。从程序设计的角度来说，就是系统在终结程序之前给程序提供的一个执行其预先设定的回调函数的机会。</p>
+<pre><code>#### 相关数据结构
+</code></pre>
+<h5 id="TIB"><a href="#TIB" class="headerlink" title="TIB"></a>TIB</h5><p>​    **TIB( Thread Information Block，线程信息块)<strong>是保存线程基本信息的数据结构。在用户模式下，它位于</strong>TEB( Thread environment Block，线程环境块)**的头部，而TEB是操作系统为了保存每个线程的私有数据创建的，每个线程都有自己的TEB。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211228105428973.png" alt="image-20211228105428973"></p>
+<p>​    在x86平台的用户模式下，Windows将FS段选择器指向当前线程的TEB数据，即TEB总是由**fs:[0]<strong>指向的(在x64平台上，这个指向关系变成了</strong>gs:[0]<strong>。关于x64平台上的异常处理，会在85节详细讲述)。而当线程运行在内核模式下时， Windows将FS段选择器指向内核中的</strong> KPCRB结构( Processor Control Region Block，处理器控制块)**，该结构的头部同样是上述的 <code>NT_TIB</code>结构。</p>
+<h5 id="EXCEPTION-REGISTRATION-RECORD结构"><a href="#EXCEPTION-REGISTRATION-RECORD结构" class="headerlink" title="_EXCEPTION_REGISTRATION_RECORD结构"></a>_EXCEPTION_REGISTRATION_RECORD结构</h5><p>​    该结构主要用于描述线程异常处理过程的地址，多个该结构的链表描述了多个线程异常处理过程的嵌套层次关系。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211228111327982.png" alt="image-20211228111327982"></p>
+<p>异常处理链表示意图如下（其中ERR指的就是该结构）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211228111509358.png" alt="image-20211228111509358"></p>
+<p>​    <strong>由于TEB是线程的私有数据结构，相应地，每个线程也都有自己的异常处理链表，即SEH机制的作用范围仅限于当前线程。</strong>从数据结构的角度来讲，SEH链就是一个只允许在链表头部进行增加和删除节点操作的单向链表，且链表头部永远保存在<code>fs:[0]</code>处的TEB结构中。</p>
+<h5 id="EXCEPTION-RECORD结构和-CONTEXT结构"><a href="#EXCEPTION-RECORD结构和-CONTEXT结构" class="headerlink" title="EXCEPTION_RECORD结构和_CONTEXT结构"></a>EXCEPTION_RECORD结构和_CONTEXT结构</h5><p>​    这两个结构分别描述了异常发生的异常相关信息和线程状态信息，在前面已经介绍过。</p>
+<h5 id="EXCEPTION-POINTERS结构"><a href="#EXCEPTION-POINTERS结构" class="headerlink" title="_EXCEPTION_POINTERS结构"></a>_EXCEPTION_POINTERS结构</h5><p>​    当一个异常发生时，在没有调试器干预的情况下，操作系统会将异常信息转交给用户态的异常处理过程。实际上，<u>由于同一个线程在用户态和内核态使用的是两个不同的栈，为了让用户态的异常处理程序能够访问与异常相关的数据，操作系统必须把与本次异常相关联的<code>EXCEPTION_RECORD</code>结构和 <code>CONTEXT</code>结构放到用户态栈中</u>，同时在栈中放置一个<code>EXCEPTION_POINTERS</code>结构，它包含两个指针，一个指向<code> EXCEPTION_ RECORD</code>结构，另一个指向<code> CONTEXT</code>结构，示例如下。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211228112807366.png" alt="image-20211228112807366"></p>
+<h4 id="SEH处理程序安装与卸载"><a href="#SEH处理程序安装与卸载" class="headerlink" title="SEH处理程序安装与卸载"></a>SEH处理程序安装与卸载</h4><p>​    由于**fs:[0]**总是指向当前异常处理程序的链表头,当程序中需要安装一个新的SEH异常处理程序时,只要填写一个新的 <code>EXCEPTION_REGISTRATION_ RECORD</code>结构,并将其插入该链表的头部。</p>
+<p>​    根据SEH的设计要求,它的作用范围与安装它的函数相同,所以通常<strong>在函数头部安装SEH异常处理程序,在函数返回前卸载。</strong>可以说,SEH是基于<strong>栈帧</strong>的异常处理机制。在安装SEH处理程序之前,需要准备一个符合SEH标准的回调函数,然后使用如下代码进行SEH异常处理程序的安装。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211228133726483.png" alt="image-20211228133726483"></p>
+<p>​    理解了SEH的安装过程,再看SEH的卸载就比较简单了,只要把刚才保存的fs:[0]的原始值填回并恢复栈的平衡即可,相当于从链表头部删掉了一个节点,示例如下。</p>
+<h4 id="SEH实例跟踪"><a href="#SEH实例跟踪" class="headerlink" title="SEH实例跟踪"></a>SEH实例跟踪</h4><p>​    因为没有找到示例的EXE，所以这里直接记录原文。</p>
+<p>​    示例程序 seh.exe演示了一个结构异常处理的例子。由于 Windbg结合符号文件可以非常清楚地显示各类数据结构,这里使用 Windbg进行调试。用 Windbg打开该程序,输入<code>“g”</code>命令让 seh. exe运行,程序将在0x00401038处停住,具体如下。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211228134925471.png" alt="image-20211228134925471"></p>
+<p>​    可以知道这是一个内存访问异常,因为程序试图从esi寄存器指向的0地址处读取数据,并且是第1次给调试器处理机会( First Chance)为了跟踪系统对异常的处理过程,需要在系统的异常处理代码处下断点,示例如下。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211228135255789.png" alt="image-20211228135255789"></p>
+<p>​    然后,在 WinDbg的命令窗口中输入<code>“g”</code>,继续执行。四命令表示不处理异常并继续执行。接下来,异常会被交给用户态的<code> ntdll!KiUserExceptionDispatcher</code>函数进行进一步分发,所以在这个函数的开头会发生中断,示例如下。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211228135405492.png" alt="image-20211228135405492"></p>
+<p>​    可以看到,此时栈顶就是<code> EXCEPTION_POINTERS</code>结构,它包含 <code>EXCEPTION_RECORD</code>和<code>CONTEXT</code>两个数据成员,具体如下。</p>
+<ul>
+<li><p>Exception_Record =0012fcd00</p>
+</li>
+<li><p>Context Record = 0012fcec</p>
+<p>程序当前的esp为00012c8,可以看出它们之间的位置关系如下。</p>
+</li>
+<li><p>esp指向_ EXCEPTION_ POINTERS结构,其大小为8字节。</p>
+</li>
+<li><p>Exception Record=esp+8,也就是说, <code>EXCEPTION_POINTERS</code>结构之后紧跟 <code>EXCEPTION_RECORD</code>。观察 <code>EXCEPTION_RECORD</code>结构,具体如下。</p>
+</li>
+</ul>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211228135710249.png"></p>
+<p>​    该结构已经明确指出了异常代码( Exception Code)和发生异常的位置( Exceptionaddress)。</p>
+<p>​    <code>EXCEPTION_RECORD</code>结构的最后一个元素 <code>Exceptioninformation</code>的大小是不固定的,实际上这是由前一个元素 <code>Numberparameters</code>决定的,因此,在当前例子中, EXCEPTION RECORD的实际大小如下。o</p>
+<ul>
+<li><p>0x14 + 2 * sizeof(ULONG)=0x1c</p>
+</li>
+<li><p>ExceptionRecord + 0x1C = 0012fcd0 + 0x1c = 0012fcec ( ContextRecord的位置)</p>
+<p>下面看一下<code>CONTEXT</code>结构</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211228140132557.png" alt="image-20211228140132557"></p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/12/27/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/%E6%89%8B%E8%84%B1Yoda's%20Protector%20v1.3(Yoda's%20Crypter)/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/12/27/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/%E6%89%8B%E8%84%B1Yoda's%20Protector%20v1.3(Yoda's%20Crypter)/" class="post-title-link" itemprop="url">手脱Yoda's Protector v1.3(Yoda's Crypter)</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-12-27 00:00:00" itemprop="dateCreated datePublished" datetime="2021-12-27T00:00:00+08:00">2021-12-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-28 11:22:49" itemprop="dateModified" datetime="2021-12-28T11:22:49+08:00">2021-12-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">脱壳学习</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>OD加载程序，发现入口处有PUSHAD指令，尝试一下ESP定律</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211227102347793.png" alt="image-20211227102347793"></p>
+<p>断在了这里，我们可以看到这里将给<strong>SEH链</strong>添加一个新的节点（**注意看fs:[]**）,接着通过JMP指令跳转到下面引发一个异常,我们跟到JMP指令处。点击view-SEH chain查看，可以看到刚刚安装的异常处理程序入口地址为46590B。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211227102521443.png" alt="image-20211227102521443"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211227112158637.png" alt="image-20211227112158637"></p>
+<p>​    不出意外的话到达该异常处理程序,随后就会到达OEP,这里OEP为4271B0（其实和之前的exe一样，只是加壳程序不一样）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211227112410090.png" alt="image-20211227112410090"></p>
+<h4 id="修复IAT"><a href="#修复IAT" class="headerlink" title="修复IAT"></a>修复IAT</h4><p>​    和之前一样，我们看一下数据窗口以及find reference，看到这些IAT项目都和之前提到的IAT重定向一样,下图中00590000处的大小在壳执行之前长度为3000字节,但是壳执行以后,该区段变成了47000字节,即可壳将该区段增大了,并且增大的部分供自己使用。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211227142202869.png" alt="image-20211227142202869"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211227142320524.png" alt="image-20211227142320524"></p>
+<p>右键Follow,看看被重定向到了哪里</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211227143744907.png" alt="image-20211227143744907"></p>
+<p>我们先试一下Imprec自带的trace能否修复，show invalid—右键Trace Level1，可以看到修复了一部分</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211227144522856.png" alt="image-20211227144522856"></p>
+<h4 id="关键跳"><a href="#关键跳" class="headerlink" title="关键跳"></a>关键跳</h4><p>先让程序停在OEP处，然后随便定位一个重定向过的IAT项。我们给460ECC这一项设置硬件写入断点,接着如果我们重启OD的话,硬件断点依然存在。重启运行起来，断在了这里</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211227150716051.png" alt="image-20211227150716051"></p>
+<p>EDX的值460ECC,即指向了之前我们设置了硬件断点的那个重定向的IAT项,这里其被写入的是正确的值,随后会被修改为重定向过的值,我们继续往下跟,看看会发生什么。</p>
+<p>到了这里，460ECC处的值有了变化，这里460ECC中被写入重定向过的值,ESI此时保存的就是重定向过的值。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211227154801878.png" alt="image-20211227154801878"></p>
+<p><strong>也就是说正常的IAT项只会被写入一次,而需要被重定向的项将被写入两次。</strong>正常的IAT项在46577F的跳转处会直接跳转到4657B1，这里我们可以看到46577F这一处JMP指令，其将跳过红色箭头标注的设置为重定向值的指令，所以这里是关键跳,之前还有几处条件跳转,这里我们来尝试NOP掉写入重定向值的指令,看看效果如何。</p>
+<p>但是我们首先需要给465799这条指令设置硬件执行断点,这里我们并不向想其被写入重定向的值,所以给其上一行设置硬件执行断点。然后重新加载程序运行起来，断了下来,我们将写入重定向值的指令NOP掉。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211227161144403.png" alt="image-20211227161144403"></p>
+<p>删除硬件断点后，运行起来发现行不通，再次回到关键跳处，可以看到46577D处的条件跳转将直接跳到下面,这样46577F处的关键跳将得不到执行,接着将被写入重定向的值,我们尝试将46577D这处条件跳转NOP掉,让其直接执行46577F处的JMP指令,我们来看看效果。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211227161910326.png" alt="image-20211227161910326"></p>
+<p>发现依旧不行，那么我们来看看IAT吧,我们可以看到IAT项都被修复了,都是正确的。这里我们有两种选择: 一,再开一个OD,加载该CrackMe的另一个实例,直接跟到OEP处,不修改任何东西,然后将当前我们这个实例的正确的IAT复制出来,覆盖掉新开的这个实例的IAT,注意是二进制复制,这个方法比较简单。二,直接用IMP REC定位到CrackMe的进程,此时IAT全部被写入正确的值了,但是还未到达OEP处,我们直接填上OEP,RVA,SIZE等数据,没有到达OEP处没有关系。以此来进行修复。</p>
+<h4 id="SEH链"><a href="#SEH链" class="headerlink" title="SEH链"></a>SEH链</h4><p>​    每次我们定义了一个新的SEH异常处理回调函数,EXCEPTION_REGISTRATION结构的prev字段都被要求填写上一个EXCEPTION_REGISTRATION结构的地址,随着应用程序对模块的调用一层层深入下去的时候,那么最后回调函数会形成一个SEH链.<br>    从数据结构的角度来讲,SEH链就是一个只允许在链表头部进行增加和删除节点操作的单向链表,且链表头部永远保存在<code>fs:[0]</code>处的TEB结构中。<br>    详细请看SEH笔记。</p>
+<h4 id="段寄存器"><a href="#段寄存器" class="headerlink" title="段寄存器"></a>段寄存器</h4><p>​    <strong>cs是代码段寄存器</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">存放当前正在运行的程序代码所在段的段基址，表示当前使用的指令代码可以从该段寄存器指定的存储器段中取得，相应的偏移量则由IP提供。</span><br></pre></td></tr></table></figure>
+
+<p>​    <strong>ds是数据段寄存器</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">当前程序使用的数据所存放段的最低地址，即存放数据段的段基址.</span><br></pre></td></tr></table></figure>
+
+<p>​    <strong>ss是堆栈段寄存器</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">当前堆栈的底部地址，即存放堆栈段的段基址。</span><br></pre></td></tr></table></figure>
+
+<p>​    <strong>es是扩展段寄存器</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">当前程序使用附加数据段的段基址，该段是串操作指令中目的串所在的段</span><br></pre></td></tr></table></figure>
+
+<p>​    <strong>fs是标志段寄存器</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">fs是80386起增加的两个辅助段寄存器之一,在这之前只有一个辅助段寄存器ES</span><br><span class="line">FS寄存器指向当前活动线程的TEB结构（线程结构）</span><br><span class="line">偏移  说明</span><br><span class="line">000  指向SEH链指针</span><br><span class="line">004  线程堆栈顶部</span><br><span class="line">008  线程堆栈底部</span><br><span class="line">00C  SubSystemTib</span><br><span class="line">010  FiberData</span><br><span class="line">014  ArbitraryUserPointer</span><br><span class="line">018  FS段寄存器在内存中的镜像地址</span><br><span class="line">020  进程PID</span><br><span class="line">024  线程ID</span><br><span class="line">02C  指向线程局部存储指针</span><br><span class="line">030  PEB结构地址（进程结构）</span><br><span class="line">034  上个错误号</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>​    <strong>gs是全局段寄存器</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gs是80386起增加的两个辅助段寄存器之一,在这之前只有一个辅助段寄存器ES</span><br></pre></td></tr></table></figure>
+<pre><code>**ps:在x86平台的用户模式下，Windows将FS段选择器指向当前线程的TEB数据，即TEB总是由**fs:[0]**指向的，在x64平台上,这个指向关系变成了**gs:[0]**。**
+</code></pre>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -1256,322 +1555,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/10/25/reverse/overlong/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/10/25/reverse/overlong/" class="post-title-link" itemprop="url">buuctf_overlong</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-10-25 00:00:00" itemprop="dateCreated datePublished" datetime="2021-10-25T00:00:00+08:00">2021-10-25</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-22 10:26:43" itemprop="dateModified" datetime="2021-12-22T10:26:43+08:00">2021-12-22</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/buuctf/" itemprop="url" rel="index"><span itemprop="name">buuctf</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>339</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h4 id="overlong"><a href="#overlong" class="headerlink" title="overlong"></a>overlong</h4><p>用PEid显示有壳，但是ExInfo不是，直接拖到IDA看看</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse6/image-20211025101621373.png" alt="image-20211025101621373"></p>
-<p>我们转到sub_401160函数看一下，图中的\x1c是十进制的28</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse6/image-20211025104708760.png" alt="image-20211025104708760"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse6/image-20211025104824155.png" alt="image-20211025104824155"></p>
-<p>unk_402008指针指向的内容与TEXT(a1)一共进行了28次的一些字符操作。但是该指针指向的内容不止28个字符，点击进去查看有175个</p>
-<p>exe一开始运行是这样的，说从未破坏编码，那就直接将其改为读取175个</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse6/image-20211025105732834.png" alt="image-20211025105732834"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse6/image-20211025110224330.png" alt="image-20211025110224330"></p>
-<p>这样直接修改会有错误，提示Invalid operand，可能是吧修改的数据会覆盖掉后面的一些数据，我们拖进OD试试，发现改了以后后面的代码也变了</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse6/image-20211025111317713.png" alt="image-20211025111317713"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse6/image-20211025111342988.png" alt="image-20211025111342988"></p>
-<p>直接修改二进制码</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse6/image-20211025113152358.png" alt="image-20211025113152358"></p>
-<p>运行后如图，得到flag</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse6/image-20211025113214588.png" alt="image-20211025113214588"></p>
-<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>​    这道题目的收获主要是关于修改代码，一般都是直接修改，还没有考虑过会改变后面的数据。以后修改代码最好用OD，可以看到后面代码是否被修改</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/10/18/Cheese_point/CFG%E6%9C%BA%E5%88%B6/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/10/18/Cheese_point/CFG%E6%9C%BA%E5%88%B6/" class="post-title-link" itemprop="url">CFG机制</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-10-18 00:00:00" itemprop="dateCreated datePublished" datetime="2021-10-18T00:00:00+08:00">2021-10-18</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-22 14:24:47" itemprop="dateModified" datetime="2021-12-22T14:24:47+08:00">2021-12-22</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%9F%A5%E8%AF%86%E7%82%B9%E8%A1%A5%E5%85%85%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">知识点补充学习</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>7.2k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>7 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h3 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h3><p>Control Flow Guard（CFG）是较新的windows漏洞利用缓解措施，旨在解决内存损坏漏洞。 针对的是间接跳转的保护，比如call eax，jmp eax等。 CFG扩展了先前的漏洞缓解技术，例如GS，DEP和ASLR。毫无疑问，它将大大改变攻击者的利用技术。就像ALSR导致了堆喷射技术的出现，和DEP导致了ROP技术的出现。微软的CFG实现是基于间接调用的目标必须是一个可靠的函数的起始位置。</p>
-<p>以往是没有蓝色那行的，它执行的操作是将目标地址接受为参数，并实现CFG，下图是没有启用CFG的时候，有一个间接调用，他的目标地址不在编译的时候决定，而是在运行的时候。</p>
-<p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps267A.tmp.jpg" alt="img"> </p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/CheesePoint1/wps267B.tmp.jpg" alt="img"> </p>
-<p>CFG主要关注缓解间接调用和调用目标不可靠（不是一个有效的函数起始地址）的问题（在攻击中，这是shellcode的第一步）。所以CFG的实现是基于间接调用的目标必须是一个可靠的函数的起始位置。下图是调用目标代码后</p>
-<p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps267C.tmp.jpg" alt="img"> </p>
-<p>在间接调用之前，目标地址传给_guard_check_icall函数，在其中实现CFG。在没有CFG支持的Windows中，这个函数不做任何事。在Windows 10中，有了CFG的支持，它指向ntdll!LdrpValidateUserCallTarget函数。这个函数使用目标地址作为参数，并且做了以下事情：</p>
-<p>**1.**访问一个bitmap（称为CFGBitmap），其表示在进程空间内所有函数的起始位置。在进程空间内每8个字节的状态对应CFGBitmap中的一位。如果在每组8字节中有函数的起始地址，则在CFGBitmap中对应的位设置为1；否则设置为0。</p>
-<p>**2.**将目标地址转化为CFGBitmap中的一个位。我们以00b01030为例：</p>
-<p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps267D.tmp.jpg" alt="img"> </p>
-<p>高位的高位的3个字节（蓝色圈中的24位）是CFGBitmap（单位是4字节/32位）的偏移。在这个例子中，高位的3个字节相当于0xb010。因此，CFGBitmap中指向字节单元的指针是CFGBitmap的基址加上0xb010。</p>
-<p>同时，第四位到第八位（红色圈中的）有值X。如果目标地址以0x10对齐（目标地址&amp;0xf==0），则X为单位内的位偏移值。如果目标地址不以0x10对齐（目标地址&amp;0xf!=0），则X|0x1是位偏移值。</p>
-<p>在这个例子中，目标地址是0x00b01030，表达式0x00b01030&amp;0xf值为0。X的值为6，所以偏移也是6。</p>
-<p>**3.**接下来就是转换成CFGBitmap中的一位，上一步得出位偏移是6，所以从零开始数。我们将第六位置为1，这意味着间接调用的目标是可靠的</p>
-<p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps267E.tmp.jpg" alt="img"> </p>
-<p>我们会产生几个问题：</p>
-<ul>
-<li><ol>
-<li>CFGBitmap的位信息来自哪里？</li>
-</ol>
-</li>
-<li><ol start="2">
-<li>何时且怎么生成CFGBitmap？</li>
-</ol>
-</li>
-<li><ol start="3">
-<li>系统怎么处理不可靠的间接调用触发的异常？</li>
-</ol>
-</li>
-</ul>
-<h3 id="深入CFG的实现"><a href="#深入CFG的实现" class="headerlink" title="深入CFG的实现"></a>深入CFG的实现</h3><p>启用CFG的情况下用编译器编译的PE文件，用VS的dumpbin.exe转储出来，可以看到以下内容。</p>
-<p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps267F.tmp.jpg" alt="img"> </p>
-<p>Guard CF address of check-function pointer：_guard_check_icall的地址。在Windows 10预览版中，当PE文件加载时，_guard_check_icall将被修改并指向nt!LdrpValidateUserCallTarget。</p>
-<p>Guard CF function table：函数的相对虚拟地址（RVA）列表的指针，其包含了程序的代码。每个函数的RVA将转化为CFGBitmap中的“1”位。换句话说，CFGBitmap的位信息来自Guard CF function table。</p>
-<p>Guard CF function count：函数RVA的个数。</p>
-<p>CF Instrumented：表明程序中启用了CFG。</p>
-<h4 id="1-OS对CFG机制的支持"><a href="#1-OS对CFG机制的支持" class="headerlink" title="1.OS对CFG机制的支持"></a>1.OS对CFG机制的支持</h4><p>在OS引导阶段，第一个与该机制相关的函数是MiInitializeCfg，这个函数的主要任务是创建包含CFGBitmap的共享内存，调用时间可以在NT内核阶段1的内存管理器初始化（MmInitSystem）的时候找到,如图，在这个初始化期间，会调用MmInitSystem两次，第一个MmInitSystem将进入MiInitializeCfg，该函数的主要功能如下流程图所示。</p>
-<p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps2680.tmp.jpg" alt="img"> </p>
-<p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps2681.tmp.jpg" alt="img"> </p>
-<ul>
-<li><p>步骤A：注册表值来自HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session\Manager\kernel: MitigationOptions</p>
-</li>
-<li><p>步骤B：MmEnableCfg是一个全局变量，它被用来表示系统是否启用CFG功能.</p>
-</li>
-<li><p>步骤C：MiCfgBitMapSection的DesiredAccess允许所有的权限；它的分配类型是“reserve”。<strong>共享内存的大小可能会因为Win10的版本而有所不同。</strong>对于build 6.4.9841，它按用户模式空间大小计算。表达式是size=User Mode Space Size&gt;&gt;6。（&gt;&gt;X：右移X位）。对于build 10.0.9926，这个大小是0x3000000。CFG bitmap能表示整个用户模式空间。MiCfgBitMapSection是CFG实现的核心组件，因为它被用来包含CFGBitmap。</p>
-</li>
-</ul>
-<h4 id="2-获得压缩RVA列表信息的函数且保存到映像的Control-Area结构"><a href="#2-获得压缩RVA列表信息的函数且保存到映像的Control-Area结构" class="headerlink" title="2.获得压缩RVA列表信息的函数且保存到映像的Control_Area结构"></a>2.获得压缩RVA列表信息的函数且保存到映像的Control_Area结构</h4><p>PE映像第一次加载到系统。NT内核将调用MiRelocateImage来重定位。MiRelocateImage将调用MiParseImageCfgBits。在函数MiParseImageCfgBits中，PE映像的压缩的RVA列表被计算且存储在PE映像节中的Control_Area数据结构。在系统引导期间一个PE映像只发生一次。</p>
-<p>当PE再次加载进进程，NT内核将调用MiRelocateImageAgain。因为它的压缩的RVA列表已经保存了（且不需要再次计算），MiRelocateImageAgain不需要调用MiParseImageCfgBits，这样节省一些处理时间。因为微软实现CFG需要消耗时间和空间。在MiRelocateImage中，它的CFG相关的部分被如下描述：</p>
-<p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps2682.tmp.jpg" alt="img"> </p>
-<p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps2683.tmp.jpg" alt="img"> </p>
-<p>下面我们详细了解一下MiParseImageCfgBits这个函数，首先看一下这个函数调用的上下文。</p>
-<p>函数MiParseImageCfgBits有5个参数：</p>
-<p>a) 映像节的Control_Area结构的指针</p>
-<p>b) 映像文件内容的指针</p>
-<p>c) 映像大小</p>
-<p>d) 包含PE可选头结构的指针</p>
-<p>e) 输出压缩的CFG函数RVA列表的指针</p>
-<p>MiParseImageCfgBits的主要工作如下：</p>
-<p>a) 从映像的Load Config Table获得函数RVA列表</p>
-<p>b) 使用压缩算法压缩列表，以便在小空间保存列表</p>
-<p>c) 创建压缩的RVA列表作为输出</p>
-<h4 id="3-CFGBimap共享内存对象被映射的两种用途"><a href="#3-CFGBimap共享内存对象被映射的两种用途" class="headerlink" title="3.CFGBimap共享内存对象被映射的两种用途"></a>3.CFGBimap共享内存对象被映射的两种用途</h4><p>a) 用来写共享模块（.DLL文件等）的bits。在bits写入完成后，映射将释放。通过这个映射写入的bits信息是共享的，意味着它能被操作系统内所有的进程读取。这个映射发生在MiUpdateCfgSystemWideBitmap函数中。（该小节的详细内容请看5.a）</p>
-<p>b) 用来写私有的bits和读取校验间接调用的bits。通过这个映射写入的bits是私有的，意味着它只能被当前进程读取。这个映射的生存周期与进程的生命周期相同。这个映射发生在MiCfgInitializeProcess中。</p>
-<p>基于调用堆栈，我们知道它在一个正在初始化的进程中被映射。映射的基    址和长度将被保存在类型为MI_CFG_BITMAP_INFO的结构体中，且地址被    修改了。稍后将讨论怎么将私有的bits写入映射空间中。              MI_CFG_BITMAP_INFO的结构如下：</p>
-<p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps2684.tmp.jpg" alt="img"> </p>
-<h4 id="4-将RVA列表翻译为CFGBitmap中的bits"><a href="#4-将RVA列表翻译为CFGBitmap中的bits" class="headerlink" title="4.将RVA列表翻译为CFGBitmap中的bits"></a>4.将RVA列表翻译为CFGBitmap中的bits</h4><p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps2685.tmp.jpg" alt="img"> </p>
-<p>在深入了解每个场景之前，要搞清楚一些背景信息。在每个进程中，包含CFGBitmap的空间被分为两部分：共享和私有。</p>
-<p>MiCfgBitMapSection是一个共享内存对象，包含了CFGBitmap的共享的bitmap的内容。它与每个进程共享。当它在自己的虚拟内存空间中映射MiCfgBitMapSection时，每个进程看见的内容都相同。共享模块（dll等）的bitmap信息将通过4.a节描述的映射方法写入。</p>
-<p>然而每个进程需要CFGBitmap的一部分不是被所有进程共享的。它需要私有写入一些模块的bitmap信息到CFGBitmap中。这个私有的部分将不和所有的进程共享。EXE模块的bitmap信息使用4.b节描述的方法写入。</p>
-<p><strong>a) 在ReloadImage/ReloadImageAgain中，通过MiUpdateCfgSystemWideBitmap写入共享模块（dll等）的bits。</strong></p>
-<p>如前面第二部分所见，在得到压缩的函数的RVA列表并将它保存到Control_Area结构后，它将调用MiSelectImageBase。这个函数是ASLR实现的核心。它返回最终选择的基址。选择的基地址对于写bit信息到CFGBitmap中非常重要。在得到基地址后，它将调用MiUpdateCfgSystemWideBitmap。</p>
-<p>MiUpdateCfgSystemWideBitmap的主要任务是将压缩的RVA列表翻译为CFGBitmap中的“1”bit。通过这个函数写入的bitmap信息是共享的，且被操作系统所有的进程共享。这个函数只针对共享模块有效（dll文件等）。</p>
-<p>这个函数有三个参数MiUpdateCfgSystemWideBitmap有3个参数：</p>
-<p>指向Control_Area结构的指针</p>
-<p>映像的基址</p>
-<p>指向压缩的RVA列表的指针</p>
-<p>MiUpdateCfgSystemWideBitmap的主要逻辑如下：</p>
-<p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps2686.tmp.jpg" alt="img"> </p>
-<p>在步骤B中，它映射CFGBitmap共享内存到系统进程空间中。它不映射所有共享内存的全部大小。它转化映像的基址为CFGBitmap的偏移，且使用转化的结果作为映射的起始地址。转为过程如下：</p>
-<p>Bitmap的偏移=基地址&gt;&gt;6。按这个公式，映射大小是映像大小右移6位。这个方法在映像需要重定位（ReloadImageAgain函数）的时候也会被使用</p>
-<p><strong>b) 在进程初始化阶段写私有模块（exe文件等）的bits。</strong>它将调用MiCommitVadCfgBits，其是一个调度函数。你能使用图13作为参考。它在确定的场景被调用。该函数的主要任务是为输入虚拟地址描述符所描述的空间写入bits。主要逻辑如下：</p>
-<p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps2687.tmp.jpg" alt="img"> </p>
-<p>MiMarkPrivateImageCfgBits函数实现向CFG Bitmap中写入私有模块（exe等）的bit信息。当系统映射一个EXE的节或者启动一个进程时，这个函数被调用。</p>
-<p>这个函数有2个参数：</p>
-<ol>
-<li><p>Cfg信息的全局变量地址</p>
-</li>
-<li><p>映像空间的VAD</p>
-</li>
-</ol>
-<p>VAD是用来描述虚拟内存空间范围的一个结构。</p>
-<p>函数的主要任务是将输入VAD的相关的压缩RVA列表转化为bitmap信息，且在CFGBitmap中写入bits。函数主要逻辑如下：</p>
-<p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps2688.tmp.jpg" alt="img"> </p>
-<p>在步骤A中，压缩的RVA列表能从输入的VAD关联的Control_Area结构中获得，在MiRelocateImage中保存（参见第二节）。</p>
-<p>这个函数的主要步骤是步骤C。它实现私有写入映射的MiCfgBitMapSection32节（在3.b节有描述）。写入的私有的bits的映射是只读的。向映射的空间写入bits怎么实现？关键步骤如下：</p>
-<p>i. 获得映射的空间地址的物理地址（PFN）</p>
-<p>ii. 申请一个空的页表入口（PTE）并使用上步获得的物理地址填充PTE，新的PTE被映射到相同的物理页，其包含了映射的MiCfgBitMapSection32的虚拟地址。</p>
-<p>iii. 复制结果缓冲区（图12）到新的PTE。物理页将包含结果缓冲区的内容</p>
-<p>iv. 释放新的PTE</p>
-<p>在上面步骤完成后，bitmap信息被拷贝到当前进程地址空间内。但是不会影响MiCfgBitMapSection。换句话说，MiCfgBitMapSection不知道bitmap改变了。其他进程也不会看到改变；新添加的bitmap信息对当前进程是私有的。</p>
-<p><strong>c)写虚拟内存操作的bits。</strong>如果一个进程有虚拟内存操作，它可能会影响CFGBitmap中的bitmap的bits状态。从图13的场景看，它将调用MiMarkPrivateImageCfgBits。函数的主要工作是复制“1”或“0”页到CFGBitmap空间中。</p>
-<p>i. 对于NtAllocVirtualMemory函数</p>
-<p>如果一个进程调用NtAllocVirtualMemory函数来分配具有可执行属性的虚拟内存，NT内核将设置CFGBitmap中相关的位为“1”。但是如果分配的内存的保护属性有 SEC_WRITECOMBINE，NT内核将使用“0”设置bitmap。</p>
-<p>ii. 对于MiProtectVirtualMemory函数</p>
-<p>如果一个进程调用MiProtectVirtualMemory来改变虚拟内存的保护属性为“可执行”，NT内核将设置CFGBitmap相关位为“1”。</p>
-<p><strong>d) 写映像和数据段映射的bits</strong></p>
-<p>i. 对于映像（dll，EXE等）节的映射，如果映像不是共享的，处理过长如4.b节描述。如果是共享的，将由图13中的MiMarkPrivateImageCfgBits函数处理。它遍历映射空间中的每个页且将页地址转化为CFGBitmap中的偏移。</p>
-<p>i. 如果CFGBitmap中的偏移不被PrototypePTE支持，相关的bits信息将被拷贝到CFGBitmap空间中。</p>
-<p>ii. 如果CFGBitmap中的偏移已经有bitmap信息，CFGBitmap部分将改为只读。</p>
-<p>ii. 对于数据段的映射，处理与前面的c.i相同。</p>
-<h4 id="5-用户模式下获取CFGBitmap映射的地址"><a href="#5-用户模式下获取CFGBitmap映射的地址" class="headerlink" title="5. 用户模式下获取CFGBitmap映射的地址"></a>5. 用户模式下获取CFGBitmap映射的地址</h4><p>上面提到的步骤都发生在内核模式下。但是对于用户模式，CFGBitmap需要访问LdrpValidateUserCallTarget函数，它在上一部分已经描述了。当创建一个进程，NT内核调用PspPrepareSystemDllInitBlock函数来写CFGBitmap映射的地址和全局变量的长度，其数据结构是PspSystemDllInitBlock结构。PspSystemDllInitBlock是修正过的地址并且从用户模式和内核模式都能访问。用户模式可以访问硬编码的PspSystemDllInitBlock全局变量的CFGBitmap字段。</p>
-<h4 id="6-LdrpCfgProcessLoadConfig"><a href="#6-LdrpCfgProcessLoadConfig" class="headerlink" title="6. LdrpCfgProcessLoadConfig"></a>6. LdrpCfgProcessLoadConfig</h4><p>在之前的图中，_guard_check_icall函数指针将指向ntdll的LdrpValidateUserCallTarget。何时发生，如何发生？LdrpCfgProcessLoadConfig来完成这个工作。进程创建过程将在用户模式下调用LdrpCfgProcessLoadConfig。</p>
-<h4 id="7-RtlpHandleInvalidUserCallTarget"><a href="#7-RtlpHandleInvalidUserCallTarget" class="headerlink" title="7.RtlpHandleInvalidUserCallTarget"></a>7.RtlpHandleInvalidUserCallTarget</h4><p>在所有的准备都完成后，如果间接调用的目标地址相关的位在CFGBitmap中不是“1”，将触发CFG。进程将采取行动处理这个异常。处理函数是RtlpHandleInvalidUserCallTarget。这个函数使用间接调用的目标为唯一的参数。函数的主要逻辑如下：</p>
-<p><img src="file:///C:\Users\16434\AppData\Local\Temp\ksohtml\wps2689.tmp.jpg" alt="img"> </p>
-<p>函数的主要流程是校验DEP状态和触发int 29中断，这个内核中断处理例程是KiRaiseSecurityCheckFailure。它的行为是结束进程。</p>
-<p>如果一个间接调用的目标地址的CFGBitmap中的相关的位不能访问（如超出了CFGBitmap空间），意味着目标地址是不可靠的。系统将抛出访问异常。当这个异常回到用户模式的处理函数KiUserExceptionDispatcher时，它将调用RTLDispatchException。在RTLDispatchException中，它将校验异常发生的地址。如果指令的地址能访问CFGBitmap，它将继续调用RtlpHandleInvalidUserCallTarget。</p>
-<p>如果一个进程需要自定义CFGBitmap，它能调用ntdll中的NtSetInformationVirtualMemory。在内核中函数MiCfgMarkValidEntries实现了这个功能。MiCfgMarkValidEntries以一个缓冲区和长度作为参数。缓冲区中的每个单位是8字节。头四个字节是目标地址，其想在CFGBitmap中设置相关的位，且后四个字节是设置“0”或“1”的标志。MiCfgMarkValidEntries自定义的CFGBitmap只在当前进程能看见。</p>
-<p>如果一个攻击者需要改变用户模式下的CFGBitmap的内容，是不可能的。因为CFGBitmap被映射为只读（在3.b节讨论过）。不管改内存保护属性还是向空间中写值都将失败。</p>
-<h3 id="CFG的弱点"><a href="#CFG的弱点" class="headerlink" title="CFG的弱点"></a>CFG的弱点</h3><p>当然，这个机制不是没有弱点的。指出了一些弱点如下：</p>
-<p>CFGBitmap空间地址存储在修正过的地址中，其能被用户模式代码获得。这在CFG实现中讨论过。这是很重要的安全问题，但是被简单的放过了。</p>
-<p>如果主模块没有开启CFG，即使加载的启用了CFG的模块，进程也不会受保护。</p>
-<p>基于最后一个图，如果一个进程的主模块禁用了DEP（通过/NXCOMPAT:NO），能绕过CFG访问处理，即使间接调用的目标地址是不可靠的。</p>
-<p>在CFGBitmap中的每个bit在进程空间中表示8个字节。因此如果一个不可靠的目标地址少于8个字节，CFG将认为是可靠的。</p>
-<p>如果目标函数是动态生成的（类似JIT技术），CFG的实现不能保护。这是因为NtAllocVirtualMemory将在CFGBitmap中为所有分配的可执行的内存空间设置为“1”（4.c.i描述）。通过MiCfgMarkValidEntries自定义的CFGBitmap解决这个问题是可能的。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1643,7 +1626,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">32</span>
+          <span class="site-state-item-count">34</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1656,7 +1639,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-count">40</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1703,12 +1686,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">88k</span>
+    <span title="站点总字数">95k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:20</span>
+    <span title="站点阅读时长">1:26</span>
 </div>
 
         
