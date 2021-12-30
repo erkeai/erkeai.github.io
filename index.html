@@ -120,7 +120,7 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">40</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">43</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -160,7 +160,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/12/27/Cheese_point/SEH/">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/12/30/Cheese_point/SEH/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
@@ -174,7 +174,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2021/12/27/Cheese_point/SEH/" class="post-title-link" itemprop="url">未命名</a>
+            <a href="/2021/12/30/Cheese_point/SEH/" class="post-title-link" itemprop="url">SEH机制</a>
         </h2>
 
         <div class="post-meta">
@@ -183,16 +183,19 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2021-12-27 16:39:07" itemprop="dateCreated datePublished" datetime="2021-12-27T16:39:07+08:00">2021-12-27</time>
+              <time title="创建时间：2021-12-30 00:00:00 / 修改时间：16:56:05" itemprop="dateCreated datePublished" datetime="2021-12-30T00:00:00+08:00">2021-12-30</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-28 14:05:00" itemprop="dateModified" datetime="2021-12-28T14:05:00+08:00">2021-12-28</time>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
               </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%9F%A5%E8%AF%86%E7%82%B9%E8%A1%A5%E5%85%85%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">知识点补充学习</span></a>
+                </span>
+            </span>
 
           <br>
             <span class="post-meta-item" title="本文字数">
@@ -200,14 +203,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>4.7k</span>
+              <span>15k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>4 分钟</span>
+              <span>13 分钟</span>
             </span>
 
         </div>
@@ -219,13 +222,13 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="SEH"><a href="#SEH" class="headerlink" title="SEH"></a>SEH</h2><p>​    异常主要分为软件和硬件（CPU引起的）两种。除了CPU能够捕获一个事件引发一个硬件异常以外，在代码中可以主动采用<code>RaiseException</code>引发一个软件异常</p>
+          <p>​    异常主要分为软件和硬件（CPU引起的）两种。除了CPU能够捕获一个事件引发一个硬件异常以外，在代码中可以主动采用<code>RaiseException</code>引发一个软件异常</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211227163855765.png" alt="image-20211227163855765"></p>
 <h3 id="异常处理基本过程"><a href="#异常处理基本过程" class="headerlink" title="异常处理基本过程"></a>异常处理基本过程</h3><h4 id="IDT"><a href="#IDT" class="headerlink" title="IDT"></a>IDT</h4><p>​    Windows正常启动后，将运行在保护模式下，当有终端或者异常发生时，CPU会通过IDT(中断描述符表)来寻找处理函数。所以，IDT是CPU(硬件)和操作系统(软件)交接中断和异常的关口。<strong>每一个中断或异常向量在这个系统表中有对应的中断或异常处理程序入口地址。</strong></p>
 <p>​     IDT包含三种类型的中断描述符：任务门、中断门、陷阱门。</p>
-<pre><code>- 任务门：主要用于CPU的任务切换（当中断信号发生时，必须取代当前进程的那个进程的TSS（任务状态描述符表）选择符存放在任务门中）。
-- 中断门：主要用于描述中断处理程序的入口。
-- 陷阱门：主要用于描述异常处理程序的入口。
+<pre><code>任务门：主要用于CPU的任务切换（当中断信号发生时，必须取代当前进程的那个进程的TSS（任务状态描述符表）选择符存放在任务门中）。
+中断门：主要用于描述中断处理程序的入口。
+陷阱门：主要用于描述异常处理程序的入口。
 </code></pre>
 <h4 id="异常处理准备工作"><a href="#异常处理准备工作" class="headerlink" title="异常处理准备工作"></a>异常处理准备工作</h4><p>​    当中断或者异常发生时，CPU会更具中断类型号转而执行对应的中断处理程序。各个异常处理函数除了针对本异常的特定处理外，<strong>通常会将异常信息进行封装</strong>，以便后续处理。</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211227172903111.png" alt="image-20211227172903111"></p>
@@ -235,8 +238,6 @@
 <p>​    陷阱帧准确描述了发生异常时线程的状态（Windows任务调度是基于线程的），<code>_KTRAP_FRAME</code>该结构与处理器高度相关，不同平台有不同定义。（每个线程在内核中都有一个 <code>_KTrap_Frame</code> 结构体，包含每个寄存器的状态，用于操作系统对线程的管理，该结构体时操作系统进行维护的。）</p>
 <p>​    当需要把控制权交给用户注册的异常处理程序时，会将上述结构转换成一个名为<code>CONTEXT</code>的结构，它包含线程运行时处理器各主要寄存器的完整镜像，用于保存线程运行环境。其中第一个变量<code>ContextFlags</code>表示结构体中哪些部分（这些部分包括：控制寄存器、(整数)通用寄存器、段寄存器、浮点寄存器、调试寄存器、扩展寄存器）有效。</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">typedef struct _CONTEXT</span><br><span class="line">&#123;</span><br><span class="line">    DWORD           ContextFlags    // -|               +00h</span><br><span class="line">    DWORD           Dr0             //  |               +04h</span><br><span class="line">    DWORD           Dr1             //  |               +08h</span><br><span class="line">    DWORD           Dr2             //  &gt;调试寄存器     +0Ch</span><br><span class="line">    DWORD           Dr3             //  |               +10h</span><br><span class="line">    DWORD           Dr6             //  |               +14h</span><br><span class="line">    DWORD           Dr7             // -|               +18h</span><br><span class="line"></span><br><span class="line">    FLOATING_SAVE_AREA FloatSave;   //浮点寄存器区      +1Ch~~~88h</span><br><span class="line"></span><br><span class="line">    DWORD           SegGs           //-|                +8Ch</span><br><span class="line">    DWORD           SegFs           // |\段寄存器       +90h</span><br><span class="line">    DWORD           SegEs           // |/               +94h</span><br><span class="line">    DWORD           SegDs           //-|                +98h</span><br><span class="line"></span><br><span class="line">    DWORD           Edi             //________          +9Ch</span><br><span class="line">    DWORD           Esi             // |  通用          +A0h</span><br><span class="line">    DWORD           Ebx             // |   寄           +A4h</span><br><span class="line">    DWORD           Edx             // |   存           +A8h</span><br><span class="line">    DWORD           Ecx             // |   器           +ACh</span><br><span class="line">    DWORD           Eax             //_|___组_          +B0h</span><br><span class="line"></span><br><span class="line">    DWORD           Ebp             //++++++            +B4h</span><br><span class="line">    DWORD           Eip             // |控制            +B8h</span><br><span class="line">    DWORD           SegCs           // |寄存            +BCh</span><br><span class="line">    DWORD           EFlag           // |器组            +C0h</span><br><span class="line">    DWORD           Esp             // |                +C4h</span><br><span class="line">    DWORD           SegSs           //++++++            +C8h</span><br><span class="line"></span><br><span class="line">    BYTE    ExtendedRegisters[MAXIMUM_SUPPORTED_EXTENSION];</span><br><span class="line">&#125; CONTEXT;</span><br><span class="line">    typedef     CONTEXT     *PCONTEXT;</span><br><span class="line">    #define     MAXIMUM_SUPPORTED_EXTENSION     512</span><br></pre></td></tr></table></figure>
-
-
 
 <p>​    异常处理函数会进一步调用内核的<code>nt!KiDispatchException</code>函数来处理异常，第一个参数和第二个参数正是前面封装的两个结构</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211228101900557.png" alt="image-20211228101900557"></p>
@@ -259,11 +260,11 @@
 </li>
 <li><p>如果第2次机会调试器仍不处理，<code>nt!KiDispatchException</code>会再次尝试把异常分发给进程的异常端口进行处理</p>
 </li>
+<li><p>在终结程序之前，系统会再次调用发生异常的线程中的所有异常处理过程，这是线程异常处理过程所获得的清理未释放资源的最后机会，此后程序就终结了。</p>
+</li>
 </ul>
 <h3 id="SEH概念以及基本知识"><a href="#SEH概念以及基本知识" class="headerlink" title="SEH概念以及基本知识"></a>SEH概念以及基本知识</h3><p>​    **SEH( Structured Exception Handling，结构化异常处理)**是 Windows操作系统用于自身除错的一种机制，也是开发人员处理程序错误或异常的强有力的武器。SEH是一种错误保护和修复机制，它告诉系统当程序运行出现异常或错误时由谁来处理，给了应用程序一个改正错误的机会。从程序设计的角度来说，就是系统在终结程序之前给程序提供的一个执行其预先设定的回调函数的机会。</p>
-<pre><code>#### 相关数据结构
-</code></pre>
-<h5 id="TIB"><a href="#TIB" class="headerlink" title="TIB"></a>TIB</h5><p>​    **TIB( Thread Information Block，线程信息块)<strong>是保存线程基本信息的数据结构。在用户模式下，它位于</strong>TEB( Thread environment Block，线程环境块)**的头部，而TEB是操作系统为了保存每个线程的私有数据创建的，每个线程都有自己的TEB。</p>
+<h4 id="相关数据结构"><a href="#相关数据结构" class="headerlink" title="相关数据结构"></a>相关数据结构</h4><h5 id="TIB"><a href="#TIB" class="headerlink" title="TIB"></a>TIB</h5><p>​    **TIB( Thread Information Block，线程信息块)<strong>是保存线程基本信息的数据结构。在用户模式下，它位于</strong>TEB( Thread environment Block，线程环境块)**的头部，而TEB是操作系统为了保存每个线程的私有数据创建的，每个线程都有自己的TEB。</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211228105428973.png" alt="image-20211228105428973"></p>
 <p>​    在x86平台的用户模式下，Windows将FS段选择器指向当前线程的TEB数据，即TEB总是由**fs:[0]<strong>指向的(在x64平台上，这个指向关系变成了</strong>gs:[0]<strong>。关于x64平台上的异常处理，会在85节详细讲述)。而当线程运行在内核模式下时， Windows将FS段选择器指向内核中的</strong> KPCRB结构( Processor Control Region Block，处理器控制块)**，该结构的头部同样是上述的 <code>NT_TIB</code>结构。</p>
 <h5 id="EXCEPTION-REGISTRATION-RECORD结构"><a href="#EXCEPTION-REGISTRATION-RECORD结构" class="headerlink" title="_EXCEPTION_REGISTRATION_RECORD结构"></a>_EXCEPTION_REGISTRATION_RECORD结构</h5><p>​    该结构主要用于描述线程异常处理过程的地址，多个该结构的链表描述了多个线程异常处理过程的嵌套层次关系。</p>
@@ -304,10 +305,181 @@
 <li><p>0x14 + 2 * sizeof(ULONG)=0x1c</p>
 </li>
 <li><p>ExceptionRecord + 0x1C = 0012fcd0 + 0x1c = 0012fcec ( ContextRecord的位置)</p>
-<p>下面看一下<code>CONTEXT</code>结构</p>
+<p>下面看一下<code>CONTEXT</code>结构，其中esi和eip与上面图中一样</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211228140132557.png" alt="image-20211228140132557"></p>
+<p>接下来从源代码分析一下（<a href="https://erkeai.github.io/2021/12/27/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/%E6%89%8B%E8%84%B1Yoda's%20Protector%20v1.3(Yoda's%20Crypter)/">手脱yoda</a>最开始有这样的程序例子）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211228140955934.png" alt="image-20211228140955934"></p>
+<p>重新加载程序,执行到0x00401036处时,SEH异常回调函数安装完毕。观察此时的TIB结构,具体如下。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211228141742569.png" alt="image-20211228141742569"></p>
 </li>
 </ul>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211228141722404.png" alt="image-20211228141722404"></p>
+<p>​    可以看到,当前SEH链的第1个节点在0x0012ffb8处,该节点的 Handler为0x00401000。对0x00401000设断,然后输入“g”命令让程序运行。当执行0x00401038一句读取线性地址0时会产生异常,程序跳转到0xo0401000( Handler)处继续执行。因此,只有提前在 Handler地址处设置断点,才能正常跟踪SEH代码的运行,否则代码就有可能跟“飞”了。</p>
+<h3 id="SEH异常处理程序原理及设计"><a href="#SEH异常处理程序原理及设计" class="headerlink" title="SEH异常处理程序原理及设计"></a>SEH异常处理程序原理及设计</h3><h4 id="异常分发详细过程"><a href="#异常分发详细过程" class="headerlink" title="异常分发详细过程"></a>异常分发详细过程</h4><p>​    异常处理的过程实际上是系统将异常发送到各个异常处置单元进行处理的过程，也叫<strong>异常分发</strong>。</p>
+<p>​    用户态的异常分发是从 <code>ntdll!KiUserException_Dispatcher</code>函数开始的。此时,栈中有 <code>EXCEPTION_RECORD</code>和 <code>CONTEXT</code>两个结构。该函数的主要流程可以用以下代码表示。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211228153555852.png" alt="image-20211228153555852"></p>
+<p>可以看到<code>ntdll!RtlDispatchException</code>函数用来具体分发异常，我们详细看一下这个函数的代码</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211228155438207.png" alt="image-20211228155438207"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211228155655416.png" alt="image-20211228155655416"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211228155714188.png" alt="image-20211228155714188"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211228155730403.png" alt="image-20211228155730403"></p>
+<p>​    ①调用VEH ExceptionHandler进行异常处理,若返回继续执行,则直接返回,否则继续进SEH部分的处理。</p>
+<p>​    ②遍历当前线程的异常链表,逐一调用<code> RtlpExecuteHandlerForException</code>。该函数会调用SEH异常处理函数,根据不同的返回值进行不同的处理。</p>
+<ul>
+<li><p>对 <code>ExceptionContinueExecution</code>,结束遍历并返回(对标记为 <code>EXCEPTION_NONCONTINUABL</code>的异常不允许再次恢复执行,会调用 <code>RtlRaiseException</code>)</p>
+</li>
+<li><p>对 <code>ExceptionContinuesearch</code>,继续遍历下一个节点。</p>
+</li>
+<li><p>对<code> ExceptionNestedException</code>,从指定的新异常开始继续遍历。只有正确处理 <code>ExceptionContinueExecution</code>才会返回“TRUE”,其他情况都返回“ FALSE”。</p>
+<p>③调用 VEH ContinueHandler进行异常处理。</p>
+</li>
+</ul>
+<h4 id="线程异常处理"><a href="#线程异常处理" class="headerlink" title="线程异常处理"></a>线程异常处理</h4><p>​    其实就是指SEH异常处理，因为SEH的整体设计思路就是基于线程的。</p>
+<p>​    回调函数原型定义如下</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211229100059231.png" alt="image-20211229100059231"></p>
+<ul>
+<li><p>pExcept:指向前面介绍的包含异常处理信息的 <code>EXCEPTION_RECORD</code>结构的地址</p>
+</li>
+<li><p>pFrame:指向SEH链中当前 <code>EXCEPTION_REGISTRATION</code>结构的地址。</p>
+</li>
+<li><p>pContext:指向与线程相关的寄存器映像 <code>CONTEXT</code>结构的地址。</p>
+</li>
+<li><p>pDispatch:该域用于内嵌异常的处理,读者可以暂时忽略它。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211229100504017.png" alt="image-20211229100504017"></p>
+</li>
+</ul>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211229100237015.png" alt="image-20211229100237015"></p>
+<p>​    回调函数要做的就是通过 <code>EXCEPTION_RECORD</code>结构中的信息判断当前异常是不是自己能够处理的。如果能,那么需要根据异常产生的原因进行相应的修正,必要时会修改<code> CONTEXT</code>结构,然后恢复执行;如果不能,则告诉系统去寻找下一个处理程序。</p>
+<ul>
+<li><p><strong>ExceptionContinueExecution</strong>：表示回调函数处理了异常，可以从异常发生出继续执行。</p>
+</li>
+<li><p><strong>ExceptionContinueSearch</strong>：回调函数不能处理异常，需要SEH回调函数链表中其他回调函数来处理。</p>
+</li>
+<li><p><strong>ExceptionNestedException</strong>：回调函数在试图处理该异常的时候再次发生了异常（嵌套异常）。这种情况是比较糟糕的。如果这种情况发生在内核中,则会直接 Bugcheck,停止系统的运行。如果这种情况发生在应用层,系统会尝试从嵌套异常的事发地点重新分发和处理嵌套异常。</p>
+</li>
+<li><p><strong>ExceptionCollidedUnwind</strong>：返回该值表示回调函数在进行<strong>异常展开操作</strong>时再次发生了异常,其中展开操作可以简单理解为<u>恢复发生事故的第一现场,并在恢复过程中对系统资源进行回收。</u>与上一个返回值一样,这也是非常严重的错误。但是,由于展开操作一般是由系统在处理异常的过程中进行的,用户自定义的回调函数通常不返回这个值。</p>
+<p>后两个返回值只见于系统内部的处理过程。</p>
+</li>
+</ul>
+<h4 id="异常处理的栈展开"><a href="#异常处理的栈展开" class="headerlink" title="异常处理的栈展开"></a>异常处理的栈展开</h4><p>​    我们已经知道,传递给回调函数的 <code>EXCEPTION_RECORD</code>结构的 <code>Exceptionflags</code>域有3个可选值,分别是0、1和2。0表示可修复异常,前面的例子都是可修复异常;1代表不可修复异常,这在应用程序中不多见,只有在异常处理中又发生了异常或者系统内核发生严重错误时才可能导致这种情况;2代表<strong>展开操作</strong>。</p>
+<p>​    一般情况下，只有在系统终结程序之前，栈展开才会发生，最主要目的是给程序清理未释放资源的机会。</p>
+<p>​    还有一种情况会使用栈展开（如下图介绍）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211229140936371.png" alt="image-20211229140936371"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211229140955494.png" alt="image-20211229140955494">    </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211229141027924.png" alt="image-20211229141027924"></p>
+<p>​    Windows提供了进行栈展开的API函数<code>RtlUnwind</code></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211229140603781.png" alt="image-20211229140603781"></p>
+<ul>
+<li><strong>VirtualTargetFrame</strong>:展开时,最后在SEH链上停止于回调函数所对应的 <code>EXCEPTION_REGISTRATION</code>的指针,即希望在哪个回调函数前展开调用停止,其对应的<code> EXCEPTION_REGISTRATION</code>结构的指针就作为该参数使用(在大部分情况下是引发调用的回调函数所对应的 <code>EXCEPTION_REGISTRATION</code>结构的指针,也可以不是)</li>
+<li><strong>TargetPC</strong>:调用 <code>Rtlunwind</code>返回后应执行指令的地址。如果为0,则自然返回 <code>Rtlunwind</code>调用后的下一条指令,与正常的AP调用相同。</li>
+<li><strong>Exceptionrecord</strong>:当前异常的 <code>EXCEPTION_RECORD</code>结构,可以直接使用在异常中传递给回调函数的该参数。</li>
+<li><strong>Return value</strong>:返回值,通常不使用。</li>
+</ul>
+<h5 id="except-handler3函数"><a href="#except-handler3函数" class="headerlink" title="_except_handler3函数"></a>_except_handler3函数</h5><p>​    ①在栈上生成一个·<code>EXCEPTION POINTES</code>结构,并将其保存到[ebp-10]处。</p>
+<p>​    ②获取当前的<code>Trylevel</code>,判断其值是否等于-1。若等于,则表示当前不在<code>Try</code>块中,返回<code>ExceptionContinueSearch</code>,继续寻找其他异常处理程序。</p>
+<p>​    ③若 <code>Try Level</code>的值不等于-1,并根据 <code>Try Level</code>在 <strong>Scope Table</strong>中找到相应的 <code>SCOPTETABLEENTRY</code>,判断 <code>Filter Func</code>是否为“NULL”。若为“NUL”,说明是<code>_try/finally</code>组合。因为该组合不直接处理异常,所以也返回 <code>ExceptionContinueSearch</code></p>
+<p>​    ④若 <code>Filterfunc</code>不为“NUL”,说明是<code>_try/_except</code>组合,那么执行 <code>FilterFunc</code>,然后判断其返回值(也就是前面讲到的3种返回值),根据返回值的不同执行不同的动作。 <code>EXCEPTION_CONTINUE_SEARCH</code>和 <code>EXCEPTION_ CONTINUE_EXECUTION</code>的意义比较明确,就不多介绍了。若返回值是 <code>EXCEPTION_EXECUTE_ HANDLER</code>,就是去执行 <code>HandlerFunc</code>,执行完毕会跳转到当前<code>Try</code>块的结束位置,同时表示本次异常处理结束,此时<code>_except_handler3</code>将不返回。</p>
+<p>​    ⑤如果异常没有被处理,最后会由系统默认的异常处理函数进行处理,它在展开时会调用<code>finally</code>块的代码。</p>
+<p>​    因为几乎所有由MSC编译生成的sys, dll, exe文件都需要使用 <code>_except_handler3</code>异常处理函数,并且都需要进行SEH的安装和卸载,所以编译器把这部分代码提取出来,形成了两个独立的函数,分别叫作 <code>SEH_prolog</code>和 <code>SEH_epilog</code>。它们的主要作用就是把<code>_except_handler3</code>安装为SEH处理函数及卸载,这也是在反汇编那些使用了SEH的系统API时总会看到如下代码的原因。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211229154625641.png" alt="image-20211229154625641"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211229154635328.png" alt="image-20211229154635328"></p>
+<p>​    不过现在已经更新，<code>SCOPE_TABLE</code>增加了 Security Cookie的相关内容,这是微软为了防止缓冲区溢出而设置的栈验证机制。在函数开头会对栈中的 <code>ScopeTable</code>使用 Cookie作为密钥进行加密,异常处理函数也变成了<code>_ except_handler4</code>。在该函数中,除了增加了对 <code>Security Cookie</code>和 <code>ScopeTable</code>的验证之外,整体流程与<code>_ except_handler3</code>完全一致。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211229155249883.png" alt="image-20211229155249883"></p>
+<h4 id="顶层异常处理"><a href="#顶层异常处理" class="headerlink" title="顶层异常处理"></a>顶层异常处理</h4><p>​    顶层(Top- -level)异常处理是系统设置的一个默认异常处理程序,所有在线程中发生的异常只要没有被线程异常处理过程或调试器处理,最终均交由顶层异常回调函数处理。<strong>Q：</strong>SEH不是基于线程的吗?为什么这个 Toplevel异常处理程序能够处理所有线程的异常呢?</p>
+<p>​    一般程序开始创建任意线程运行前默认设置一个顶层异常处理程序。所谓的顶层异常处理意思是，当程序的异常通过SEH链一直传递到最后一个我们自己设置的SEH链结点都没有处理此异常时，会调用这个顶层异常处理函数。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">_try</span><br><span class="line">&#123;</span><br><span class="line">  //程序入口</span><br><span class="line">&#125;</span><br><span class="line">_except(UnhandledExceptionFilter（）)</span><br><span class="line">&#123;</span><br><span class="line">  </span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>SEH是基于线程的，因为每一个线程都有自己的TEB，又因为TEB的第一个字段指向SEH链的头部，所以每一个线程都有自己的SEH链，不同线程之间的SEH链也不同。每个线程创建之前都会安装顶层异常处理过程，而每一个顶层异常处理程序的过滤函数都是<code>UnhandledExceptionFilter</code>，此函数会在内部调用全局变量<code>kernel32!BasepCurrentTopLeveFilter</code>保存的函数地址，此函数可以干预<code>UnhandleExceptionFilter</code>的返回值。而我们可以调用<code>SetUnhandledExceptionFilter</code>函数改变此全局变量的值为自定义函数的地址。所以顶层异常处理是基于<strong>进程</strong>的（顶层异常过滤函数返回值干预函数的值是全局变量保存的）。</li>
+<li>如果程序是用MSC编译器编译的程序默认的异常处理函数一般是<code>Kernel32!_except_handlerX</code>，<code>Kernel32!_except_handlerX</code>会先调用<code>UnhandleExceptionFilter</code>过滤函数，而如果我们在<code>UnhandleExceptionFilter</code>过滤函数中已经把此异常处理了则就不会执行默认的异常处理，否则默认的异常处理就是结束应用程序。</li>
+</ul>
+<h5 id="顶层异常处理在反调试中的应用"><a href="#顶层异常处理在反调试中的应用" class="headerlink" title="顶层异常处理在反调试中的应用"></a>顶层异常处理在反调试中的应用</h5><ul>
+<li>为当程序产生一个异常时，首先会被系统内核捕捉然后系统内核会判断当前是否有调试器调试，有的话把异常交给调试器。如果没有调试器或者调试器处理不了此异常的话，异常会被分发给SEH链上的各个异常处理回调函数依次处理，这些回调函数的地址是通过一个链表存储。通过遍历这个链表从而调用各个异常处理回调函数。如果异常被某个回调函数正常处理了就继续从产生异常的代码处继续往下执行。如果一直遍历到链表的最后一个异常回调函数之前都没能够处理此异常的话，此异常就会交给最后一个默认的异常处理程序处理。</li>
+<li>而最后一个默认异常处理函数在调用时会先调用<code>UnhandledExceptionFilter</code>过滤函数，此函数又会调用<code>ZwQueryInformationProcess</code>(函数先判断是否有调试器存在，有的话会直接返回进行异常的二次分发（一般就是会结束进程）。</li>
+<li>如果<code>ZwQueryInformationProcess</code>函数没有检测到调试器的存在的话其将会执行默认异常处理。而一般默认异常处理是默认的终止程序的函数。（如果没有调试器的话异常是不会进行二次分发的，这点很重要）</li>
+<li>但是windows提供一个函数来对<code>UnhandledExceptionFilter</code>进行干预从而修改其返回值让其正常返回，而不执行默认的异常处理终止程序。此函数就是<code>SetUnhandledExceptionFilter</code>，此函数具有唯一的参数就是设置用来干预<code>UnhandledExceptionFilter</code>过滤函数的回调函数的地址，<code>UnhandledExceptionFilter</code>会在内部调用这个函数。（一般称这个函数为顶级异常处理函数，我认为这么称是不准确的。因为真正的顶级异常处理函数是默认的异常处理函数，此函数应该称为顶级过滤干预函数）</li>
+</ul>
+<blockquote>
+<p>所以一般会利用此顶层异常处理函数的特性，主动产生异常，然后调用<code>SetUnhandledExceptionFilter</code>设置顶层过滤函数的干扰函数来处理异常，如果用户调式程序的话，因为顶层异常处理会检测到有调试器，因此不会调用顶层过滤干扰函数来处理异常，导致异常无法处理从而终止运行。（需要我们改变<code>ZwQueryInformationProcess</code>函数的返回值来骗过<code>UnhandledExceptionFilter</code>函数让他以为无调试器）</p>
+</blockquote>
+<p><strong>Detail：</strong>详细看《加密与解密》，后面准备逆向一个程序详细分析一下这个异常处理</p>
+<h4 id="异常处理程序的安全性"><a href="#异常处理程序的安全性" class="headerlink" title="异常处理程序的安全性"></a>异常处理程序的安全性</h4><p>​    为了防止比如某些溢出攻击时，栈中的SEHandler可能被覆盖为非法过程的情况，微软提供了SafeSEH机制、SEHOP机制。</p>
+<h5 id="SafeSEH机制"><a href="#SafeSEH机制" class="headerlink" title="SafeSEH机制"></a>SafeSEH机制</h5><p>​    编译器提供SEH基础数据，由操作系统在产生异常时进行验证。首先编译器在编译PE文件时加入了一个 <code>SafeSEH</code>开关。如果编译时打开了这个开关,那么编译器会在PE头的 DllCharacteristics中加入一个标志,并在编译阶段提取所有异常处理程序的相对虚拟地址(RVA),将它放入一个表。这个表的位置是由PE头部 <code>IMAGE_OPTIONAL_HEADER</code>结构中数据目录的第10项指定的,相关定义如下。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211230112818459.png" alt="image-20211230112818459"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211230112831461.png" alt="image-20211230112831461"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211230112846786.png" alt="image-20211230112846786"></p>
+<p>​    <code>Sehandlertable</code>是指向一个SEH处理函数Rva的表格, <code>Sehandlercount</code>是这个表格的项数,它指出了有几个有效的 SEHandler。当PE被载人时,PE的基址、大小、 <code>Sehandlertable</code>(表格的地址)、<code>Sehandlercount</code>(长度)会保存在ntdl的一个表格中。当异常发生时,系统会根据每个PE的基址和大小检查当前 Sehandler处理函数属于哪一个PE模块,然后取出相应的表格地址和长度。在载入时就已经取出,载入后 <code>Sehandlertable</code>和 <code>Sehandlercount</code>就没有用处了,所以对它进行修改不会影响系统对 SEHandler的验证结果。</p>
+<p>​    系统在对栈及栈中的 <code>EXCEPTION_REGISTRATION_ RECORD</code>结构进行初步验证之后,会调用 <code>RtlIsValidHandler</code>对异常回调函数的有效性进行验证。该函数的伪代码如下。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">BOOL RtlIsValidHandler(handler)</span><br><span class="line">&#123;</span><br><span class="line">    if (handler is in image)&#123;    //在加载模块内存空间内</span><br><span class="line">        if (image has the IMAGE_DLLCHARACTERISTICS_NO_SEH flag ser)</span><br><span class="line">            return FALSE;</span><br><span class="line">        if (image has a SafeSEH table)     //含有安全SEH表，说明程序启用SafeSEH</span><br><span class="line">            if (handler found in the table)    // 异常处理函数地址出现在安全SEH表中</span><br><span class="line">                return TRUE;</span><br><span class="line">            else    // 异常处理函数未出现在安全SEH表中</span><br><span class="line">                return FALSE;</span><br><span class="line">        if (image is a .NET assembly with the ILonly flag set)     //只包含IL</span><br><span class="line">            return FALSE;</span><br><span class="line">    &#125;</span><br><span class="line">    if (handler is on a non-executable page)&#123;    // 跑到不可执行页上</span><br><span class="line">        if (ExecuteDispatchEnable bit set in the process flags)    //DEP关闭</span><br><span class="line">            return TRUE;</span><br><span class="line">        else</span><br><span class="line">            raise ACESS_VIOLATION; //抛出访问违例异常</span><br><span class="line">    &#125;</span><br><span class="line">    if (handler is not in an image)&#123;    // 在加载模块内存之外，并且在可执行页上</span><br><span class="line">        if (ImageDispatchEnable bit set in the process flags)    // 允许在加载模块内存空间外执行</span><br><span class="line">            return TRUE;</span><br><span class="line">        else</span><br><span class="line">            return FALSE;</span><br><span class="line">    &#125;</span><br><span class="line">    return TRUE;    //前面所有条件都满足就允许这个异常处理函数执行</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>检查异常处理链是否位于当前程序的栈中，如果不在当前栈中，程序将终止异常处理函数的调用</li>
+<li>检查异常处理函数指针是否指向当前程序的栈中。如果指向当前栈中，程序将终止异常处理函数的调用</li>
+<li>在前面两项检查之后，程序调用全新的函数RtlIsValidHandler()，来对异常处理函数的有效性进行检验。</li>
+</ol>
+<ul>
+<li>首先该函数判断异常处理函数地址是不是在加载模块的内存空间，如果属于加载模块的内存空间，检校函数将依次进行如下判断：<ol>
+<li>判断程序设置IMAGE_DLLCHARACTERISTICS_NO_SEH标识。设置了，异常就忽略，函数返回校验失败。</li>
+<li>检测程序是否包含SEH表。如果包含，则将当前异常处理函数地址与该表进行匹配，匹配成功返回校验成功，否则失败。</li>
+<li>判断 程序是否设置ILonly标识。设置了，标识程序只包含.NET编译人中间语言，函数直接返回校验失败</li>
+<li>判断异常处理函数是否位于不可执行页（non-executable page）上。若位于，校验函数将检测DEP是否开启，如若系统未开启DEP则返回校验成功；否则程序抛出访问违例的异常</li>
+</ol>
+</li>
+<li>如果异常处理函数的地址没有包含在加载模块的内存空间。校验函数将直接执行DEP相关检测，函数将依次进行如下检验：<ol>
+<li>判断异常处理函数是否位于不可执行页（non-executable page）上。若位于，校验函数将检测DEP是否开启，如若系统未开启DEP则返回校验成功；否则程序抛出访问违例的异常</li>
+<li>判断系统是否允许跳转到加载模块的内存空间外执行，如允许则返回校验成功；否则返回校验失败</li>
+</ol>
+</li>
+</ul>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211230135252692.png" alt="image-20211230135252692"></p>
+<h5 id="SafeSEH不能解决的问题"><a href="#SafeSEH不能解决的问题" class="headerlink" title="SafeSEH不能解决的问题"></a>SafeSEH不能解决的问题</h5><ol>
+<li>异常处理函数位于加载模块内存范围之外，DEP关闭</li>
+<li>异常处理函数位于加载模块内存范围之内，相应模块未启用SafeSEH(安全SEH表为空)，同时相应模块不是纯IL</li>
+<li>异常处理函数位于加载模块范围之内，相应模块启用SafeSEH（安全SEH表不为空），异常处理函数地址包含在安全SEH表中</li>
+</ol>
+<p>分析三种情况的可行性：</p>
+<ol>
+<li>只考虑SafeSEH，不考虑DEP干扰，需要在加载模块内存范围之外找到一个跳板指令就可以转入shellcode中执行</li>
+<li>第二种情况中，我们可以利用未启用SafeSEH模块中的指令作为跳板，转入shellcode执行。这也是一再强调SafeSEH需要操作系统与编译器的双重支持。在加载模块中找到一个未启用SafeSEH模块不是很难</li>
+<li>第三种情况下，可以考虑：a)清空安全SEH表，造成该模块未启用SafeSEH假象；b)将指令注册到安全SEH表中。由于安全SEH表的信息在内存中加密存放，所以突破它的可能性不大，放弃！！</li>
+</ol>
+<p>另外突破SafeSEH的方法：</p>
+<ol>
+<li>不攻击SEH。使用覆盖返回地址或者虚函数表等信息。</li>
+<li>利用SEH的安全校验的严重缺陷——如果SEH中的异常函数指针指向堆区，即使安全校验发现SEH不可信，仍会调用其已修改过的异常处理函数。</li>
+</ol>
+<h5 id="SEHOP机制"><a href="#SEHOP机制" class="headerlink" title="SEHOP机制"></a>SEHOP机制</h5><p>​    SEH覆写保护机制，用于检测SEH是否被覆写</p>
+<ul>
+<li>检测SEH链的完整性,即每一个节点都必须在栈中,并且都可以正常访问。</li>
+<li>检测最后一个节点的异常处理函数是不是位于ntdll中的<code>ntdll!FinalExceptionHandler</code>。</li>
+</ul>
+<p>突破SEHOP方法</p>
+<ul>
+<li><p>不去攻击SEH，而是攻击函数返回地址或虚函数等</p>
+</li>
+<li><p>利用未启用SEHOP的模块</p>
+</li>
+<li><p>伪造SEH链</p>
+</li>
+</ul>
+<h3 id="向量化异常处理"><a href="#向量化异常处理" class="headerlink" title="向量化异常处理"></a>向量化异常处理</h3><p>​    向量化异常处理的基本理念与SEH相似,也是注册一个回调函数,当发生异常时会被系统的异常处理过程调用。可以通过API函数 <code>AddVectoredExceptionHandler</code>注册VEH回调函数,其原型如下。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211230142115925.png" alt="image-20211230142115925"></p>
+<p>​    VEH回调函数也形成了一个链表。若参数 <code>FirstHandler</code>的值为0,则回调函数位于VEH链表的尾部;若参数 <code>FirstHandler</code>为非零值,则置于VEH链表的最前端,当有多个VEH回调函数存在时,这将影响回调函数被调用的顺序。<strong>应将该函数的返回值保存下来,用于卸载回调函数。</strong>VEH回调函数所在的模块被卸载之后,系统不能自动将回调函数地址从VEH链表上移除,需要程序在退出前自己完成卸载工作,可以使用如下API实现。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211230142326731.png" alt="image-20211230142326731"></p>
+<p>​    该函数只有一个参数,即 <code>Vectoredhandlerhandle</code>(就是前面保存的<code> AddVectoredExceptionHandler</code>的返回值)。回调函数的参数 <code>PEXCEPTION_POINTERS</code>与在顶层异常处理回调函数中用到的参数是一致的,即指向 <code>EXCEPTION_POINTERS</code>结构的指针。回调函数合理的返回值只有两个,分别是 <code>EXCEPTIONCONTINUE EXECUTION</code>和 <code>EXCEPTION_ CONTINUE_SEARCH</code>,其意义与SEH回调函数的意义相同。</p>
+<h4 id="VEH和SEH的异同"><a href="#VEH和SEH的异同" class="headerlink" title="VEH和SEH的异同"></a>VEH和SEH的异同</h4><p>​    当异常发生时,<strong>VEH会优先于SEH获得控制权</strong>(但如果有调试器,调试器会优先于VEH回调函数),系统会自动调用 <code>AddVectoredExceptionHandler</code>注册的VEH回调函数。如果回调函数修复了异常,则返回 <code>EXCEPTION_CONTINUE_EXECUTION</code>,在异常发生处以<code> CONTEXT</code>指定的线程环境继续运行,此时SEH处理过程将被跳过。如果回调函数不能处理异常,回调函数应返回 <code>EXCEPTION_CONTINUE_SEARCH</code>,系统会釆取与SEH大致相同的策略遍历VEH链表。如果整个链表搜索完毕,没有回调函数对异常进行处理,则将控制权转移给<strong>系统</strong>,由系统继续遍历SEH链表上注册的回调函数,其过程如SEH机制所示。</p>
+<ul>
+<li>注册机制不同。SEH的相关信息主要保存在栈中,而且后注册的回调函数总是处于SEH链的前端,也就是说,当异常发生时,异常总是由内层回调函数优先处理,只有在内层回调函数不处理异常时,外层回调函数才有机会获得控制权。而VEH不同,它的相关信息保存在<strong>独立的链表</strong>中(实际存储在ntdll中),在注册VEH时可以指定回调函数是位于VEH链表的前端还是尾部,这就<strong>避免了我们希望在SEH中获得优先处理权却常常不能如愿的问题</strong>。</li>
+<li>优先级不同。VEH优先于SEH被调用,这对某些需要先于SEH取得异常处理权的特殊程序来说非常重要。如果VEH表明自己处理了异常,那么SEH将没有机会再处理该异常。</li>
+<li>作用范围不同。SEH机制是基于线程的,也就是说,同一进程内的A线程无法捕获和处理B线程产生的异常,并且对特定的SEH处理程序来说,它的作用范围更是局限在安装它的那个函数内部(除了顶层异常处理这个特殊的全局回调函数)。而VEH在整个进程范围内都是有效的,它可以捕获和处理所有线程产生的异常。</li>
+<li>VEH不需要栈展开。由于SEH的注册和使用依赖于函数调用的栈帧,在调用SEH回调函数时会涉及栈展开的问题,这样SEH就有2次被调用的机会。因为VEH的实现不依赖栈,所以在调用VEH回调函数前不需要进行栈展开,它只有1次被调用的机会。</li>
+</ul>
+<h3 id="X64平台上的异常处理"><a href="#X64平台上的异常处理" class="headerlink" title="X64平台上的异常处理"></a>X64平台上的异常处理</h3><p>​    与X86的区别是，SEH的相关数据结构以及存储位置发生了改变。因为栈是动态变化的，很容易被缓冲区溢出等操作破坏, SafeSEH和 SEHOP机制是在必须保证兼容性的情况下不得不采取的增强保护措施,属于无奈之举。所以,到了新的x64平台上,不仅统一了函数调用约定为 _fastcall,对SEH的相关数据结构也重新进行了定义,主要设计思路如下。</p>
+<p>​    在具体实施上,编译器主要做了以下工作。提取所有函数的起始地址、结束地址、函数的“序幕”操作(包括栈操作和寄存器操作)、异常处理信息等,生成两个表。其中一个表可以称作<strong>函数信息表</strong>,包含当前程序中所有函数在内存中的位置信息(除了叶函数,即那些既不调用其他函数,也不包含异常处理的函数)。这些信息被放在一个单独的区段 <code>.pdata</code>中,该区段的位置可以从PE头部的数据目录 <code>IMAGE_DIRECOTRY_EXCEPTION_DIRECOTY</code>(定义为3)中找到,数据定义如下.</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211230154654298.png" alt="image-20211230154654298"></p>
+<p>​    在该表中,每一条函数的信息被称为一个 <code>Function Entry</code>,所有 <code>Function Entry</code>都是按照RVA的大小升序排列的,这样便于使用二分法快速查找。除了函数的起始和结束位置,上述结构中还包括 <code>UnwindData</code>数据,它也是一个RVA,所指向的结构则包括函数的“序幕”操作(包括栈操作和寄存器操作)和异常处理信息等。这个表叫作**<code>UNWIND_DATA</code>表**,示例如下。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211230154802693.png" alt="image-20211230154802693"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20211230154932812.png" alt="image-20211230154932812"></p>
 
       
     </div>
@@ -1639,7 +1811,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">40</span>
+        <span class="site-state-item-count">43</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1686,12 +1858,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">95k</span>
+    <span title="站点总字数">105k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:26</span>
+    <span title="站点阅读时长">1:36</span>
 </div>
 
         
