@@ -120,7 +120,7 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">43</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">44</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -130,7 +130,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">36</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">35</span></a>
 
   </li>
   </ul>
@@ -156,129 +156,6 @@
 
           <div class="content index posts-expand">
             
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/09/09/reverse/joker1/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/09/09/reverse/joker1/" class="post-title-link" itemprop="url">buuctf_joker</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-09-09 00:00:00" itemprop="dateCreated datePublished" datetime="2021-09-09T00:00:00+08:00">2021-09-09</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-22 10:23:04" itemprop="dateModified" datetime="2021-12-22T10:23:04+08:00">2021-12-22</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/buuctf/" itemprop="url" rel="index"><span itemprop="name">buuctf</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.2k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h4 id="joker1"><a href="#joker1" class="headerlink" title="joker1"></a>joker1</h4><p>没有加壳</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909150331784.png" alt="image-20210909150331784"></p>
-<p><code>F5</code>发现不能反汇编（确定不是IDA的问题，网上说是堆栈市镇偏移出错，选项-常规-点击堆栈指针，快捷键alt+k,值改为0【PS:堆栈不平衡笔记在最后】</p>
-<p>在最后一个AC处修改位0</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909162139584.png" alt="image-20210909162139584"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909162010697.png" alt="image-20210909162010697"></p>
-<p>反汇编后伪代码如下，首先是输入长度为24，然后主要函数为<code>wrong</code> <code>omg</code> <code>encrypt</code>三个函数</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909162739475.png" alt="image-20210909162739475"></p>
-<p><code>wrong</code>是加密</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909163728424.png" alt="image-20210909163728424"></p>
-<p><code>omg</code>是比较<code>wrong</code>加密结果和unk_4030C0地址的值是否相同</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909164135177.png" alt="image-20210909164135177"></p>
-<p>写个脚本,得出来的flag{fak3_alw35_sp_me!!}是个假的</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">import string</span><br><span class="line">s=[102, 107, 99, 100, 127, 97, 103, 100, 59, 86, 107, 97, 123, 38, 59, 80, 99, 95, 77, 90, 113, 12, 55, 102]</span><br><span class="line">out=[]</span><br><span class="line">for i in range(0,24):</span><br><span class="line">    if i&amp;1 :</span><br><span class="line">        s[i]+=i</span><br><span class="line">        out.append(s[i])</span><br><span class="line">    else:</span><br><span class="line">        s[i]^=i</span><br><span class="line">        out.append(s[i])</span><br><span class="line">for i in out:</span><br><span class="line">    print(chr(i),end=&#x27;&#x27;)</span><br></pre></td></tr></table></figure>
-
-<p>注意一下还有一个<code>Encrypt</code>函数，这个函数也是不能反汇编的</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909172356488.png" alt="image-20210909172356488"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909172621478.png" alt="image-20210909172621478"></p>
-<p>动态OD调试试试，进加密函数看看</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909182844710.png" alt="image-20210909182844710"></p>
-<p>（或者OllyDump脱壳）IDA动态调试,看到原来的data数据变成了汇编代码，从encrypt函数的起始地址0x401500开始选取，选取所有没有编译的text段数据，按c，点击force</p>
-<p><a target="_blank" rel="noopener" href="https://www.leadroyal.cn/p/370/">https://www.leadroyal.cn/p/370/</a></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L21jbXV5YW5nYQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
-<p>然后在0x401500处右击创建函数，现在就能看到encrpty函数里的内容了,大概就是将带入的数据与Buffer进行异或操作，然后得到unk_403040地址上的值</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909192327017.png" alt="image-20210909192327017"></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">import string</span><br><span class="line"></span><br><span class="line">result=[0xe,0xd,0x9,0x6,0x13,0x5,0x58,0x56,0x3e,0x6,0xc,0x3c,0x1f,0x57,0x14,0x6b,0x57,0x59,0xd]</span><br><span class="line">flag=&quot;&quot;</span><br><span class="line">haha=&quot;hahahaha_do_you_find_me?&quot;</span><br><span class="line">for i in range(19):</span><br><span class="line">    flag+=chr(ord(haha[i])^(result[i]))</span><br><span class="line">print(flag)</span><br></pre></td></tr></table></figure>
-
-<p>flag不全</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909193101144.png" alt="image-20210909193101144"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909193617976.png" alt="image-20210909193617976"></p>
-<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/CSNN2019/article/details/115328038">https://blog.csdn.net/CSNN2019/article/details/115328038</a></p>
-<h4 id="堆栈不平衡"><a href="#堆栈不平衡" class="headerlink" title="堆栈不平衡"></a>堆栈不平衡</h4><p>IDA f5无法反汇编，出现如图错误一般是因为程序代码有一些干扰代码，比如用push + n条指令 + retn来实际跳转，而IDA会以为是retn是函数要结束，结果分析后发现调用栈不平衡</p>
-<p>简单来说就是调用函数后。使用完堆栈esp要回到ebp的位置（大概这么理解</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909153157763.png" alt="image-20210909153157763"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909155612149.png" alt="image-20210909155612149"></p>
-<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/saintlas/p/7093561.html">https://www.cnblogs.com/saintlas/p/7093561.html</a></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
       
   
   
@@ -1355,6 +1232,99 @@
   
   
 
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/06/08/Q_record/%E4%BC%AA%E8%A3%85%E6%88%90%E7%99%BD%E5%90%8D%E5%8D%95%E7%9A%84%E6%96%B9%E6%B3%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/06/08/Q_record/%E4%BC%AA%E8%A3%85%E6%88%90%E7%99%BD%E5%90%8D%E5%8D%95%E7%9A%84%E6%96%B9%E6%B3%95/" class="post-title-link" itemprop="url">伪装成白名单的方法</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-06-08 00:00:00" itemprop="dateCreated datePublished" datetime="2021-06-08T00:00:00+08:00">2021-06-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 11:33:02" itemprop="dateModified" datetime="2021-12-22T11:33:02+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%BC%80%E5%8F%91%E9%97%AE%E9%A2%98%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">开发问题笔记</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>388</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="伪装成白名单的方法"><a href="#伪装成白名单的方法" class="headerlink" title="伪装成白名单的方法"></a>伪装成白名单的方法</h4><p>程序本身不在白名单，此时需要伪装白名单的方式来伪装成白名单的调用，使用方法就是伪装进程<strong>PEB</strong></p>
+<p><em>PEB结构</em>：进程环境信息块，该结构中存放了进程信息，每个进程都有自己的PEB信息。通过修改目标进程的PEB结构中的路径信息和命令行信息为想要伪装的对象一致,就可以将目标进程伪装成想要伪装的目标。实现原理：</p>
+<ol>
+<li>通过<code>NtQueryInformationProcess</code>函数获取指定进程PEB地址。因为该进程与我们的进程可能不在一个进程空间内，所以需要调用<code>WIN32API</code>函数<code>ReadProcessMemory</code>和<code>WriteProcessMemory</code>函数来读写目标进程内存。</li>
+<li>根据<strong>PEB</strong>中的<code>ProcessParameters</code>来获取并修改指定进程的<code>RTL_USER_PROCESS_PARAMETERS</code>信息，这个结构体中保存了PEB的路径信息、命令行信息，修改之后，即可实现进程伪装。</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
 
   
   <nav class="pagination">
@@ -1426,7 +1396,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-count">35</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1439,7 +1409,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-count">44</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1486,12 +1456,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">109k</span>
+    <span title="站点总字数">108k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:39</span>
+    <span title="站点阅读时长">1:38</span>
 </div>
 
         

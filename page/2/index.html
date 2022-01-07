@@ -120,7 +120,7 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">43</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">44</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -130,7 +130,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">36</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">35</span></a>
 
   </li>
   </ul>
@@ -156,147 +156,6 @@
 
           <div class="content index posts-expand">
             
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/11/06/paper/A%20Comprehensive%20Study%20on%20Learning-Based%20PE%20Malware%20Family%20Classification%20Methods/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/11/06/paper/A%20Comprehensive%20Study%20on%20Learning-Based%20PE%20Malware%20Family%20Classification%20Methods/" class="post-title-link" itemprop="url">A Comprehensive Study on Learning-Based PE Malware FamilyClassification Methods</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-11-06 00:00:00" itemprop="dateCreated datePublished" datetime="2021-11-06T00:00:00+08:00">2021-11-06</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-31 15:44:02" itemprop="dateModified" datetime="2021-12-31T15:44:02+08:00">2021-12-31</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/paper-reading/" itemprop="url" rel="index"><span itemprop="name">paper reading</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>4.4k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>4 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>文章将主流的基于学习的算法按照其出入格式分为了三类，分别是<strong>基于图像的、基于二进制的和基于反汇编</strong>的。文章基于现在很多放大都没有一个一致的比较，特别是从实际应用场景来看以及在<strong>概念漂移</strong>（指的是数据流中的潜在数据分布随时间发生不可预测的变化,使原有的分类器分类不准确或决策系统无法正确决策）的场景中也没有进行比较。文章的工作主要是在4个不同的数据集和一致的实验设置上对基于学习的PE恶意软件分类方法进行了全面的<strong>实证研究</strong>。根据实验结果发现（1）没有哪类方法明显优于其他方法；（2）所有类型的方法在概念漂移上都表现出性能下降(平均f1分32.23%)；（3）的预测时间和高内存消耗阻碍了现有方法被用于行业使用。</p>
-<h3 id="相关工作"><a href="#相关工作" class="headerlink" title="相关工作"></a>相关工作</h3><p>基于图像的分类方法，在2011年首次被提出，最初采用的是机器学习的方法，但是由于提取复杂纹理特征的开销很高，这些方法通常效率低下。随着深度学习模型在图像分类任务中的不断发展，它逐渐地被运用到恶意软件家族分类场景，表现出了比机器学习方法更好的性能。当然基于图像的方法也有缺点，例如将恶意软件转换为图像会引入新的超参数（例如，图像宽度），并施加不同行中像素之间不存在的空间相关性，这可能是错误的。</p>
-<p>基于二进制的方法，以恶意软件的二进制代码为输入，通常采用现有的序列模型，特别是来自自然语言处理(NLP)领域进行分类。最初一般是n-gram算法提取特征然就用算法进行分类检测，但是随着n的增大，计算开销会非常大；随后提出了端到端的浅层CNN模型，但是接收整个二进制文件作为输入需要非常大的内存。为了解决这个问题，提出了只关注PE头的方法。</p>
-<p>基于二进制文件的方法不需要领域知识，而是考虑恶意软件二进制文件中的上下文信息。然而，与其他类别的方法相比，将恶意软件样本表示为字节序列可能会带来一些挑战。首先，通过将每个字节作为一个字节序列中的一个单元，恶意软件字节序列的大小可能达到数百万个时间步长，这是相当消耗资源的。其次，相邻的字节在空间上是相关的，但是由于跳转和函数调用，这样的情况可能并不总是保持，因此二进制文件中的信息可能存在不连续性。</p>
-<p>基于反汇编的方法，首先将二进制文件分解成汇编代码，并根据函数调用图(FCG)和控制流程图(CFG)等特征执行恶意软件分类，这些特征是从汇编代码中提取的。提出计算图之间的相似性，然后用其作为恶意代码聚类的距离度量。计算图之间的相似性属于计算密集型，会带来很大的性能开销。</p>
-<p>也有一些方法从程序代码中提取操作码序列，与其他方法相比，基于反汇编的技术可以更好地捕获代码结构特征，但它们通常需要领域知识，如汇编语言及其相应的分析方法。</p>
-<h3 id="实证研究"><a href="#实证研究" class="headerlink" title="实证研究"></a>实证研究</h3><p>首先论文提出了三个研究问题，分别是：</p>
-<ul>
-<li>1.不同的PE恶意软件族分类方法在不同的数据集上如何执行？</li>
-</ul>
-<p>指出目前缺乏系统的研究来评估在多个数据集的同一实验设置上一致的不同方法的性能。</p>
-<ul>
-<li>2.恶意软件概念漂移如何影响各种模型的分类性能？</li>
-</ul>
-<p>指出概念漂移是PE恶意软件建组分类任务中一个关键的现实问题，评估概念漂移应用场景中不同方法的性能非常重要。</p>
-<ul>
-<li>3.是什么因素阻碍了当前基于学习的PE恶意软件分类方法在行业中的部署和相应的改进方向？</li>
-</ul>
-<p>由于之前的研究问题所发现的差距，论文最终目标是为如何使当前基于学习的PE恶意软件分类方法适用于真实的行业场景提供建议。</p>
-<p>基于图像的测试模型选了VGG-16、ResNet-50、Inception-V3、IMCFN.</p>
-<p>VGG-16通过减少卷积层的参数来提高训练时间，它包含了13个卷积层、5个最大池化层、三个全连接层。所有隐藏层都是用ReLU，输出层使用softmax，优点是结构简单，参数多，拟合能力高。</p>
-<p>ResNet的提出是为了解决传统CNN网络在深层信息传输中普遍存在的信息丢失、梯度消失和梯度爆等问题。通过在一个称为跳过连接的结构中将输入直接带到输出中来保护信息的完整性。由于该设计，ResNet-50可以训练一个包含50个隐藏层的更深的网络。ResNet-50使用全局平均池，然后使用最终预测层的softmax。相比VGG-16更有效，因为它的参数要少得多。</p>
-<p>InceptionNet目的是找出如何用密集成分来近似最优的局部稀疏结。与ResNet-50一样，Inception-V3最终也使用了一个全局平均池，然后使用softmax作为最终的预测层。与VGG-16相比，它更有效，其参数数量甚至比ResNet-50更少。</p>
-<p>IMCFN是使用微调卷积神经网络的基于图像的恶意软件分类，它是针对恶意软件族分类的任务而定制的。它是VGG-16的变种，将前两个FCs中的神经元从4096减少到2048，并增加了一个dropout层来减少过拟合的影响。</p>
-<p>基于二进制的测试模型选了Word2Vec+MLP、MalConv.</p>
-<p>Word2Vec+MLP的关键思想是，<strong>来自同一族的样本中的字节关系相似，且与不同族的样本明显不同</strong>。因此，<strong>原始字节的向量矩阵</strong>是恶意软件分类的有效特征。首先对原始二进制文件进行预处理，删除5个或更多连续的0x00或0xCC（无意义的字节）。然后将每个文件作为一个语料库，看作由从0x00到0xFF的256个单词组成的。使用Word2Vec中的连续字袋模型(CBOW)获得文件中256字节的嵌入向量，每个文件用一个字节向量升序矩阵表示。MLP将这些矩阵作为输入，并输出相应的族类别。MLP由3个FCs组成，其中由预测类的数量决定，对于前两个FCs，添加一个dropout层。MLP是最直观、最简单的深度神经网络。与VGG-16类似，虽然结构相对简单，但参数较多，可以很好地拟合训练数据。</p>
-<p>MalConv是第一个允许将整个恶意软件作为输入的端到端恶意软件检测模型。首先使用嵌入层将原始字节映射到一个固定的8维向量。通过这种方式，它可以通过同时考虑本地和全局上下文来捕获原始二进制文件中的高级位置不变性。然后，使用一个浅层CNN，大滤波器宽度为500字节，结合500步幅。这使得模型能够使用PyTorch以数据并行的方式更好地平衡计算工作负载，从而可以缓解第一个卷积层的GPU内存消耗问题。</p>
-<p>作为一个浅层的CNN架构，MalConv克服了一个主要的实际限制，即读取整个恶意软件字节是消耗内存的，它还捕获了原始二进制文件中的全局位置不变性。它允许将嵌入层与卷积层联合训练，以便更好地提取特征。</p>
-<p>基于反汇编测试模型选了MAGIC、Word2Vec+KNN、MCSC.</p>
-<p>MAGIC是一种端到端的恶意软件检测方法，通过使用深度图卷积神经网络(DGCNN)的属性控制流图（ACFG）。首先将ACFG（将CFG的顶点抽象为离散的数值向量）转换，从恶意软件反汇编文件中提取为一个数值向量。然后，DGCNN将这些不同大小的无序ACFG转换为固定大小和顺序的张量，用于恶意软件家族分类。</p>
-<p>Word2Vec+KNN将反汇编文件建模为恶意软件语言，将其操作码序列提取为恶意软件文档，并使用Word2Vec模型生成此类文档的计算表示。这篇论文选择WMD作为KNN分类中文档之间语义紧密度的度量，计算将文档A的所有嵌入单词传输到文档B的所有嵌入单词的成本。</p>
-<p>MCSC首先从拆反汇编件中提取操作码序列，并根据SimHash将其编码为相同长度的序列。然后，它将每个SimHash值作为一个二进制像素，并将SimHash位转换为灰度图像。它训练了一个由LeNet-5修改后的CNN结构来对这些灰度图像进行分类。在训练CNN分类器时，采用多哈列和双线性插值来提高模型的精度，并采用主要的块选择来减少图像生成时间。</p>
-<p>实验采用了四个数据集，分别是BIG-15,Malimg,MalwareBazaar和MalwareDrift.（前两个开源）</p>
-<h3 id="发现"><a href="#发现" class="headerlink" title="发现"></a>发现</h3><p>论文通过实验发现</p>
-<ul>
-<li><p>1.在所有方法中，基于二进制的模型CBOW+MLP在不同的数据集上表现最好，而没有单个类别的性能显著优于其他类别。</p>
-</li>
-<li><p>2.迁移学习有可能进一步提高基于图像的PE恶意软件分类方法的有效性，并打开模型内部特征提取层进行微调，以获得更好的迁移学习性能。</p>
-</li>
-<li><p>3.所有现有的方法在面对现实工业场景的概念漂移时都存在性能较差，因此在评估PE恶意软件族分类方法时应认真考虑。</p>
-</li>
-</ul>
-<p>并且实验结果表明，不同方法的稳定性也差异很大。CBOW+MLP方法虽然在普通机器学习场景中表现最好，但在概念漂移场景中下降幅度最大，这主要是由于其结构简单。相反，MCSC和Word2Vec+KNN的下降率最小。原因是它们都从拆卸文件中提取视码序列，并专注于在恶意软件进化过程中往往被保留的视码序列的本地上下文连接，因此这些方法在概念漂移上表现出稳定的性能。一个有趣的发现是，尽管Word2Vec+KNN也有简单的结构，但在概念漂移下，它的表现比CBOW+MLP更好，这归功于KNN算法，该算法计算未来的样本与所有其他样本之间的相似性距离。因此，它通常需要更长的预测时间。</p>
-<ul>
-<li>4.CBOW+MLP对概念漂移的性能最差，而MCSC对概念漂移的性能最稳健。结果表明，操作码序列保留了PE恶意软件的家族特征，是概念漂移下分类的有效和鲁棒特征。</li>
-</ul>
-<p>论文作者向实际应用场景种的合作伙伴提出问题：公司目前采用了哪种分类方法以及原因；在实际适用的场景中，影响合适方法选择的因素是什么？概念漂移在实际应用场景中很常见吗？处理概念漂移的当前状态如何？</p>
-<p><strong>目前，在行业应用场景中采用了两种主流方法，即沙箱和基于模式的方法。</strong>基于模式的方法是基于模式/特征数据库的静态检测方法。它在时间和资源消耗方面是有效的，但对噪声、混淆和概念漂移是脆弱的。</p>
-<p><strong>PE恶意软件分类方法的行业使用主要受到三个因素的限制，即预测精度和召回率、预测时间和资源消耗，主要资源关注的是运行时内存和CPU使用情况。</strong></p>
-<p>作为一个具体的例子，在他们的一个包含基于学习的恶意软件分类模型的产品中，他们要求运行时内存低于1gb，这是我们所有研究的方法都无法满足的。另一个要求是能够在0.1秒内预测一个恶意软件，准确率超过93%，这过滤掉了大多数基于二进制和基于反汇编的方法。</p>
-<p><strong>概念漂移通常是由于恶意软件的进化</strong>。例如，在现有的恶意软件想要逃避检测的情况下，可能会有新的非内核功能，如通信和消息传递技术正在改变。这种情况经常发生，并对恶意软件家族分类提出了挑战。目前缺乏特定的机制来处理这种情况，目前的实践通常使用沙箱方法来处理这种场景。另一个观察结果是，除了概念漂移之外，它们还需要应对快速发展的新恶意软件家族和特性的挑战。除了现有学术数据集定义的细粒度家族分类外，行业合作伙伴更感兴趣的是基于恶意软件家族的恶意行为的检测，即特洛伊、Rootkit或勒索软件。<strong>然而，目前还缺乏关于这一方向的研究，很可能是因为没有这样的可用的数据集。</strong></p>
-<ul>
-<li>5.（1）如何处理快速发展的恶意软件家族，而不是只使用一个或几个数据集进行评估；（2）一个预测精度更高、重量更轻的模型（3）从恶意行为的角度进行恶意软件家族分类。</li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
       
   
   
@@ -1771,6 +1630,129 @@
   
   
 
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/09/09/reverse/joker1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/09/09/reverse/joker1/" class="post-title-link" itemprop="url">buuctf_joker</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-09-09 00:00:00" itemprop="dateCreated datePublished" datetime="2021-09-09T00:00:00+08:00">2021-09-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 10:23:04" itemprop="dateModified" datetime="2021-12-22T10:23:04+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/buuctf/" itemprop="url" rel="index"><span itemprop="name">buuctf</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="joker1"><a href="#joker1" class="headerlink" title="joker1"></a>joker1</h4><p>没有加壳</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909150331784.png" alt="image-20210909150331784"></p>
+<p><code>F5</code>发现不能反汇编（确定不是IDA的问题，网上说是堆栈市镇偏移出错，选项-常规-点击堆栈指针，快捷键alt+k,值改为0【PS:堆栈不平衡笔记在最后】</p>
+<p>在最后一个AC处修改位0</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909162139584.png" alt="image-20210909162139584"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909162010697.png" alt="image-20210909162010697"></p>
+<p>反汇编后伪代码如下，首先是输入长度为24，然后主要函数为<code>wrong</code> <code>omg</code> <code>encrypt</code>三个函数</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909162739475.png" alt="image-20210909162739475"></p>
+<p><code>wrong</code>是加密</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909163728424.png" alt="image-20210909163728424"></p>
+<p><code>omg</code>是比较<code>wrong</code>加密结果和unk_4030C0地址的值是否相同</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909164135177.png" alt="image-20210909164135177"></p>
+<p>写个脚本,得出来的flag{fak3_alw35_sp_me!!}是个假的</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">import string</span><br><span class="line">s=[102, 107, 99, 100, 127, 97, 103, 100, 59, 86, 107, 97, 123, 38, 59, 80, 99, 95, 77, 90, 113, 12, 55, 102]</span><br><span class="line">out=[]</span><br><span class="line">for i in range(0,24):</span><br><span class="line">    if i&amp;1 :</span><br><span class="line">        s[i]+=i</span><br><span class="line">        out.append(s[i])</span><br><span class="line">    else:</span><br><span class="line">        s[i]^=i</span><br><span class="line">        out.append(s[i])</span><br><span class="line">for i in out:</span><br><span class="line">    print(chr(i),end=&#x27;&#x27;)</span><br></pre></td></tr></table></figure>
+
+<p>注意一下还有一个<code>Encrypt</code>函数，这个函数也是不能反汇编的</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909172356488.png" alt="image-20210909172356488"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909172621478.png" alt="image-20210909172621478"></p>
+<p>动态OD调试试试，进加密函数看看</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909182844710.png" alt="image-20210909182844710"></p>
+<p>（或者OllyDump脱壳）IDA动态调试,看到原来的data数据变成了汇编代码，从encrypt函数的起始地址0x401500开始选取，选取所有没有编译的text段数据，按c，点击force</p>
+<p><a target="_blank" rel="noopener" href="https://www.leadroyal.cn/p/370/">https://www.leadroyal.cn/p/370/</a></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L21jbXV5YW5nYQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
+<p>然后在0x401500处右击创建函数，现在就能看到encrpty函数里的内容了,大概就是将带入的数据与Buffer进行异或操作，然后得到unk_403040地址上的值</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909192327017.png" alt="image-20210909192327017"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">import string</span><br><span class="line"></span><br><span class="line">result=[0xe,0xd,0x9,0x6,0x13,0x5,0x58,0x56,0x3e,0x6,0xc,0x3c,0x1f,0x57,0x14,0x6b,0x57,0x59,0xd]</span><br><span class="line">flag=&quot;&quot;</span><br><span class="line">haha=&quot;hahahaha_do_you_find_me?&quot;</span><br><span class="line">for i in range(19):</span><br><span class="line">    flag+=chr(ord(haha[i])^(result[i]))</span><br><span class="line">print(flag)</span><br></pre></td></tr></table></figure>
+
+<p>flag不全</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909193101144.png" alt="image-20210909193101144"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909193617976.png" alt="image-20210909193617976"></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/CSNN2019/article/details/115328038">https://blog.csdn.net/CSNN2019/article/details/115328038</a></p>
+<h4 id="堆栈不平衡"><a href="#堆栈不平衡" class="headerlink" title="堆栈不平衡"></a>堆栈不平衡</h4><p>IDA f5无法反汇编，出现如图错误一般是因为程序代码有一些干扰代码，比如用push + n条指令 + retn来实际跳转，而IDA会以为是retn是函数要结束，结果分析后发现调用栈不平衡</p>
+<p>简单来说就是调用函数后。使用完堆栈esp要回到ebp的位置（大概这么理解</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909153157763.png" alt="image-20210909153157763"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909155612149.png" alt="image-20210909155612149"></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/saintlas/p/7093561.html">https://www.cnblogs.com/saintlas/p/7093561.html</a></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
 
   
   <nav class="pagination">
@@ -1842,7 +1824,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-count">35</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1855,7 +1837,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-count">44</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1902,12 +1884,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">109k</span>
+    <span title="站点总字数">108k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:39</span>
+    <span title="站点阅读时长">1:38</span>
 </div>
 
         
