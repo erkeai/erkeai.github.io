@@ -130,7 +130,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">37</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">38</span></a>
 
   </li>
   </ul>
@@ -156,6 +156,99 @@
 
           <div class="content index posts-expand">
             
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/02/23/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/x64%E4%BB%A5%E5%8F%8Ax86%E5%8A%A0%E5%A3%B3%E7%A8%8B%E5%BA%8F%E5%AE%9E%E7%8E%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/02/23/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/x64%E4%BB%A5%E5%8F%8Ax86%E5%8A%A0%E5%A3%B3%E7%A8%8B%E5%BA%8F%E5%AE%9E%E7%8E%B0/" class="post-title-link" itemprop="url">未命名</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-02-23 16:27:52" itemprop="dateCreated datePublished" datetime="2022-02-23T16:27:52+08:00">2022-02-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-02-22 19:14:14" itemprop="dateModified" datetime="2022-02-22T19:14:14+08:00">2022-02-22</time>
+              </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>581</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="x64以及x86加壳程序实现"><a href="#x64以及x86加壳程序实现" class="headerlink" title="x64以及x86加壳程序实现"></a>x64以及x86加壳程序实现</h2><h3 id="1-加壳原理"><a href="#1-加壳原理" class="headerlink" title="1.加壳原理"></a>1.加壳原理</h3><p>​    加壳主要分为两部分工作，第一部分是主题程序，主要将原PE文件读入内存，然后对该文件各部分进行加工，主要包括压缩各区段数据，将输入表、重定位变形，将外壳部分与处理好的主题文件拼合。另一部分是外壳，主要包括加壳后程序执行时的引导段，它模拟PE装载器处理输入表、重定位表，最后跳转到原程序执行。</p>
+<h3 id="2-PE文件知识"><a href="#2-PE文件知识" class="headerlink" title="2.PE文件知识"></a>2.PE文件知识</h3><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220221151706528.png" alt="image-20220221151706528"></p>
+<h4 id="2-1-IMAGE-DOS-HEADER"><a href="#2-1-IMAGE-DOS-HEADER" class="headerlink" title="2.1 IMAGE_DOS_HEADER"></a>2.1 IMAGE_DOS_HEADER</h4><p> PE文件第一个字节位于<strong>MS-DOS</strong>头部，称作<strong>IMAGE_DOS_HEADER</strong>，结构如下。</p>
+<p>  关键字段：<strong>e_magic</strong>值为<strong>5A4Dh</strong>, <strong>e_lfanew</strong>是真正的PE文件头的RVA，位于从文件开始偏移<strong>3Ch</strong>处。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220221155116123.png" alt="image-20220221155116123"></p>
+<h4 id="2-2-IMAGE-NT-HEADERS"><a href="#2-2-IMAGE-NT-HEADERS" class="headerlink" title="2.2 IMAGE_NT_HEADERS"></a>2.2 IMAGE_NT_HEADERS</h4><p>紧跟着的是<strong>IMAGE_NT_HEADERS</strong>(PE头)。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220221171131327.png" alt="image-20220221171131327">、</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220221171410919.png" alt="image-20220221171410919"></p>
+<h5 id="1-signature"><a href="#1-signature" class="headerlink" title="1.signature"></a>1.signature</h5><p>​      ASCII码字符为“PE00”</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220221172235941.png" alt="image-20220221172235941"></p>
+<h5 id="2-IMAGE-FILE-HEADER"><a href="#2-IMAGE-FILE-HEADER" class="headerlink" title="2.IMAGE_FILE_HEADER"></a>2.IMAGE_FILE_HEADER</h5><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220221194013255.png" alt="image-20220221194013255"></p>
+<p>  SizeofOptionalHeader：对于32位PE文件，这个域通常是00E0h，64位PE通常为00F0h。</p>
+<h5 id="3-IMAGE-OPTIONAL-HEADER"><a href="#3-IMAGE-OPTIONAL-HEADER" class="headerlink" title="3.IMAGE_OPTIONAL_HEADER"></a>3.IMAGE_OPTIONAL_HEADER</h5><p>下图为32位PE文件的相应结构体，64与32有一些区别，譬如PE32的<strong>BaseOfdata</strong>域不存在与PE32+，PE32的<strong>Magic</strong>域为010Bh，PE32+为020Bh，以及部分变量的类型不同。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220222112716490.png" alt="image-20220222112716490"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220222112729300.png" alt="image-20220222112729300"></p>
+<h3 id="x86加壳程序实现"><a href="#x86加壳程序实现" class="headerlink" title="x86加壳程序实现"></a>x86加壳程序实现</h3><h3 id="x64加壳程序实现"><a href="#x64加壳程序实现" class="headerlink" title="x64加壳程序实现"></a>x64加壳程序实现</h3>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -1658,138 +1751,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/11/14/sample/APT29%20%20Cozy%20Bear%E4%BD%BF%E7%94%A8%E7%9A%84Miniduke/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/11/14/sample/APT29%20%20Cozy%20Bear%E4%BD%BF%E7%94%A8%E7%9A%84Miniduke/" class="post-title-link" itemprop="url">APT29 / Cozy Bear使用的Miniduke</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-11-14 00:00:00" itemprop="dateCreated datePublished" datetime="2021-11-14T00:00:00+08:00">2021-11-14</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-22 14:57:22" itemprop="dateModified" datetime="2021-12-22T14:57:22+08:00">2021-12-22</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%A0%B7%E6%9C%AC%E5%88%86%E6%9E%90/" itemprop="url" rel="index"><span itemprop="name">样本分析</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>4.2k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>4 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>这篇文章详细分析了APT29使用的Miniduke，Minicuke是纯汇编编写的一个后门 ，该恶意软件采用了<strong>控制流整平迷惑</strong>并且实现了多种数据泄露的方法，比如用POST和PUT HTTP方法发送数据给C2服务器，或者在无网络连接的情况下用一个命名管道。后门实现37种不同的功能，如下图。</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373D.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373D.tmp.jpg</a>) </p>
-<h2 id="技术分析"><a href="#技术分析" class="headerlink" title="技术分析"></a>技术分析</h2><p>首先用IDA打开文件，看到第一个函数setunhandledexceptionfilter，恶意软件将异常过滤器函数设置为特定函数。</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373E.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373E.tmp.jpg</a>) </p>
-<p>前面的函数有点看不出来是个啥，我们注意看最后一个函数，可以看到用了GetStartupInfo获取STARTUPINFO结构的内容。Sub_4030A4如下图，可见是创建了一个线程。我们点进StartAddress看看</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373F.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373F.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3740.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3740.tmp.jpg</a>) </p>
-<p>StartAddress函数前部分非常多的Switch case函数，即使是后半段的这些函数也有非常多的switch case结构，<strong>非常多的无用的计算，</strong>并且加载了三个dll。</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3741.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3741.tmp.jpg</a>) </p>
-<p>在IDA的图中可以看到startAddress如下，这就是前面说的控制流整平诱惑。StartAddress中的loc_4036F2中就实现了30个case,我们将该跳转用nop替换掉，因为该命令占6字节，nop一个字节，所以要用6个nop。</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3742.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3742.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3753.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3753.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3754.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3754.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3755.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3755.tmp.jpg</a>) </p>
-<p>SetErrorCode函数参数为2，作用是让系统不显示Windows错误报告对话框 （0x2 = <strong>SEM_NOGPFAULTERRORBOX</strong>）。加载的三个dll后的sub_407B60中有一个函数sub_417DCC，将在执行期间运行，并使用哈希机制定位。基本上，对于DLL中的每个函数名，恶意软件计算一个4字节的值，并与硬编码的值进行比较。这些函数都是目标：GetProcAddress, GetLongPathNameA, GetLastError, CreateProcessWithLogonW, CryptAcquireContextW, CryptGenRandom, InternetOpenA, InternetConnectA, InternetSetOptionA, HttpOpenRequestA, HttpSendRequestA, HttpQueryInfoA, InternetReadFile, InternetCloseHandle, HttpAddRequestHeadersA。</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3756.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3756.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3757.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3757.tmp.jpg</a>) </p>
-<p>在该函数中有一个sub_423FC8函数，红框圈起来的函数就是hashing函数</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3758.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3758.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3759.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3759.tmp.jpg</a>) </p>
-<p>现在回到加载dll的目标函数中，下图中的API用于连接CSP，获得指定CSP（真正实行加密的独立模块）的密钥容器的句柄（0x1 = <strong>PROV_RSA_FULL</strong>, 0xF0000040 = <strong>CRYPT_VERIFYCONTEXT</strong> | <strong>CRYPT_SILENT****）</strong></p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375A.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375A.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375B.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375B.tmp.jpg</a>) </p>
-<p>下图函数使用一个子权限分配和初始化安全标识符(SID)</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375C.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375C.tmp.jpg</a>) </p>
-<p>通过将新的访问控制或审核控制信息合并到现有的ACL结构中来创建新的访问控制列表（ACL）</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375D.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375D.tmp.jpg</a>) </p>
-<p>通过恶意进程初始化新的安全描述符</p>
-<p>(0x1 = <strong>SECURITY_DESCRIPTOR_REVISION</strong>)，并使用setseCurityDescriptordACL API设置DACL（自定义访问控制列表）中的信息</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375E.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375E.tmp.jpg</a>) </p>
-<p>进程创建了一个Software\Microsoft\ApplicationManager注册键值</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375F.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375F.tmp.jpg</a>) </p>
-<p>一个新的值AppId被创建，使用GetTickCount函数调用的输出计算此值，它检索自系统启动以来经过的毫秒数</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3760.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3760.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3761.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3761.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3762.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3762.tmp.jpg</a>) </p>
-<p>继续查看下一个函数sub_41CD30,</p>
-<p>从上面的一个输出被转换并写入缓冲区，以及“AppID”值。将使用传统算法加密此缓冲区，该算法还包括XOR运算符（sub_420200）：</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3772.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3772.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3773.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3773.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3774.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3774.tmp.jpg</a>) </p>
-<h3 id="控制流整平"><a href="#控制流整平" class="headerlink" title="控制流整平"></a>控制流整平</h3><p>if-else、while、for具有典型的跳转等结构，即使通过多层嵌套、拓展条件等方法，依然可以通过“切片技术”来判断。有了这些依据，就给程序分析带来很多便利。<br>  正是这个原因，为了增加程序逆向的难度，我们得使得这些特征结构变得模糊，并且能让类似“切片技术”这样基于具体语义分析的方法失效，迫使逆向分析人员进行完整的抽象语义分析，斩断所谓的“捷径”。<br>  控制流整平的策略是这样的，它把所有的典型控制流以及其衍生结构“统而为一”，各种控制流的区别只是语义方面的，增加了理解控制流转换关系的难度。</p>
-<p> 控制流整平迷惑，是通过打破程序原有的控制流之间的嵌套和顺序关系，使得变换后的程序控制流扁平化的混淆方法，其基本思想是令程序中所有的基本块拥有共同的前驱和后继代码块。如下图</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3775.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3775.tmp.jpg</a>) </p>
-<p> 进行控制流整平后，使得面向过程的代码片段，原来比较清晰的控制流向混杂在一起，同时这也比较好的并行图形态，也有利于进一步的迷惑处理。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1861,7 +1822,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">37</span>
+          <span class="site-state-item-count">38</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
