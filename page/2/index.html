@@ -120,7 +120,7 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">53</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">54</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -130,7 +130,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">46</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">48</span></a>
 
   </li>
   </ul>
@@ -156,6 +156,426 @@
 
           <div class="content index posts-expand">
             
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/03/02/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/x64%E4%BB%A5%E5%8F%8Ax86%E5%8A%A0%E5%A3%B3%E7%A8%8B%E5%BA%8F%E5%AE%9E%E7%8E%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/03/02/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/x64%E4%BB%A5%E5%8F%8Ax86%E5%8A%A0%E5%A3%B3%E7%A8%8B%E5%BA%8F%E5%AE%9E%E7%8E%B0/" class="post-title-link" itemprop="url">x64以及x86加壳程序实现</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-03-02 00:00:00 / 修改时间：16:42:08" itemprop="dateCreated datePublished" datetime="2022-03-02T00:00:00+08:00">2022-03-02</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">脱壳学习</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>11k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>10 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id=""><a href="#" class="headerlink" title=""></a></h2><h3 id="1-加壳原理"><a href="#1-加壳原理" class="headerlink" title="1.加壳原理"></a>1.加壳原理</h3><p>​    加壳主要分为两部分工作，第一部分是主题程序，主要将原PE文件读入内存，然后对该文件各部分进行加工，主要包括压缩各区段数据，将输入表、重定位变形，将外壳部分与处理好的主题文件拼合。另一部分是外壳，主要包括加壳后程序执行时的引导段，它模拟PE装载器处理输入表、重定位表，最后跳转到原程序执行。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220301104747990.png" alt="image-20220301104747990"></p>
+<p>  .pediy部分，以ShellStart为界，之前的部分以非压缩形式存在，之后的部分以压缩方式存在。新程序入口点指向ShellStart0开始的部分，外壳先执行这部分，这部分主要是在内存中将ShellStart开始处真正的代码解压缩，并初始化一些数据。初始化完成后继续转到ShellStart执行，该部分开始处的代码是真正的外壳部分，主要功能是还原程序（.text, .data等区块数据），一个重要功能则是阻止破解者的跟踪和脱壳。所以一般来说这段代码会比较长，里面会有各种调试器、反DUMP代码。</p>
+<h3 id="2-PE文件知识"><a href="#2-PE文件知识" class="headerlink" title="2.PE文件知识"></a>2.PE文件知识</h3><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220221151706528.png" alt="image-20220221151706528"></p>
+<h4 id="2-1-IMAGE-DOS-HEADER"><a href="#2-1-IMAGE-DOS-HEADER" class="headerlink" title="2.1 IMAGE_DOS_HEADER"></a>2.1 IMAGE_DOS_HEADER</h4><p> PE文件第一个字节位于<strong>MS-DOS</strong>头部，称作<strong>IMAGE_DOS_HEADER</strong>，结构如下。</p>
+<p>  关键字段：<strong>e_magic</strong>值为<strong>5A4Dh</strong>, <strong>e_lfanew</strong>是真正的PE文件头的RVA，位于从文件开始偏移<strong>3Ch</strong>处。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220221155116123.png" alt="image-20220221155116123"></p>
+<h4 id="2-2-IMAGE-NT-HEADERS"><a href="#2-2-IMAGE-NT-HEADERS" class="headerlink" title="2.2 IMAGE_NT_HEADERS"></a>2.2 IMAGE_NT_HEADERS</h4><p>紧跟着的是<strong>IMAGE_NT_HEADERS</strong>(PE头)。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220221171131327.png" alt="image-20220221171131327">、</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220221171410919.png" alt="image-20220221171410919"></p>
+<h5 id="1-signature"><a href="#1-signature" class="headerlink" title="1.signature"></a>1.signature</h5><p>​      ASCII码字符为“PE00”</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220221172235941.png" alt="image-20220221172235941"></p>
+<h5 id="2-IMAGE-FILE-HEADER"><a href="#2-IMAGE-FILE-HEADER" class="headerlink" title="2.IMAGE_FILE_HEADER"></a>2.IMAGE_FILE_HEADER</h5><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220221194013255.png" alt="image-20220221194013255"></p>
+<p>  SizeofOptionalHeader：对于32位PE文件，这个域通常是00E0h，64位PE通常为00F0h。</p>
+<h5 id="3-IMAGE-OPTIONAL-HEADER"><a href="#3-IMAGE-OPTIONAL-HEADER" class="headerlink" title="3.IMAGE_OPTIONAL_HEADER"></a>3.IMAGE_OPTIONAL_HEADER</h5><p>  下图为32位PE文件的相应结构体，64与32有一些区别，譬如PE32的<strong>BaseOfdata</strong>域不存在与PE32+，PE32的<strong>Magic</strong>域为010Bh，PE32+为020Bh，以及部分变量的类型不同。</p>
+<p>  DataDirectory字段是数据目录表，由数个相同的<strong>IMAGE_DATA_DIRECTORY</strong>组成，指向输入表、输出表、资源块数据。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220222112716490.png" alt="image-20220222112716490"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220222112729300.png" alt="image-20220222112729300"></p>
+<h4 id="2-3-区块"><a href="#2-3-区块" class="headerlink" title="2.3 区块"></a>2.3 区块</h4><p>紧跟<strong>IMAGE_NT_HEADERS</strong>的是区块表，是一个<strong>IMAGE_SECTION_HEADER</strong>结构数组。每个这样的结构都包含了所关联的区块信息，该数组的数目由<strong>IMAGE_NT_HEADERS.FileHeader.NumberOfSection</strong>指出。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220228145316376.png" alt="image-20220228145316376"></p>
+<p>常见的区块表如下</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220228145743086.png" alt="image-20220228145743086"></p>
+<p>=====================================================================================</p>
+<h3 id="实现部分"><a href="#实现部分" class="headerlink" title="实现部分"></a>实现部分</h3><p> <strong>Note：</strong>由于该实现代码最终需要集成在某个项目工具上，所以这里并没有判断文件是否为PE文件以及是多少位的文件。</p>
+<h4 id="1-加壳程序处理"><a href="#1-加壳程序处理" class="headerlink" title="1. 加壳程序处理"></a>1. 加壳程序处理</h4><p>​    判断文件格式也比较简单：1.判断文件的第一个字是否为<strong>IMAGE_DOS_SIGNATURE</strong>,即5A4Dh；</p>
+<p>​    2.通过<strong>e_lfanew</strong>找到<strong>IMAGE_NT_HEADERS</strong>,判断<strong>Signature</strong>字段是否为00004550h，即<strong>IMAGE_NT_SIGNATURE</strong>,如果是就认为是PE文件。</p>
+<p>​    3.判断是否可以加壳，如果只有一个区块或者如果入口点的值大于第二个区块的虚拟地址，就认为已经被加壳。</p>
+<p>​    4.校验FileHeader结构中的Characteristics字段的值，判断是EXE还是DLL。</p>
+<blockquote>
+<p>加壳的主要流程：</p>
+<ul>
+<li>加密代码段，增加区段</li>
+<li>加密/压缩被加壳程序，将stub代码移植到新区段</li>
+<li>将原始程序OEP记录下来并设置到新区段，修改OEP，在原始OEP之前执行解密代码</li>
+<li>去掉随机基址，保存为新文件</li>
+</ul>
+</blockquote>
+<p>​    外壳部分的代码都封装到一个DLL中，使用加壳部分的代码将DLL中的代码和数据植入加壳后的PE文件。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220301161223807.png" alt="image-20220301161223807"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220301161934264.png" alt="image-20220301161934264"></p>
+<p>​      在加壳过程中，有一个加壳器程序和stub.dll两个文件，加壳器程序会把原文件（要加壳的文件）以文件方式读取到堆内存，它还是以文件对齐粒度（<strong>200h</strong>）对齐的，而stub.dll是以不处理的方式读取到了内存中，它是以内存粒度（<strong>1000h</strong>）对齐的。<br>   使用LoadLibraryExA加载DLL并且第三个参数使用<strong>DONT_RESOLVE_DLL_REFERENCES</strong>的时候，他就不会对这个文件进行重定位等操作，是以原始形态加载到内存。</p>
+<p>  stub.dll里的.text段里面的数据需要先进行重定位修复，修复完成后再移植过去，这样壳区段才能正常运行起来。</p>
+<p>​     首先根据stub.dll的重定位表获取出stub.dll中.text段需要重定位的数据，然后把该数据</p>
+<pre><code>    1. 减去原始基址(**Nt-&gt;OptionalHeader.ImageBase**)
+    2. 减去原始代码段RVA(**Nt-&gt;OptionalHeader.ImageBase**)
+    3. 加上新基址（exe目标文件）
+    4. 加上新RVA（exe中新添加的区段RVA）
+</code></pre>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FixStubReloc</span><span class="params">(<span class="keyword">char</span>* hModule,DWORD dwNewBase,DWORD dwNewSecRva)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="comment">//获取重定位va</span></span><br><span class="line">	<span class="keyword">auto</span> pReloc = (PIMAGE_BASE_RELOCATION)</span><br><span class="line">		(<span class="built_in">GetOptHeader</span>(hModule)-&gt;DataDirectory[<span class="number">5</span>].VirtualAddress</span><br><span class="line">			+ hModule);</span><br><span class="line"></span><br><span class="line">	<span class="comment">//获取.text区段的Rva</span></span><br><span class="line">	DWORD dwTextRva = (DWORD)<span class="built_in">GetSecHeader</span>(hModule, <span class="string">&quot;.text&quot;</span>)-&gt;VirtualAddress;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//修复重定位</span></span><br><span class="line">	<span class="keyword">while</span> (pReloc-&gt;SizeOfBlock)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="class"><span class="keyword">struct</span> <span class="title">TypeOffset</span> </span></span><br><span class="line"><span class="class">		&#123;</span></span><br><span class="line">			WORD offset : <span class="number">12</span>;</span><br><span class="line">			WORD type : <span class="number">4</span>;</span><br><span class="line">		&#125;;</span><br><span class="line">		TypeOffset* pTyOf = (TypeOffset*)(pReloc + <span class="number">1</span>);</span><br><span class="line">		DWORD dwCount = (pReloc-&gt;SizeOfBlock - <span class="number">8</span>) / <span class="number">2</span>;</span><br><span class="line">		<span class="keyword">for</span> (<span class="keyword">size_t</span> i = <span class="number">0</span>; i &lt; dwCount; i++)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">if</span>(pTyOf[i].type != <span class="number">3</span>)</span><br><span class="line">				<span class="keyword">continue</span>;</span><br><span class="line">			<span class="comment">//要修复的Rva</span></span><br><span class="line">			DWORD dwFixRva = pTyOf[i].offset + pReloc-&gt;VirtualAddress;</span><br><span class="line">			<span class="comment">//要修复的地址</span></span><br><span class="line">			DWORD* pFixAddr = (DWORD*)(dwFixRva + (DWORD)hModule);</span><br><span class="line"></span><br><span class="line">			DWORD dwOld;</span><br><span class="line">			<span class="built_in">VirtualProtect</span>(pFixAddr, <span class="number">4</span>, PAGE_READWRITE, &amp;dwOld);</span><br><span class="line">			*pFixAddr -= (DWORD)hModule; <span class="comment">//减去原始基址</span></span><br><span class="line">			*pFixAddr -= dwTextRva;      <span class="comment">//减去原始代码段Rva</span></span><br><span class="line">			*pFixAddr += dwNewBase;      <span class="comment">//加上新基址</span></span><br><span class="line">			*pFixAddr += dwNewSecRva;    <span class="comment">//加上新Rva</span></span><br><span class="line">			<span class="built_in">VirtualProtect</span>(pFixAddr, <span class="number">4</span>, dwOld, &amp;dwOld);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="comment">//指向下一个重定位块</span></span><br><span class="line">		pReloc = (PIMAGE_BASE_RELOCATION)</span><br><span class="line">			((DWORD)pReloc + pReloc-&gt;SizeOfBlock);</span><br><span class="line">	&#125;		</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>《加密与解密》如下处理也同样</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">CPE::FixReloc</span><span class="params">(PBYTE lpImage, PBYTE lpCode, DWORD dwCodeRVA)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="comment">// 1. 获取DOS头</span></span><br><span class="line">	PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)lpImage;</span><br><span class="line">	<span class="comment">// 2. 获取NT头</span></span><br><span class="line">	PIMAGE_NT_HEADERS64  pNt = (PIMAGE_NT_HEADERS64)((ULONGLONG)lpImage + pDos-&gt;e_lfanew);</span><br><span class="line">	<span class="comment">// 3. 获取数据目录表</span></span><br><span class="line">	PIMAGE_DATA_DIRECTORY pRelocDir = pNt-&gt;OptionalHeader.DataDirectory;</span><br><span class="line">	pRelocDir = &amp;(pRelocDir[IMAGE_DIRECTORY_ENTRY_BASERELOC]);</span><br><span class="line">	<span class="comment">// 4. 获取重定位目录</span></span><br><span class="line">	PIMAGE_BASE_RELOCATION pReloc = (PIMAGE_BASE_RELOCATION)((ULONGLONG)lpImage + pRelocDir-&gt;VirtualAddress);</span><br><span class="line">	<span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">		WORD Offset : <span class="number">12</span>;          <span class="comment">// (1) 大小为12Bit的重定位偏移</span></span><br><span class="line">		WORD Type : <span class="number">4</span>;             <span class="comment">// (2) 大小为4Bit的重定位信息类型值</span></span><br><span class="line">	&#125;TypeOffset, * PTypeOffset;	   <span class="comment">// 这个结构体是A1Pass总结的</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// 循环获取每一个MAGE_BASE_RELOCATION结构的重定位信息</span></span><br><span class="line">	<span class="keyword">while</span> (pReloc-&gt;VirtualAddress)</span><br><span class="line">	&#123;</span><br><span class="line">		PTypeOffset pTypeOffset = (PTypeOffset)(pReloc + <span class="number">1</span>);</span><br><span class="line">		ULONGLONG dwSize = <span class="built_in"><span class="keyword">sizeof</span></span>(IMAGE_BASE_RELOCATION);</span><br><span class="line">		ULONGLONG dwCount = (pReloc-&gt;SizeOfBlock - dwSize) / <span class="number">2</span>;</span><br><span class="line">		<span class="keyword">for</span> (ULONGLONG i = <span class="number">0</span>; i &lt; dwCount; i++)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">if</span> (*(PULONGLONG)(&amp;pTypeOffset[i]) == <span class="literal">NULL</span>)</span><br><span class="line">				<span class="keyword">break</span>;</span><br><span class="line">			ULONGLONG dwRVA = pReloc-&gt;VirtualAddress + pTypeOffset[i].Offset;</span><br><span class="line">			PULONGLONG pRelocAddr = (PULONGLONG)((ULONGLONG)lpImage + dwRVA);</span><br><span class="line">			<span class="comment">// 修复重定位信息   公式：需要修复的地址-原映像基址-原区段基址+现区段基址+现映像基址</span></span><br><span class="line">			ULONGLONG dwRelocCode = *pRelocAddr - pNt-&gt;OptionalHeader.ImageBase - pNt-&gt;OptionalHeader.BaseOfCode +</span><br><span class="line">				dwCodeRVA + m_dwImageBase;</span><br><span class="line">			*pRelocAddr = dwRelocCode;</span><br><span class="line">		&#125;</span><br><span class="line">		pReloc = (PIMAGE_BASE_RELOCATION)((ULONGLONG)pReloc + pReloc-&gt;SizeOfBlock);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IMAGE_BASE_RELOCATION</span> &#123;</span></span><br><span class="line">    DWORD   VirtualAddress;</span><br><span class="line">    DWORD   SizeOfBlock;</span><br><span class="line">    <span class="comment">//  WORD    TypeOffset[1];</span></span><br><span class="line">&#125; IMAGE_BASE_RELOCATION;</span><br></pre></td></tr></table></figure>
+
+<p>  <strong>VirtualAddress</strong>：指向PE文件中需要重定位数据的RAV，由于每个重定位结构体只负责描述0x1000字节大小区域的重定位信息，因此这个字段的值总是0x1000的倍数。<br>  <strong>SizeOfBlock</strong>：描述IMAGE_BASE_RELOCATION结构体与重定位数组TypeOffset的体积总大小（IMAGE_SIZEOF_BASE_RELOCATION+2*n）(n==代码中的dwCount)</p>
+<p>  <strong>TypeOffset</strong> 是一个数组，数组每项大小为两个字节（16位），它由高 4位和低 12位组成，高 4位代表重定位类型，低 12位是重定位地址，它与 VirtualAddress 相加即是指向PE 映像中需要修改的那个代码的地址。</p>
+<h4 id="2-Stub-dll处理"><a href="#2-Stub-dll处理" class="headerlink" title="2.Stub.dll处理"></a>2.Stub.dll处理</h4><p>将工程设置release版本，如果不想代码被优化，可以禁止优化。<br>大概流程如下（后三部分没有）：</p>
+<ol>
+<li>将数据段,只读数据段和代码段进行合并</li>
+<li>编写代码获取API的地址</li>
+<li>加入混淆指令,反调试</li>
+<li>解密/解压缩</li>
+<li>加密IAT等等</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//把数据段融入代码段</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">pragma</span> comment(linker,<span class="meta-string">&quot;/merge:.data=.text&quot;</span>)</span></span><br><span class="line"><span class="comment">//把只读数据段融入代码段</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">pragma</span> comment(linker,<span class="meta-string">&quot;/merge:.rdata=.text&quot;</span>)</span></span><br><span class="line"><span class="comment">//设置代码段为可读可写可执行</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">pragma</span> comment(linker,<span class="meta-string">&quot;/section:.text,RWE&quot;</span>)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="string">&quot;C&quot;</span> __declspec(dllexport) StubConf g_Sc = &#123; <span class="number">0</span> &#125;;</span><br></pre></td></tr></table></figure>
+
+<p>  为方便迁移代码和数据，将两段融合，.text段也就是壳代码，因为加完壳后，在壳代码中无法使用导入表，因此，需要自己动态获取需要使用的API函数的地址。<br>   只要获取到LoadLibraryExA和GetProcAddress两个函数的地址，我们就可以根据LoadLibraryExA来获取任意模块dll的基地址，再使用GetProcAddress函数获取到任意API函数的地址了。<br>   根据kernel32基址可获取到GetProcAddress地址。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//获取内核模块基址</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">GetKernel</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	__asm </span><br><span class="line">	&#123;</span><br><span class="line">		push esi;</span><br><span class="line">		mov esi, fs:[<span class="number">0x30</span>];   <span class="comment">//得到PEB地址</span></span><br><span class="line">		mov esi, [esi + <span class="number">0xc</span>]; <span class="comment">//指向PEB_LDR_DATA结构的首地址</span></span><br><span class="line">		mov esi, [esi + <span class="number">0x1c</span>];<span class="comment">//InInitializationOrder的地址</span></span><br><span class="line">		mov esi, [esi];       <span class="comment">//得到第2个条目kernelBase的链表</span></span><br><span class="line">		mov esi, [esi];       <span class="comment">//得到第3个条目kernel32的链表(win10系统)</span></span><br><span class="line">		mov esi, [esi + <span class="number">0x8</span>]; <span class="comment">//kernel32.dll地址</span></span><br><span class="line">		mov g_hKernel32, esi;</span><br><span class="line">		pop esi;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>  上面代码部分为32位获取Kernel32.dll地址，可以在WinDbg中调试，定位TEB与PEB，定位Ldr，定位LDR_DATA_TABLE_ENTRY然后确定kernel32.dll基址。（这里罗嗦一下，具体说一下</p>
+<p>  TEB结构体部分成员</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">TEB</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">NT_TIB</span> <span class="title">NtTib</span>;</span>                                                   <span class="comment">//0x0</span></span><br><span class="line">    VOID* EnvironmentPointer;                                               <span class="comment">//0x1c</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">CLIENT_ID</span> <span class="title">ClientId</span>;</span>                                             <span class="comment">//0x20</span></span><br><span class="line">    VOID* ActiveRpcHandle;                                                  <span class="comment">//0x28</span></span><br><span class="line">    VOID* ThreadLocalStoragePointer;                                        <span class="comment">//0x2c</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">PEB</span>* <span class="title">ProcessEnvironmentBlock</span>;</span>                                   <span class="comment">//0x30</span></span><br><span class="line">    ULONG LastErrorValue;                                                   <span class="comment">//0x34</span></span><br><span class="line">    ULONG CountOfOwnedCriticalSections;                                     <span class="comment">//0x38</span></span><br><span class="line">    VOID* CsrClientThread;                                                  <span class="comment">//0x3c</span></span><br><span class="line">    VOID* Win32ThreadInfo;                                                  <span class="comment">//0x40</span></span><br><span class="line">    ULONG User32Reserved[<span class="number">26</span>];                                               <span class="comment">//0x44</span></span><br><span class="line">    ULONG UserReserved[<span class="number">5</span>];                                                  <span class="comment">//0xac</span></span><br><span class="line">    VOID* WOW32Reserved;                                                    <span class="comment">//0xc0</span></span><br><span class="line">    ULONG CurrentLocale;                                                    <span class="comment">//0xc4</span></span><br><span class="line">    ULONG FpSoftwareStatusRegister;                                         <span class="comment">//0xc8</span></span><br><span class="line">	...</span><br></pre></td></tr></table></figure>
+
+<p>  PEB包含在其中，fs寄存器指向当前活动线程的PEB结构，所以fs:[0x30]可以获取到PEB地址，PEB结构体部分成员</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">PEB</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    UCHAR InheritedAddressSpace;                                            <span class="comment">//0x0</span></span><br><span class="line">    UCHAR ReadImageFileExecOptions;                                         <span class="comment">//0x1</span></span><br><span class="line">    UCHAR BeingDebugged;                                                    <span class="comment">//0x2</span></span><br><span class="line">    <span class="class"><span class="keyword">union</span></span></span><br><span class="line"><span class="class">    &#123;</span></span><br><span class="line">        UCHAR BitField;                                                     <span class="comment">//0x3</span></span><br><span class="line">        <span class="class"><span class="keyword">struct</span></span></span><br><span class="line"><span class="class">        &#123;</span></span><br><span class="line">            UCHAR ImageUsesLargePages:<span class="number">1</span>;                                    <span class="comment">//0x3</span></span><br><span class="line">            UCHAR IsProtectedProcess:<span class="number">1</span>;                                     <span class="comment">//0x3</span></span><br><span class="line">            UCHAR IsLegacyProcess:<span class="number">1</span>;                                        <span class="comment">//0x3</span></span><br><span class="line">            UCHAR IsImageDynamicallyRelocated:<span class="number">1</span>;                            <span class="comment">//0x3</span></span><br><span class="line">            UCHAR SkipPatchingUser32Forwarders:<span class="number">1</span>;                           <span class="comment">//0x3</span></span><br><span class="line">            UCHAR SpareBits:<span class="number">3</span>;                                              <span class="comment">//0x3</span></span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;;</span><br><span class="line">    VOID* Mutant;                                                           <span class="comment">//0x4</span></span><br><span class="line">    VOID* ImageBaseAddress;                                                 <span class="comment">//0x8</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">PEB_LDR_DATA</span>* <span class="title">Ldr</span>;</span>                                              <span class="comment">//0xc</span></span><br><span class="line">	...</span><br></pre></td></tr></table></figure>
+
+<p>  在偏移0xC的位置，存在<strong>struct _PEB_LDR_DATA* Ldr;</strong> ，这个_PEB_LDR_DATA结构体指针存储进程已加载的模块信息，就是包含了加载的DLL的信息。</p>
+<p>  <strong>_PEB_LDR_DATA</strong>结构如下</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//0x30 bytes (sizeof)</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">PEB_LDR_DATA</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    ULONG Length;                                                           <span class="comment">//0x0</span></span><br><span class="line">    UCHAR Initialized;                                                      <span class="comment">//0x4</span></span><br><span class="line">    VOID* SsHandle;                                                         <span class="comment">//0x8</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">LIST_ENTRY</span> <span class="title">InLoadOrderModuleList</span>;</span><span class="comment">//模块链表，以加载顺序排序         //0xc</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">LIST_ENTRY</span> <span class="title">InMemoryOrderModuleList</span>;</span><span class="comment">//模块链表，以内存位置排序       //0x14</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">LIST_ENTRY</span> <span class="title">InInitializationOrderModuleList</span>;</span><span class="comment">//模块链表，以初始化顺序排序  //0x1c</span></span><br><span class="line">    VOID* EntryInProgress;                                                  <span class="comment">//0x24</span></span><br><span class="line">    UCHAR ShutdownInProgress;                                               <span class="comment">//0x28</span></span><br><span class="line">    VOID* ShutdownThreadId;                                                 <span class="comment">//0x2c</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>这里有3个_LIST_ENTRY结构体，它们每个的意义是不一样的。<strong>其实这三个链表都可以找到Kernel32地址。</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">操作系统规定，每当为本进程装入一个dll模块时，</span><br><span class="line">就要为其分配、创建一个_LDR_DATA_TABLE_ENTRY数据结构，</span><br><span class="line">并将其挂入InLoadOrderModuleList和InMemoryOrderModuleList，</span><br><span class="line">完成对这个模块的动态连接以后，就把它挂入InInitializationOrderModuleList队列，</span><br><span class="line">以便依次调用模块的初始化函数。</span><br></pre></td></tr></table></figure>
+
+<p><strong>_LDR_DATA_TABLE_ENTRY</strong> 部分成员</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//0x78 bytes (sizeof)</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">LDR_DATA_TABLE_ENTRY</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">LIST_ENTRY</span> <span class="title">InLoadOrderLinks</span>;</span>                                    <span class="comment">//0x0</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">LIST_ENTRY</span> <span class="title">InMemoryOrderLinks</span>;</span>                                  <span class="comment">//0x8</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">LIST_ENTRY</span> <span class="title">InInitializationOrderLinks</span>;</span>                          <span class="comment">//0x10</span></span><br><span class="line">    VOID* DllBase;                                                          <span class="comment">//0x18</span></span><br><span class="line">    VOID* EntryPoint;                                                       <span class="comment">//0x1c</span></span><br><span class="line">    ULONG SizeOfImage;                                                      <span class="comment">//0x20</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">UNICODE_STRING</span> <span class="title">FullDllName</span>;</span>                                     <span class="comment">//0x24</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">UNICODE_STRING</span> <span class="title">BaseDllName</span>;</span>                                     <span class="comment">//0x2c</span></span><br><span class="line">    ULONG Flags;                                                            <span class="comment">//0x34</span></span><br><span class="line">    USHORT LoadCount;                                                       <span class="comment">//0x38</span></span><br><span class="line">    USHORT TlsIndex;                                                        <span class="comment">//0x3a</span></span><br></pre></td></tr></table></figure>
+
+<p>  <strong>_PEB_LDR_DATA</strong>中的3个字段InLoadOrderModuleList、InMemoryOrderModuleList、和InInitializationOrderModuleList，它们分别指向**_LDR_DATA_TABLE_ENTRY** 结构体上的InLoadOrderModuleLinks、InMemoryOrderModuleLinks、和InInitializationOrderModuleLinks字段。</p>
+<p>  而偏移0x18 ，<strong>VOID* DllBase</strong> 就是dll在该进程的基地址。我们要的就是这个，但是要找的kernel32的。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//获取 DllBase</span></span><br><span class="line">mov esi, [eax + <span class="number">0x8</span>];  Poniter to DllBase</span><br></pre></td></tr></table></figure>
+
+<p>64位的地址会有些不一样</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">ULONGLONG <span class="title">GetKernel32Addr</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	ULONGLONG dwKernel32Addr = <span class="number">0</span>;</span><br><span class="line"><span class="comment">// 获取TEB的地址</span></span><br><span class="line">_TEB* pTeb = NtCurrentTeb();</span><br><span class="line"><span class="comment">// 获取PEB的地址</span></span><br><span class="line">PULONGLONG pPeb = (PULONGLONG) * (PULONGLONG)((ULONGLONG)pTeb + <span class="number">0x60</span>);</span><br><span class="line"><span class="comment">// 获取PEB_LDR_DATA结构的地址</span></span><br><span class="line">PULONGLONG pLdr = (PULONGLONG) * (PULONGLONG)((ULONGLONG)pPeb + <span class="number">0x18</span>);</span><br><span class="line"><span class="comment">//模块链表的头指针InLoadOrderModuleList</span></span><br><span class="line">PULONGLONG pInLoadOrderModuleList = (PULONGLONG)((ULONGLONG)pLdr + <span class="number">0x10</span>);</span><br><span class="line"><span class="comment">// 获取链表中第一个模块信息，exe模块</span></span><br><span class="line">PULONGLONG pModuleExe = (PULONGLONG)*pInLoadOrderModuleList;</span><br><span class="line"><span class="comment">// 获取链表中第二个模块信息，ntdll模块</span></span><br><span class="line">PULONGLONG pModuleNtdll = (PULONGLONG)*pModuleExe;</span><br><span class="line"><span class="comment">// 获取链表中第三个模块信息，Kernel32模块</span></span><br><span class="line">PULONGLONG pModuleKernel32 = (PULONGLONG)*pModuleNtdll;</span><br><span class="line"><span class="comment">// 获取kernel32基址</span></span><br><span class="line">dwKernel32Addr = pModuleKernel32[<span class="number">6</span>];</span><br><span class="line"><span class="keyword">return</span> dwKernel32Addr;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>用Windbg随便附加一个进程试试（**Note:**在X64环境下进行的）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220302104143424.png" alt="image-20220302104143424"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220302104311490.png" alt="image-20220302104311490"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220302104504487.png" alt="image-20220302104504487"></p>
+<p>然后是获取GetProcAddress函数地址，遍历kernel32模块输出表，找到函数地址即可</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">ULONGLONG <span class="title">MyGetProcAddress</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	ULONGLONG dwBase = GetKernel32Addr();</span><br><span class="line">	<span class="comment">// 1. 获取DOS头</span></span><br><span class="line">	PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)dwBase;</span><br><span class="line">	<span class="comment">// 2. 获取NT头</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> _WIN64</span></span><br><span class="line">	PIMAGE_NT_HEADERS64  pNt = (PIMAGE_NT_HEADERS64)(dwBase + pDos-&gt;e_lfanew);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line">	PIMAGE_NT_HEADERS32  pNt = (PIMAGE_NT_HEADERS32)(dwBase + pDos-&gt;e_lfanew);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">	<span class="comment">// 3. 获取数据目录表</span></span><br><span class="line">	PIMAGE_DATA_DIRECTORY pExportDir = pNt-&gt;OptionalHeader.DataDirectory;</span><br><span class="line">	pExportDir = &amp;(pExportDir[IMAGE_DIRECTORY_ENTRY_EXPORT]);</span><br><span class="line">	DWORD dwOffset = pExportDir-&gt;VirtualAddress;</span><br><span class="line">	<span class="comment">// 4. 获取导出表信息结构</span></span><br><span class="line">	PIMAGE_EXPORT_DIRECTORY pExport = (PIMAGE_EXPORT_DIRECTORY)(dwBase + dwOffset);</span><br><span class="line">	DWORD dwFunCount = pExport-&gt;NumberOfFunctions;</span><br><span class="line">	DWORD dwFunNameCount = pExport-&gt;NumberOfNames;</span><br><span class="line">	DWORD dwModOffset = pExport-&gt;Name;</span><br><span class="line"><span class="comment">// Get Export Address Table</span></span><br><span class="line">PDWORD pEAT = (PDWORD)(dwBase + pExport-&gt;AddressOfFunctions);</span><br><span class="line"><span class="comment">// Get Export Name Table</span></span><br><span class="line">PDWORD pENT = (PDWORD)(dwBase + pExport-&gt;AddressOfNames);</span><br><span class="line"><span class="comment">// Get Export Index Table</span></span><br><span class="line">PWORD  pEIT = (PWORD)(dwBase + pExport-&gt;AddressOfNameOrdinals);</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (DWORD dwOrdinal = <span class="number">0</span>; dwOrdinal &lt; dwFunCount; dwOrdinal++)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">if</span> (!pEAT[dwOrdinal]) <span class="comment">// Export Address offset</span></span><br><span class="line">		<span class="keyword">continue</span>;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 1. 获取序号</span></span><br><span class="line">	DWORD dwID = pExport-&gt;Base + dwOrdinal;</span><br><span class="line">	<span class="comment">// 2. 获取导出函数地址</span></span><br><span class="line">	ULONGLONG dwFunAddrOffset = pEAT[dwOrdinal];</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> (DWORD dwIndex = <span class="number">0</span>; dwIndex &lt; dwFunNameCount; dwIndex++)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">// 在序号表中查找函数的序号</span></span><br><span class="line">		<span class="keyword">if</span> (pEIT[dwIndex] == dwOrdinal)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="comment">// 根据序号索引到函数名称表中的名字</span></span><br><span class="line">			ULONGLONG dwNameOffset = pENT[dwIndex];</span><br><span class="line">			<span class="keyword">char</span>* pFunName = (<span class="keyword">char</span>*)((ULONGLONG)dwBase + dwNameOffset);</span><br><span class="line">			<span class="keyword">if</span> (!<span class="built_in">strcmp</span>(pFunName, <span class="string">&quot;GetProcAddress&quot;</span>))</span><br><span class="line">			&#123;<span class="comment">// 根据函数名称返回函数地址</span></span><br><span class="line">				<span class="keyword">return</span> dwBase + dwFunAddrOffset;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Stub项目应该设置为静态编译模式（配置属性-c/c++-代码生成-运行库），将MD改为MT</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/erkeai/StudyCode/tree/main/x64">x86加壳实现地址</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/erkeai/StudyCode/tree/main/x86">x64加壳实现地址</a></p>
+<p>参考链接(x86)：<a target="_blank" rel="noopener" href="https://bbs.pediy.com/thread-250960.htm">https://bbs.pediy.com/thread-250960.htm</a></p>
+<p>参考书籍(x64)：《加密与解密》</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/01/12/sample/CONTI%E5%8B%92%E7%B4%A2%E8%BD%AF%E4%BB%B6%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/01/12/sample/CONTI%E5%8B%92%E7%B4%A2%E8%BD%AF%E4%BB%B6%E5%88%86%E6%9E%90/" class="post-title-link" itemprop="url">CONTI勒索软件分析</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-01-12 00:00:00 / 修改时间：19:55:20" itemprop="dateCreated datePublished" datetime="2022-01-12T00:00:00+08:00">2022-01-12</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%A0%B7%E6%9C%AC%E5%88%86%E6%9E%90/" itemprop="url" rel="index"><span itemprop="name">样本分析</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.6k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><blockquote>
+<p>​    摘要：CONTI是去年最活跃的勒索软件家族之一。其中一个臭名昭著的攻击发生在HSE医疗(<a target="_blank" rel="noopener" href="https://threatpost.com/conti-ransomware-fail-costly/166263/)%EF%BC%8C%E6%94%BB%E5%87%BB%E8%80%85%E8%A6%81%E6%B1%822000%E4%B8%87%E7%BE%8E%E5%85%83%E7%9A%84%E8%B5%8E%E9%87%91%E3%80%82%E6%AD%A3%E5%A6%82Cybereason%E5%9C%A8https://www.cybereason.com/blog/cybereason-vs.-conti-ransomware%E4%B8%8A%E6%8F%90%E5%88%B0%E7%9A%84%EF%BC%8CConti%E5%9C%A8%E5%9C%B0%E4%B8%8B%E8%AE%BA%E5%9D%9B%E4%B8%8A%E8%A2%AB%E4%BD%9C%E4%B8%BARaaS(%E5%8B%92%E7%B4%A2%E8%BD%AF%E4%BB%B6%E4%BD%9C%E4%B8%BA%E6%9C%8D%E5%8A%A1)%E5%87%BA%E5%94%AE%EF%BC%8C%E5%AE%83%E5%B7%B2%E7%BB%8F%E8%A2%ABTrickBot%E5%9B%A2%E4%BC%99%E9%83%A8%E7%BD%B2%E3%80%82%E5%85%B6%E4%B8%AD%E4%B8%80%E4%B8%AA%E4%B8%BB%E8%A6%81%E7%9A%84%E6%8B%85%E5%BF%A7%E6%98%AF%EF%BC%8C%E5%8B%92%E7%B4%A2%E8%BD%AF%E4%BB%B6%E9%9B%86%E5%9B%A2%E9%87%87%E7%94%A8%E4%BA%86%E5%8F%8C%E9%87%8D%E5%8B%92%E7%B4%A2%E7%9A%84%E6%96%B9%E6%B3%95:%E4%BB%96%E4%BB%AC%E8%BF%98%E4%BB%8E%E5%8F%97%E5%AE%B3%E8%80%85%E9%82%A3%E9%87%8C%E7%AA%83%E5%8F%96%E6%95%8F%E6%84%9F%E6%95%B0%E6%8D%AE%EF%BC%8C%E5%B9%B6%E8%A6%81%E6%B1%82%E8%B5%8E%E9%87%91%E3%80%82">https://threatpost.com/conti-ransomware-fail-costly/166263/)，攻击者要求2000万美元的赎金。正如Cybereason在https://www.cybereason.com/blog/cybereason-vs.-conti-ransomware上提到的，Conti在地下论坛上被作为RaaS(勒索软件作为服务)出售，它已经被TrickBot团伙部署。其中一个主要的担忧是，勒索软件集团采用了双重勒索的方法:他们还从受害者那里窃取敏感数据，并要求赎金。</a></p>
+<p>​    该恶意软件可以运行不同的参数，如“-p”，“-m”，“-size”，“-log”和“-nomutex”，并创建一个互斥锁“YUIOGHJKCVVBNMFGHJKTYQUWIETASKDHGZBDGSKL237782321344”，以确保在同一时间只有一个实例的勒索软件运行。该恶意软件使用wmic和COM对象删除计算机上的所有卷影副本。勒索软件的目标是系统上所有有效的驱动器和可以访问的SMB共享。使用自定义ChaCha8实现对文件进行加密，该实现使用随机生成的密钥(32字节)和nonces(8字节)，这些密钥由硬编码的公共RSA密钥加密。加密非常快，因为示例使用多个线程加密文件，并避免完全加密较大的文件(&gt;5MB)。</p>
+</blockquote>
+<h3 id="火绒剑监控行为"><a href="#火绒剑监控行为" class="headerlink" title="火绒剑监控行为"></a>火绒剑监控行为</h3><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220110174409290.png" alt="image-20220110174409290"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220110174521303.png" alt="image-20220110174521303"></p>
+<p>可以看到是一些注册表的操作，最后带参数执行了一个WerFault.exe以及自身的删除操作。但是明显不太对，猜测是不是有反检测技术，去微步沙箱看，发现确实是这样。我们IDA分析看看能不能把反检测部分给nop掉。（<strong>WerFault.exe是Windows自带的主要用于错误报告的程序。</strong>但是网上没找到这个参数是什么意思，沙箱分析该进程行为主要是枚举进程和提权）</p>
+<h3 id="IDA静态分析"><a href="#IDA静态分析" class="headerlink" title="IDA静态分析"></a>IDA静态分析</h3><p>先看导入函数，有一个<code>IsDebuggerPresent</code>(但是我在OD下了断点并没有触发)。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220110205243096.png" alt="image-20220110205243096"></p>
+<h3 id="OD动态"><a href="#OD动态" class="headerlink" title="OD动态"></a>OD动态</h3><p>我们根据IDA静态地址推出函数入口地址00358470，下断点，直接运行到这里。(进程有很多这样的混淆字符串的操作)</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111102246640.png" alt="image-20220111102246640"></p>
+<p>该进程通过调用<code>GetCommandLineW</code>函数来获取命令行字符串</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111135921017.png" alt="image-20220111135921017"></p>
+<p><code>CommandLineToArgvW</code> (00357E20中被调用)被用来获取一个指向命令行参数的指针数组(类似于C中的argv和argc值)</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111143432602.png" alt="image-20220111143432602"></p>
+<p>调试可以发现依次会有”-p”,”-m”,”-log”,”-size”,”-nomutex”,它解析程序使用的参数，并将它们与列表进行比较</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111145536509.png" alt="image-20220111145536509"></p>
+<blockquote>
+<p>-p directory：使用单个线程加密目录</p>
+<p>-m local：使用多个线程加密可用驱动器</p>
+<p>-m net：使用多个线程加密网络共享</p>
+<p>-m all：用多个线程加密可用驱动器和网络共享</p>
+<p>-m backups：未实现（可能加密备份目录？）</p>
+<p>-size chunk：加密大文件的块模式</p>
+<p>-log logfile：日志记录模式(在日志文件中记录不同的活动) </p>
+<p>-nomutex：没有创建互斥对象</p>
+</blockquote>
+<p>下图是恶意软件混淆大多数堆栈字符串方面的部分，用于解密它们的解密算法每次都在改变(操作和常量有一些变化)。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111102735538.png" alt="image-20220111102735538"></p>
+<p>这里创建了一个互斥锁，保证只有一个实例在运行(<strong>如果它使用“-nomutex”参数运行，则不会创建互斥锁</strong>)。使用上面的算法解密互斥对象的名称。重要的API是在运行时导入的，而不是将它们全部包含在IAT(导入地址表)中。有一个哈希算法<code>003447C0</code>用于确定应该导入哪些函数(第一个参数是哈希值，第二个参数表示偏移量)</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111103559774.png" alt="image-20220111103559774"></p>
+<p><code>GetNativeSystemInfo</code>用于获取当前系统的信息，如下图所示</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111155929972.png" alt="image-20220111155929972"></p>
+<p>恶意进程会创建2个(处理器的数量)处理加密的新线程(执行了两次，后面细说)。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112164435648.png" alt="image-20220112164435648"></p>
+<p><code>CreateToolhelp32Snapshot</code> 用于检索所有进程的快照(0x2 = TH32CS_SNAPPROCESS)，紧接着该二进制文件通过调用<code>Process32FirstW</code>和<code>Process32NextW</code>例程枚举系统上的进程。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111160919564.png" alt="image-20220111160919564"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111161128395.png" alt="image-20220111161128395"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111161514137.png" alt="image-20220111161514137"></p>
+<p>恶意软件还在寻找“explorer.exe”进程，并将其进程ID保存在缓冲区（检索进程以及寻找explorer.exe都是在0035BE90实现的）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111161731065.png" alt="image-20220111161731065"></p>
+<p>紧接着下一个函数中，CoInitializeEx例程用于在当前线程上初始化COM库。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111162415181.png" alt="image-20220111162415181"></p>
+<p>CoInitializeSecurity用于注册和设置进程的默认安全值(0x3 = RPC_C_IMP_LEVEL_IMPERSONATE):</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111162614480.png" alt="image-20220111162614480"></p>
+<p>该恶意软件使用COM对象和wmic删除所有卷的影子副本。它调用<code>CoCreateInstance</code>用CLSID {dc12a687-737f-11cf-884d-00aa004b2e24}(COM对象的类标识符)创建<code>IWbemLocator</code>对象:</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111165049167.png" alt="image-20220111165049167"></p>
+<p>使用相同的函数，用CLSID {44aca674-e8fc-11d0-a07c-00c04fb68820}创建一个新的<code>IWbemContext</code>接口</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111170023980.png" alt="image-20220111170023980"></p>
+<p>使用<code>ConnectServer</code>函数连接到本地的” ROOT\CIMV2 “命名空间，并获取一个指向<code>IWbemServices</code>对象的指针</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111172029489.png" alt="image-20220111172029489"></p>
+<p><code>CoSetProxyBlanket</code>设置用于在代理上调用的认证信息(0xA = RPC_C_AUTHN_WINNT - NTLMSSP, 0x3 = RPC_C_AUTHN_LEVEL_CALL和0x3 = RPC_C_IMP_LEVEL_IMPERSONATE)</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111172235090.png" alt="image-20220111172235090"></p>
+<p>勒索软件通过执行以下查询<code>SELECT * FROM Win32_ShadowCopy</code>获得所有影子副本的枚举数</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111172508425.png" alt="image-20220111172508425"></p>
+<p>下面使用自定义算法解密的字符串将用于删除系统上的所有影子副本</p>
+<p><img src="C:\Users\16434\AppData\Roaming\Typora\typora-user-images\image-20220111173313836.png" alt="image-20220111173313836"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111173421303.png" alt="image-20220111173421303"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111173653784.png" alt="image-20220111173653784"></p>
+<p><code>Wow64DisableWow64FsRedirection</code> 用于禁用当前线程的文件系统重定向</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111173520747.png" alt="image-20220111173520747"></p>
+<p>该恶意软件会创建一个新进程来删除指定ID对应的影子副本，如下所示</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111181529397.png" alt="image-20220111181529397"></p>
+<p>当前线程的文件系统重定向通过调用<code>Wow64RevertWow64FsRedirection</code>来恢复</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111181741286.png" alt="image-20220111181741286"></p>
+<p>系统上的所有有效驱动器都是恶意软件的目标，它使用<code>GetLogicalDriveStringsW</code> 来检索它们,这里就两个，分别是C:\和D:\</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111195254438.png" alt="image-20220111195254438"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111195541979.png" alt="image-20220111195541979"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111195617320.png" alt="image-20220111195617320"></p>
+<p><code>WSAStartup</code>例程启动当前进程对Winsock DLL的使用，如下图.</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111195944371.png" alt="image-20220111195944371"></p>
+<p>通过调用<code>WSASocketW</code> (0x2 = AF_INET, 0x1 = SOCK_STREAM, 0x6 = IPPROTO_TCP)创建一个新的套接字</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111200745133.png" alt="image-20220111200745133"></p>
+<p><code>WSAIoctl</code>被用来检索一个指向相关服务提供商支持的扩展函数的指针(0xc8000006 = SIO_GET_EXTENSION_FUNCTION_POINTER)</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111200854630.png" alt="image-20220111200854630"></p>
+<p>通过调用<code>gethostname</code>函数来提取本地计算机的标准主机名</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111201121272.png" alt="image-20220111201121272"></p>
+<p>本地机器的本地IP地址是通过调用gethostbyname例程来获取的</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111201212688.png" alt="image-20220111201212688"></p>
+<p><code>CreateIoCompletionPort</code>被用来创建一个I/O(输入/输出)完成端口，它没有与文件句柄相关联(0xffffffff = INVALID_HANDLE_VALUE)</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111201405026.png" alt="image-20220111201405026"></p>
+<p>从本地机器提取ARP表项，并以MIB_IPNETTABLE结构返回信息</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111201551965.png" alt="image-20220111201551965"></p>
+<p>十六进制格式的IP地址从每个条目转换成ASCII字符串(点分十进制格式的IP地址)</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111201730021.png" alt="image-20220111201730021"></p>
+<p>将IP地址与以下字符串进行比较:” 172.”、“192.168.”、“10.”和“169”。下面是一个这样的两个比较（就不一一放图了）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220111201828432.png" alt="image-20220111201828432"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112112338584.png" alt="image-20220112112338584"></p>
+<p>通过调用<code>CreateThread</code> 创建了2个新的线程</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112112644444.png" alt="image-20220112112644444"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112112712645.png" alt="image-20220112112712645"></p>
+<p>恶意软件将I/O完成包发送到前面创建的I/O完成端口</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112113511061.png" alt="image-20220112113511061"></p>
+<h4 id="线程1-sub-0035AF90"><a href="#线程1-sub-0035AF90" class="headerlink" title="线程1 sub_0035AF90"></a>线程1 sub_0035AF90</h4><p>​    这一部分线程主要完成网络连接等操作。</p>
+<p>​    发送完数据包后会执行<code>waitForSingalObject</code>函数，此时先到线程sub_0035AF90。<code>CreateTimerQueue</code>函数用于为计时器(指定在特定时间调用回调函数的对象)创建队列。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112115331237.png" alt="image-20220112115331237"></p>
+<p>​    线程通信是使用由主线程创建的I/O完成端口完成的。GetQueuedCompletionStatus函数用于接收由主线程发送的缓冲区(对应前面那个函数)。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112115501443.png" alt="image-20220112115501443"></p>
+<p>​    线程通过调用<code>WSASocketW</code>例程(0x2 = AF_INET, 0x1 = SOCK_STREAM, 0x6 = IPPROTO_TCP和0x1 = WSA_FLAG_OVERLAPPED)创建一个新的套接字。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112115624483.png" alt="image-20220112115624483"></p>
+<p>​    <code>bind</code>将本地地址与新创建的套接字关联起来</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112115738778.png" alt="image-20220112115738778"></p>
+<p>​    <code>CreateIoCompletionPort</code>函数将之前创建的TCP套接字与现有的I/O完成端口关联起来(它允许进程接收涉及到套接字句柄的I/O操作完成的通知)。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112115843836.png" alt="image-20220112115843836"></p>
+<p>​    使用<code>ntohs</code>例程将0x1bd(445)从网络字节顺序(大端序)转换为主机字节顺序(小端序)</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112143327736.png" alt="image-20220112143327736"></p>
+<p>​    该进程试图连接端口445(192.168.10.x和192.168.164.x)，通过<code>LPFN_CONNECTEX</code>回调函数(这里我没有看出来)</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112144505200.png" alt="image-20220112144505200"></p>
+<p>​    <code>CreateTimerQueueTimer</code> 用于创建一个计时器队列计时器。基本上，当计时器过期时(在我们的例子中0x7530 = 30秒)，就会调用回调函数(0x010BAF60)</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112144639222.png" alt="image-20220112144639222"></p>
+<p>Process Monitor抓取到的网络行为</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112151134745.png" alt="image-20220112151134745"></p>
+<p><code>    setsockopt</code>用于设置socket的SO_UPDATE_CONNECT_CONTEXT选项(0xffff = SOL_SOCKET, 0x7010 = SO_UPDATE_CONNECT_CONTEXT)(调快了一步…没截到)</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112144944171.png" alt="image-20220112144944171"></p>
+<p>​    为了检查连接是否成功，恶意软件调用<code>getsockopt</code>函数，参数为0x700c = SO_CONNECT_TIME</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112145119024.png" alt="image-20220112145119024"></p>
+<h4 id="线程2-sub-0035C7D0"><a href="#线程2-sub-0035C7D0" class="headerlink" title="线程2 sub_0035C7D0"></a>线程2 sub_0035C7D0</h4><p>这个线程主要实现加密</p>
+<p>使用<code>CryptAcquireContextA</code>获取Microsoft RSA和AES加密提供程序的句柄，如下所示</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112170358002.png" alt="image-20220112170358002"></p>
+<p><code>CryptImportKey</code>用于导入RSA公钥</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112171341640.png" alt="image-20220112171341640"></p>
+<p>该进程在它加密的每个目录中创建勒索通知</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112171719919.png" alt="image-20220112171719919"></p>
+<p>以下4字节常量表明加密算法是ChaCha8(主要还是看网上有介绍，这里有一篇<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/1907.11941.pdf">论文</a>)</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112172137242.png" alt="image-20220112172137242"></p>
+<p><code>WriteFile</code>写进去</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112172359510.png" alt="image-20220112172359510"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112172549715.png" alt="image-20220112172549715"></p>
+<p>该恶意软件使用<code>FindFirstFileW</code>和<code>FindNextFileW</code> 枚举目标目录中的文件</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112172727450.png" alt="image-20220112172727450"></p>
+<p>调用<code>PathIsDirectoryW</code>来检查文件路径是否为有效目录</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112172942644.png" alt="image-20220112172942644"></p>
+<p>下面的扩展名/文件被恶意软件跳过(“.LSNWX”是加密文件的扩展)</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112173205840.png" alt="image-20220112173205840"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112173342645.png" alt="image-20220112173342645"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112173442114.png" alt="image-20220112173442114"></p>
+<p><code>CryptGenRandom</code>生成32(0x20)个随机字节，将用作ChaCha8密钥</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112183706844.png" alt="image-20220112183706844"></p>
+<p><code>CryptGenRandom</code>生成8(0x8)个随机字节，将用作ChaCha8 <strong>nonce(只能被使用一次的随机数)</strong></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112184123915.png" alt="image-20220112184123915"></p>
+<p>使用RSA公钥对ChaCha8密钥和nonce进行加密，如图所示</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112184437680.png" alt="image-20220112184437680"></p>
+<p><code>CreateFileW</code>函数用于打开将要加密的文件</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112190621749.png" alt="image-20220112190621749"></p>
+<p>将文件扩展名与多个目标扩展名的列表进行比较(整个列表很长就不一一贴了)</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112191838690.png" alt="image-20220112191838690"></p>
+<p>需要指出的是，如果文件扩展名不属于这些列表，这并不意味着该文件不会被加密。例如，作为例子的txt文件将被勒索软件加密，然而，它遵循不同的执行流程，将在几段中详细介绍。加密后的ChaCha8密钥和nonce是加密文件的一部分，如下所示</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112192520598.png" alt="image-20220112192520598"></p>
+<p>文件扩展名为”.LSNWX”，此时加密活动完成</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112193144530.png" alt="image-20220112193144530"></p>
+<p>网上博客分析说文件大小不同，加密的结果也不一样，主要分为小于1MB的，1MB到5MB的，大于5MB的。</p>
+<h4 id="线程2-sub-0035A880"><a href="#线程2-sub-0035A880" class="headerlink" title="线程2 sub_0035A880"></a>线程2 sub_0035A880</h4><p>恶意进程检索有关成功访问的IP上的SMB共享的信息，如下图所示(在这里是虚拟机本地IP地址进行调试)，后面直接没有调用了，猜测估计是因为IP没访问成功（因为我后面把SMB打开了也没成功。</p>
+<p>这个线程就是执行前面提到的参数命令。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220112145648960.png" alt="image-20220112145648960"></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -1423,237 +1843,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/11/14/sample/APT29%20%20Cozy%20Bear%E4%BD%BF%E7%94%A8%E7%9A%84Miniduke/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/11/14/sample/APT29%20%20Cozy%20Bear%E4%BD%BF%E7%94%A8%E7%9A%84Miniduke/" class="post-title-link" itemprop="url">APT29 / Cozy Bear使用的Miniduke</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-11-14 00:00:00" itemprop="dateCreated datePublished" datetime="2021-11-14T00:00:00+08:00">2021-11-14</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-22 14:57:22" itemprop="dateModified" datetime="2021-12-22T14:57:22+08:00">2021-12-22</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%A0%B7%E6%9C%AC%E5%88%86%E6%9E%90/" itemprop="url" rel="index"><span itemprop="name">样本分析</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>4.2k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>4 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>这篇文章详细分析了APT29使用的Miniduke，Minicuke是纯汇编编写的一个后门 ，该恶意软件采用了<strong>控制流整平迷惑</strong>并且实现了多种数据泄露的方法，比如用POST和PUT HTTP方法发送数据给C2服务器，或者在无网络连接的情况下用一个命名管道。后门实现37种不同的功能，如下图。</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373D.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373D.tmp.jpg</a>) </p>
-<h2 id="技术分析"><a href="#技术分析" class="headerlink" title="技术分析"></a>技术分析</h2><p>首先用IDA打开文件，看到第一个函数setunhandledexceptionfilter，恶意软件将异常过滤器函数设置为特定函数。</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373E.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373E.tmp.jpg</a>) </p>
-<p>前面的函数有点看不出来是个啥，我们注意看最后一个函数，可以看到用了GetStartupInfo获取STARTUPINFO结构的内容。Sub_4030A4如下图，可见是创建了一个线程。我们点进StartAddress看看</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373F.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373F.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3740.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3740.tmp.jpg</a>) </p>
-<p>StartAddress函数前部分非常多的Switch case函数，即使是后半段的这些函数也有非常多的switch case结构，<strong>非常多的无用的计算，</strong>并且加载了三个dll。</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3741.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3741.tmp.jpg</a>) </p>
-<p>在IDA的图中可以看到startAddress如下，这就是前面说的控制流整平诱惑。StartAddress中的loc_4036F2中就实现了30个case,我们将该跳转用nop替换掉，因为该命令占6字节，nop一个字节，所以要用6个nop。</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3742.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3742.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3753.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3753.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3754.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3754.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3755.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3755.tmp.jpg</a>) </p>
-<p>SetErrorCode函数参数为2，作用是让系统不显示Windows错误报告对话框 （0x2 = <strong>SEM_NOGPFAULTERRORBOX</strong>）。加载的三个dll后的sub_407B60中有一个函数sub_417DCC，将在执行期间运行，并使用哈希机制定位。基本上，对于DLL中的每个函数名，恶意软件计算一个4字节的值，并与硬编码的值进行比较。这些函数都是目标：GetProcAddress, GetLongPathNameA, GetLastError, CreateProcessWithLogonW, CryptAcquireContextW, CryptGenRandom, InternetOpenA, InternetConnectA, InternetSetOptionA, HttpOpenRequestA, HttpSendRequestA, HttpQueryInfoA, InternetReadFile, InternetCloseHandle, HttpAddRequestHeadersA。</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3756.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3756.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3757.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3757.tmp.jpg</a>) </p>
-<p>在该函数中有一个sub_423FC8函数，红框圈起来的函数就是hashing函数</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3758.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3758.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3759.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3759.tmp.jpg</a>) </p>
-<p>现在回到加载dll的目标函数中，下图中的API用于连接CSP，获得指定CSP（真正实行加密的独立模块）的密钥容器的句柄（0x1 = <strong>PROV_RSA_FULL</strong>, 0xF0000040 = <strong>CRYPT_VERIFYCONTEXT</strong> | <strong>CRYPT_SILENT****）</strong></p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375A.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375A.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375B.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375B.tmp.jpg</a>) </p>
-<p>下图函数使用一个子权限分配和初始化安全标识符(SID)</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375C.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375C.tmp.jpg</a>) </p>
-<p>通过将新的访问控制或审核控制信息合并到现有的ACL结构中来创建新的访问控制列表（ACL）</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375D.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375D.tmp.jpg</a>) </p>
-<p>通过恶意进程初始化新的安全描述符</p>
-<p>(0x1 = <strong>SECURITY_DESCRIPTOR_REVISION</strong>)，并使用setseCurityDescriptordACL API设置DACL（自定义访问控制列表）中的信息</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375E.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375E.tmp.jpg</a>) </p>
-<p>进程创建了一个Software\Microsoft\ApplicationManager注册键值</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375F.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375F.tmp.jpg</a>) </p>
-<p>一个新的值AppId被创建，使用GetTickCount函数调用的输出计算此值，它检索自系统启动以来经过的毫秒数</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3760.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3760.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3761.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3761.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3762.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3762.tmp.jpg</a>) </p>
-<p>继续查看下一个函数sub_41CD30,</p>
-<p>从上面的一个输出被转换并写入缓冲区，以及“AppID”值。将使用传统算法加密此缓冲区，该算法还包括XOR运算符（sub_420200）：</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3772.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3772.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3773.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3773.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3774.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3774.tmp.jpg</a>) </p>
-<h3 id="控制流整平"><a href="#控制流整平" class="headerlink" title="控制流整平"></a>控制流整平</h3><p>if-else、while、for具有典型的跳转等结构，即使通过多层嵌套、拓展条件等方法，依然可以通过“切片技术”来判断。有了这些依据，就给程序分析带来很多便利。<br>  正是这个原因，为了增加程序逆向的难度，我们得使得这些特征结构变得模糊，并且能让类似“切片技术”这样基于具体语义分析的方法失效，迫使逆向分析人员进行完整的抽象语义分析，斩断所谓的“捷径”。<br>  控制流整平的策略是这样的，它把所有的典型控制流以及其衍生结构“统而为一”，各种控制流的区别只是语义方面的，增加了理解控制流转换关系的难度。</p>
-<p> 控制流整平迷惑，是通过打破程序原有的控制流之间的嵌套和顺序关系，使得变换后的程序控制流扁平化的混淆方法，其基本思想是令程序中所有的基本块拥有共同的前驱和后继代码块。如下图</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3775.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3775.tmp.jpg</a>) </p>
-<p> 进行控制流整平后，使得面向过程的代码片段，原来比较清晰的控制流向混杂在一起，同时这也比较好的并行图形态，也有利于进一步的迷惑处理。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/11/13/reverse/EasyRE_REvenge/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/11/13/reverse/EasyRE_REvenge/" class="post-title-link" itemprop="url">buuctf_EasyRE_REvenge</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-11-13 00:00:00" itemprop="dateCreated datePublished" datetime="2021-11-13T00:00:00+08:00">2021-11-13</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-22 15:57:13" itemprop="dateModified" datetime="2021-12-22T15:57:13+08:00">2021-12-22</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/buuctf/" itemprop="url" rel="index"><span itemprop="name">buuctf</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>220</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h3 id="EasyRE-REvenge"><a href="#EasyRE-REvenge" class="headerlink" title="EasyRE_REvenge"></a>EasyRE_REvenge</h3><p>这道题和前面那道easyre结构一样如下，函数中有花指令</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse7/image-20211115101010954.png" alt="image-20211115101010954"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse7/image-20211115110634542.png" alt="image-20211115110634542"></p>
-<p>我们edit-patch-changebyte(不是assemble)。0B前面那个00也要改成90</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse7/image-20211115112905196.png" alt="image-20211115112905196"></p>
-<p>可以看到还要修改一个地方，全部nop</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse7/image-20211115113230271.png" alt="image-20211115113230271"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse7/image-20211115113438466.png" alt="image-20211115113438466"></p>
-<p>发现还是不行，往下一直看会发现全是一样的代码（花指令），写个py脚本全部nop掉（IDA7.0自带IDAPython，但是需要安装python27）,File-Scripts Files就ok</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse7/image-20211115202819745.png" alt="image-20211115202819745"></p>
-<p>反汇编后如图,我们自己写个代码</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse7/image-20211115203400188.png" alt="image-20211115203400188"></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1725,7 +1914,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">46</span>
+          <span class="site-state-item-count">48</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1738,7 +1927,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">53</span>
+        <span class="site-state-item-count">54</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1785,12 +1974,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">127k</span>
+    <span title="站点总字数">129k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:55</span>
+    <span title="站点阅读时长">1:57</span>
 </div>
 
         
