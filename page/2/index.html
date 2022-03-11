@@ -120,7 +120,7 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">54</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">55</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -130,7 +130,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">48</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">51</span></a>
 
   </li>
   </ul>
@@ -156,6 +156,283 @@
 
           <div class="content index posts-expand">
             
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/03/04/reverse/[FlareOn4]login/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/03/04/reverse/%5BFlareOn4%5Dlogin/" class="post-title-link" itemprop="url">buuctf_[FlareOn4]login</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-03-04 00:00:00 / 修改时间：11:07:34" itemprop="dateCreated datePublished" datetime="2022-03-04T00:00:00+08:00">2022-03-04</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/buuctf/" itemprop="url" rel="index"><span itemprop="name">buuctf</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>502</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>解压后如下，点开html</p>
+<p>直接F12</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220304101834767.png" alt="image-20220304101834767"></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span>(<span class="params">c</span>)</span>&#123;</span><br><span class="line">   <span class="keyword">return</span> <span class="built_in">String</span>.fromCharCode((c &lt;= <span class="string">&quot;Z&quot;</span> ? <span class="number">90</span> : <span class="number">122</span>) &gt;= (c = c.charCodeAt(<span class="number">0</span>) + <span class="number">13</span>) ? c : c - <span class="number">26</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>String.fromCharCode方法返回Unicode对应字符串；</p>
+<p>charcodeAt()方法返回指定位置的字符的Unicode编码。</p>
+<p>分析一下代码大概就知道为啥是13和26两个关键数字，就是将该字符替换为后13位的字符，例如A替换为N，N替换为A</p>
+<p>直接修改网页源代码，<code>alert(rotFlag)</code></p>
+<p>就可以得flag{<a href="mailto:&#67;&#x6c;&#105;&#101;&#x6e;&#x74;&#83;&#105;&#x64;&#x65;&#x4c;&#x6f;&#x67;&#105;&#110;&#x73;&#x41;&#114;&#101;&#x45;&#97;&#115;&#x79;&#x40;&#102;&#x6c;&#97;&#114;&#101;&#45;&#111;&#x6e;&#46;&#99;&#x6f;&#x6d;">&#67;&#x6c;&#105;&#101;&#x6e;&#x74;&#83;&#105;&#x64;&#x65;&#x4c;&#x6f;&#x67;&#105;&#110;&#x73;&#x41;&#114;&#101;&#x45;&#97;&#115;&#x79;&#x40;&#102;&#x6c;&#97;&#114;&#101;&#45;&#111;&#x6e;&#46;&#99;&#x6f;&#x6d;</a>}</p>
+<p><img src="C:\Users\16434\AppData\Roaming\Typora\typora-user-images\image-20220304104715517.png" alt="image-20220304104715517"></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/03/03/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%B8%80%E5%A4%A9/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/03/03/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%B8%80%E5%A4%A9/" class="post-title-link" itemprop="url">代码随想录第一天</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-03-03 00:00:00" itemprop="dateCreated datePublished" datetime="2022-03-03T00:00:00+08:00">2022-03-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-03-09 10:47:29" itemprop="dateModified" datetime="2022-03-09T10:47:29+08:00">2022-03-09</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/leetcode/" itemprop="url" rel="index"><span itemprop="name">leetcode</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>344</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="数组-二分查找"><a href="#数组-二分查找" class="headerlink" title="数组-二分查找"></a>数组-二分查找</h4><p><a target="_blank" rel="noopener" href="https://leetcode-cn.com/problems/binary-search/">题目链接</a></p>
+<p>自己的想法和题解差不多，但是实现比较繁琐(不是很好看，并且有点绕)，看了题解简直醍醐灌顶！</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">search</span><span class="params">(<span class="keyword">int</span>* nums, <span class="keyword">int</span> numsSize, <span class="keyword">int</span> target)</span></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> low = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> high = numsSize<span class="number">-1</span>;</span><br><span class="line">    <span class="keyword">while</span>(low &lt;= high)&#123;</span><br><span class="line">        <span class="keyword">int</span> mid = (high+low)/<span class="number">2</span>;</span><br><span class="line">        <span class="keyword">if</span>(nums[mid] == target)</span><br><span class="line">            <span class="keyword">return</span> mid;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span>(nums[mid] &lt; target)</span><br><span class="line">            low = mid + <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">else</span> </span><br><span class="line">            high = mid - <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果是C++采用容器的话，只需要修改如下一行</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> high = nums.<span class="built_in">size</span>() - <span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/03/03/reverse/[BJDCTF2020]JustRE/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/03/03/reverse/%5BBJDCTF2020%5DJustRE/" class="post-title-link" itemprop="url">buuctf_[BJDCTF2020]JustRE</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-03-03 00:00:00" itemprop="dateCreated datePublished" datetime="2022-03-03T00:00:00+08:00">2022-03-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-03-04 11:07:36" itemprop="dateModified" datetime="2022-03-04T11:07:36+08:00">2022-03-04</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/buuctf/" itemprop="url" rel="index"><span itemprop="name">buuctf</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>128</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>1.先直接拖到IDA32中，直接查看一下字符串，看到下方字符串，有点像flag的样子</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220303150230684.png" alt="image-20220303150230684"></p>
+<p>2.跟到代码的地方，看到sprintf函数将19999和0按照绿色字体的格式输出到String中。所以flag应该是flag{1999902069a45792d233ac}</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220303150327679.png" alt="image-20220303150327679"></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -1430,423 +1707,10 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/12/20/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/%E6%89%8B%E8%84%B1AsPack%E5%A3%B3/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/12/20/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/%E6%89%8B%E8%84%B1AsPack%E5%A3%B3/" class="post-title-link" itemprop="url">手脱AsPack壳</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-12-20 00:00:00" itemprop="dateCreated datePublished" datetime="2021-12-20T00:00:00+08:00">2021-12-20</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-22 15:17:49" itemprop="dateModified" datetime="2021-12-22T15:17:49+08:00">2021-12-22</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">脱壳学习</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.4k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>​    首先需要找到OEP，我们按照之前说的ESP定律来找，看到<code>PUSHAD</code>后按F7，各个寄存器的初始值被压入到堆栈中了，这里我们可以对这些初始值设置内存或者硬件访问断点,当解密例程读取这些初始值的时候就会断下来,断下来处基本上就在OEP附近了。</p>
-<p>​    在寄存器ESP处右键Follow in Dump，然后将第一个字节或前四个字节设置硬件访问断点，右键breakpoint-Hardware,on access-Dword，然后按F9</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220140915458.png" alt="image-20211220140915458"></p>
-<p>​    发现断在了<code>POPAD</code>指令的下一行，当壳的解密例程读取该值的时候断了下来，紧接着下面就是跳往OEP处</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220141025695.png" alt="image-20211220141025695"></p>
-<p>​    继续按F7单步，就到了OEP处,OD代码解析有误，将代码解析成了数据，右键Analysis-Remove analysis from module,删除掉OD的分析结果,这样就能正常解析了。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220141338534.png" alt="image-20211220141338534"></p>
-<p>解析还不够彻底，再次Analysis-analysis code</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220142249513.png" alt="image-20211220142249513"></p>
-<p>​    然后dump，保险起见我们使用imprec重构输入表</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220142411426.png" alt="image-20211220142411426"></p>
-<p>​    代码中直接有一个<code>GetModuleHandle</code>函数，右键Follow,我们可以看到直接来到了GetModuleHandleA的入口点处,并没有间接跳转(并不是所有的程序调用API函数都是通过间接跳转来实现的)。</p>
-<p>​    这里是通过一个间接CALL来调用API函数的。</p>
-<p>​    显然,4011F4是IAT其中的一项,该内存单元中保存了GetModuleHandleA的入口地址。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220144406702.png" alt="image-20211220144406702"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220144622020.png" alt="image-20211220144622020"></p>
-<p>​    如上图，Follow出来的跳转表和之间看到的有所出入，我们直接看M按钮</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220150021566.png" alt="image-20211220150021566"></p>
-<p>接着我们在数据窗口中定位到IAT，第二个图是最后一个Dll的IAT项，地址是771xxxxx,现在我们知道了IAT的结束地址是401218，再来看看起始地址</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220150352948.png" alt="image-20211220150352948"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220150432901.png" alt="image-20211220150432901"></p>
-<p>​    上图中标注起来的颜色前有一部分是10xx或者11xx的地址，明显不属于任何一个DLL,而且这些数值比当前进程空间中分配内存单元中的最小地址（M窗口中现实了最小地址为00010000）还要小。<strong>所以这些数值不属于任何一个DLL,也不属于任何一个区段,有可能是壳存放的一些垃圾数据</strong>,我们继续往下拉。</p>
-<p>​    我们可以看到一共调用了三个Dll，其余还有一些dll估计是被壳调用的，</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220153539586.png" alt="image-20211220153539586"></p>
-<p>​    我们看一下ntdll的调用，看到这一项的地址为401200,和Kernel32.dll的IAT项混在了一起。我们看看这个Dump窗口中的地址可以看到，kernel32.dll的地址是最靠前的，ntdll是最靠后的，往前拉可以看到，我们的IAT起始地址确实是40119c,与上图一致。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220153736685.png" alt="image-20211220153736685"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220154448259.png" alt="image-20211220154448259"></p>
-<p>好了,现在我们有了以下三条数据:</p>
-<p>OEP = 4000 (RVA)</p>
-<p>IAT的起始地址 = 119C (RVA)</p>
-<p>IAT的大小 = 401218 - 40119C = 7C。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220154632198.png" alt="image-20211220154632198"></p>
-<p>中间的是垃圾数据，不知道为什么和之前一样第一个userdll也显示No,但是点开＋号里面的数据又是对的。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220154903219.png" alt="image-20211220154903219"></p>
-<p>​    可以看到这里ntdll.dll中分配内存空间的两个函数用kernel32.dll中两个类似的函数HeapAlloc,HeapFree替换掉了。这里日志信息中也提示说这两个函数跟ntdll.dll中的RtlAllocateHeap,RtlFreeHeap完成的功能类似,壳也可以对这些IAT项进行修改和混淆。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220155159007.png" alt="image-20211220155159007"></p>
-<p>​    现在我们需要剔除掉垃圾数据,即valid显示为NO的项(无效数据),我们单击左边的+号将其展开。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wpsFCAA.tmp.jpg" alt="img"></p>
-<p>单击Show Invalid,显示无效的数据,然后单击鼠标右键选择-Cut thunk(s)(剪切掉)。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wpsFCAB.tmp.jpg" alt="img"> </p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220155402523.png" alt="image-20211220155402523"></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/12/19/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/%E6%89%8B%E5%8A%A8%E8%84%B1UPX%E5%A3%B3/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/12/19/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/%E6%89%8B%E5%8A%A8%E8%84%B1UPX%E5%A3%B3/" class="post-title-link" itemprop="url">手动脱UPX壳</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-12-19 00:00:00" itemprop="dateCreated datePublished" datetime="2021-12-19T00:00:00+08:00">2021-12-19</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-22 16:00:44" itemprop="dateModified" datetime="2021-12-22T16:00:44+08:00">2021-12-22</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">脱壳学习</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>4.3k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>4 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h4 id="加壳脱壳对比"><a href="#加壳脱壳对比" class="headerlink" title="加壳脱壳对比"></a>加壳脱壳对比</h4><p>我们先看没有加壳的pe文件，PE文件入口是401000</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214162015301.png" alt="image-20211214162015301"></p>
-<p>加壳后入口地址如下，入口地址变成了409c80</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214170024538.png" alt="image-20211214170024538"></p>
-<p>查看401000位置，可见代码段是空的,即加壳程序将原程序代码段加密/压缩后保存到其他地方,并且将原程序代码段清空了。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214170853897.png" alt="image-20211214170853897"></p>
-<p>继续往下看，可以看到跳转到OEP的指令，设置一个断点运行起来。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214171034553.png" alt="image-20211214171034553"></p>
-<p>运行后如下，可看到原程序。加壳程序执行的整个流程如下</p>
-<p>1.执行解压/解密例程</p>
-<p>2.解压/解密原程序的各个区段的数据</p>
-<p>3.跳往OEP处</p>
-<p>4.执行原程序代码</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214173928228.png" alt="image-20211214173928228"></p>
-<p>原代码段是空的,在合适的时间,解压/解密程序会将解压/解密后的代码段数据重新写到这里,所以我们可以对这里设置<strong>内存访问断点</strong>,当解压/解密例程向这里写入数据的时候就会断下来。（点击M-&gt;如下图下断点）</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wpsBF18.tmp.jpg" alt="img"></p>
-<p>断下来以后看到这里401000开始处内存单元第一个字节将被赋值为AL的值，此时AL值为6A,我们再来看看原程序401000处的第一个字节，可以看到也是6A</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214195748271.png" alt="image-20211214195748271"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214200245457.png" alt="image-20211214200245457"></p>
-<p>​    如果我们逐字节的跟踪,可以看到解密/解压例程将原程序代码恢复的整个过程。但是并不是所有的壳都是按照这个顺序来解密/解压原程序区段的,这里是最常规的情况。</p>
-<p>​    如果大家仔细跟踪这个流程的话,就会发现这是一个循环,逐字节读取加密过的字节,接着进行数学运算(例如说:加法,乘法,等等)来解密,运算完毕得到原始字节值,然后将其恢复到原处。</p>
-<p>​    接下来,我们清除掉前面设置的内存访问断点(<strong>右键breakpoint-&gt;remove memory breakpoint</strong>),单击菜单项中Animate into(自动步入<strong>ctrl+f7</strong>)选项,将能看到原程序代码段被逐字节还原的动画过程,原程序各个区段被还原后,就会断在我们前面设置的jmp OEP处的断点处。</p>
-<h4 id="脱壳"><a href="#脱壳" class="headerlink" title="脱壳"></a>脱壳</h4><h5 id="ESP定律"><a href="#ESP定律" class="headerlink" title="ESP定律"></a>ESP定律</h5><p>​    又称堆栈平衡定律**(如果要返回父程序，则当我们在堆栈中进行堆栈的操作的时候，一定要保证在RET这条指令之前，ESP指向的是我们压入栈中的地址)<strong>，是应用频率最高的脱壳方法之一。ESP（Extended Stack Pointer）为扩展栈指针寄存器，是指针寄存器的一种，用于存放</strong>函数栈顶指针<strong>。与之对应的是EBP（Extended Base Pointer），扩展基址指针寄存器，用于存放</strong>函数栈底指针**。<u>ESP为栈指针，用于指向栈的栈顶（下一个压入栈的活动记录的顶部），而EBP为帧指针，指向当前活动记录的底部。</u></p>
-<p>​    加壳后的程序入口点最开始是<code>pushad</code>,就是把所有寄存器压入栈，在壳的最后有一个<code>popad</code>将所有寄存器出栈，对ESP的0019FF54下硬件访问断点。也就是说当程序要访问这些堆栈，从而恢复原来寄存器的值，准备跳向苦苦寻觅的OEP的时候，OD帮助我们中断下来。</p>
-<p>​    <strong>总结：</strong>我们可以把壳假设为一个子程序，当壳把代码解压前和解压后，他必须要做的是遵循堆栈平衡的原理，让ESP执行到OEP的时候，使ESP=0019FF54。<strong>载入程序后只有esp寄存器内容发生变化，那么这个程序多半可以用ESP定律。</strong></p>
-<p>​    首先f7执行pushad,然后在ESP处选择Follow in dump，就可以在数据窗口中定位到刚刚PUSHAD指令保存到堆栈中的寄存器环境了,我们选中前4个字节,我们通过单击鼠标右键选择Breakpoint-Hardware,on access-Dword给这4个字节设置硬件访问断点。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214204923883.png" alt="image-20211214204923883"></p>
-<p>​    然后点击f9我们可以看到，有一个判断。如果不为0 那么就跳向 00409DFA,我们在这一行的下面一行按F4,直接跳过这个判断，然后继续按F8，就到了程序入口，或者直接在最后的jmp下断点，然后f7到OEP。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214171034553.png" alt="image-20211214171034553"></p>
-<h5 id="dump"><a href="#dump" class="headerlink" title="dump"></a>dump</h5><p>​    然后使用工具PETools将程序dump出来,双击程序会显示不是一个有效的win32程序，这时候我们就需要修复IAT表了。</p>
-<p>​    下图中403238是IAT的其中一个元素，里面保存的是GetModuleHandleA这个API函数的入口地址，我们dump出来的程序的IAT部分跟这里是一样的，属于同一个动态库的API函数地址都是连续存放的,不同的动态库函数地址列表是<strong>用零隔开</strong>的。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211219110628313.png" alt="image-20211219110628313"></p>
-<p>​    上图中有三个77开头的地址，我们点击窗口M按钮，看看这个三个地址属于什么dll</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211219111016142.png" alt="image-20211219111016142"></p>
-<p>​    要修复IAT，我们需要知道的是开始地址和结束地址，IAT起始地址是403184，有些强壳可能会将IAT前后都填充上垃圾数据,让我们定位IAT的起始位置和结束位置更加困难。但是我们知道IAT中的数值都是属于某个动态库代码段范围内的,<strong>如果我们发现某数值不属于任何一个动态库的代码段的话,就说明该数值是垃圾数据。</strong></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211219111712077.png" alt="image-20211219111712077"></p>
-<p>我们看到最后一个元素地址是75xxxxxx，属于COMDLG32.DLL，所以40328c是IAT结束地址，</p>
-<p>begin:403184</p>
-<p>end:40328c</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211219112120480.png" alt="image-20211219112120480"></p>
-<p>1)IAT的起始地址,这里是403184,减去映像基址400000就得到了3184(RVA:相对虚拟地址)。</p>
-<p>2)IAT的大小</p>
-<p> IAT的大小 = 40328C - 403184 = 108(十六进制)</p>
-<p>3)OEP = 401000(虚拟地址)- 映像基址400000 = 1000(OEP的RVA)。</p>
-<p>然后点击Get Imports,不知道为啥userdll会显示无效，先点击fix dump，然后选择dumped.exe</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211219113450399.png" alt="image-20211219113450399"></p>
-<p>依然显示无效32文件，使用PEtools rebuildPE,就可以运行起来了。</p>
-<h4 id="最后一次异常法"><a href="#最后一次异常法" class="headerlink" title="最后一次异常法"></a>最后一次异常法</h4><p>​    新开一个例子,在debug options-exception，各个选项全部选择然后运行起来</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211216184247952.png" alt="image-20211216184247952"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps3267.tmp.jpg" alt="img"></p>
-<p>​    这里我们可以看到产生了好几处异常,但是都不是位于第一个区段,说明这些异常不是在原程序运行期间发生的,是在壳的解密例程执行期间产生的异常,最后一次是46e88f处的这个异常。</p>
-<p>​    好,现在我们重新启动OD,将EXCEPTIONS菜单项中忽略的异常选项的对勾都去掉,仅保留Ignore memory access violations in KERNEL32这个选项的对勾。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps3268.tmp.jpg" alt="img"> </p>
-<p>​    这里不是,我们按SHIFT + F9忽略异常继续运行,我们知道最后一次异常是46E88F处的INT 3指令引发的。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps326A.tmp.jpg" alt="img"> </p>
-<p>​    这里是壳的解密例程执行过程中产生的最后一次异常,接着就是执行原程序的代码了。</p>
-<p>​    接着我们可以对代码段设置<strong>内存访问断点</strong>,为什么不在一开始设置内存访问断点呢?<strong>原因是很多壳会检测程序在开始时是否自身被设置内存访问断点,如果执行到了最后一次异常处的话,很可能已经绕过了壳的检测时机</strong>,我们来试一试。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps327A.tmp.jpg" alt="img"> </p>
-<p>​        我们按SHIFT + F9忽略该异常运行起来。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps327B.tmp.jpg" alt="img"> </p>
-<p>​        我们可以看到断在了OEP处,下面我们来看看该壳在开始的时候是否有检测内存访问断点。</p>
-<p>​        我们重新加载该程序,将忽略的异常选项都勾选上,接着打开区段列表窗口,给第一个区段设置内存访问断点,过了很久断在了OEP处。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps327C.tmp.jpg" alt="img"> </p>
-<p>​        虽然这里我们直接给第一个区段设置内存访问断点直接定位到了OEP。</p>
-<h4 id="利用壳最常用的API函数来定位OEP"><a href="#利用壳最常用的API函数来定位OEP" class="headerlink" title="利用壳最常用的API函数来定位OEP"></a>利用壳最常用的API函数来定位OEP</h4><pre><code> 将忽略的异常选项都勾选上,我们来定位一下壳最常用的API函数,比如GetProcAddress,LoadLibrary。ExitThread有些壳会用。我们首先来看看GetProcAddress。
-</code></pre>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps3283.tmp.jpg" alt="img"> </p>
-<p>​    我们可以看到该壳使用了GetProcAddress,接着使用bp GetProcAddress命令给该API函数设置一个断点。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps3284.tmp.jpg" alt="img"> </p>
-<p>​    如果在命令栏中使用bp命令设置断点失败的话,可以尝试手工设置断点，运行起来。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps3285.tmp.jpg" alt="img"> </p>
-<p>​    这里我们并不需要其断下来,我们只需要知道壳在哪些地方调用GetProcAddress,所以我们在断下来的这一行上面单击鼠标右键选择-Breakpoint-Conditional log,来设置条件记录。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps3286.tmp.jpg" alt="img"> </p>
-<p>​    这里我们将Pause program这一项勾选上Never,记录的表达式设置为[ESP],也就是记录返回地址,这样我们就能知道哪些地方调用GetProcAddress。接着在日志窗口中单击鼠标右键选择-Clear Log(清空日志)。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A25.tmp.jpg" alt="img"> </p>
-<p>​    运行起来,我们可以看到程序的主窗口弹了出来,打开日志窗口,看看最后一次GetProcAddress(排除掉第一个区段中调用的位置)是在哪里被调用的。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A26.tmp.jpg" alt="img"> </p>
-<p>​    我们可以看到基本上GetProcAddress都是解密例程中调用的,除了428C2B这一处以外(这里是第一个区段中调用的,也就是原程序本身调用的)。所以我们要定位的应该是47009A这一处。接下来我们重新来编辑一下条件断点中断的条件,将中断条件设置为[ESP] == 47009A。</p>
-<p>​    并且将Pause program这一项勾选上On condition，重新启动OllyDbg。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A27.tmp.jpg" alt="img"> </p>
-<p>​    编辑条件断点，设置Condition为[ESP] == 47009A,接着将Pause program这一项勾选上On condition，运行起来。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A28.tmp.jpg" alt="img"> </p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A29.tmp.jpg" alt="img"> </p>
-<p>​    断了下来。<u>我们可以在对代码段设置内存访问断点之前尝试一下这种方法,这样就可以绕过很多壳对内存断点的检测,但是有一些壳也会对API函数断点进行检测,所以说我们需要各种方式都尝试一下,找到最合适的。</u></p>
-<p>​    对当前这个壳定位GetProcAddress的调用处是可行的,我们现在已经在OEP附近了。如果定位GetProcAddress的调用处失败的话,我们可以换其他的API函数,这里我们再来看看日志窗口,可以看到一处线程结束记录。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A2A.tmp.jpg" alt="img"> </p>
-<p>​    因此接下来给ExitThread设置断点,并且将菜单项Debugging options-Events中的Break on thread end(在线程结束位置中断下来)勾选上。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A2B.tmp.jpg" alt="img"> </p>
-<p>​        运行起来。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A2C.tmp.jpg" alt="img"> </p>
-<p>​        断在了线程结束的位置。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A2D.tmp.jpg" alt="img"> </p>
-<p>​        接着我们给代码段设置内存访问断点就能够马上定位到OEP。</p>
-<h4 id="利用应用程序调用的第一个API函数来定位OEP"><a href="#利用应用程序调用的第一个API函数来定位OEP" class="headerlink" title="利用应用程序调用的第一个API函数来定位OEP"></a>利用应用程序调用的第一个API函数来定位OEP</h4><p>​    这种方法就是直接给应用程序调用的第一个API函数设置断点,比如说,很多程序(VC++)一开始会调用GetVersion,GetModuleHandleA,对于bitarts_evaluations.c来说我们可以断GetVersion,对于CRACKME UPX来说我们可以断GetModuleHandleA。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wpsD2F7.tmp.jpg" alt="img"></p>
-<p>运行起来。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wpsD2F8.tmp.jpg" alt="img"> </p>
-<p>这里我们断在了GetVersion的入口点处,从堆栈中我们可以看到返回地址位于第一个区段。我们直接在返回地址上面单击鼠标右键选择-Follow in Disassembler。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wpsD2F9.tmp.jpg" alt="img"> </p>
-<p>​    这里我们又定位到了OEP。以上就给大家演示的如何利用应用程序调用的第一个API函数来定位OEP了。如果我们遇到有的壳检测GetVersion入口处的INT 3断点的话,我们可以尝试在该API函数的返回指令RET处下断。</p>
-<p>​    其实还有很多适用于特定壳定位OEP的方法,基本上也是根据上面的这些基本方法变通来的。</p>
-<p>​    如果壳检测INT 3断点或者硬件断点的话,使用ESP定律给堆栈中的寄存器初始值设置硬件断点也是不起作用的,只能换其他方法。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/11/24/paper/Malware%20Variant%20Identification%20Using%20Incremental%20Clustering/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/11/24/paper/Malware%20Variant%20Identification%20Using%20Incremental%20Clustering/" class="post-title-link" itemprop="url">Malware Variant Identification Using Incremental Clustering</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-11-24 00:00:00" itemprop="dateCreated datePublished" datetime="2021-11-24T00:00:00+08:00">2021-11-24</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-22 15:39:47" itemprop="dateModified" datetime="2021-12-22T15:39:47+08:00">2021-12-22</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/paper-reading/" itemprop="url" rel="index"><span itemprop="name">paper reading</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>871</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>Yara是一种模式匹配(模式匹配是数据结构中字符串的一种基本运算，给定一个子串，要求在某个字符串中找出与该子串相同的所有子串)技术，它可以使用沙箱内存转储来识别恶意软件家族。然而，由于微小的代码变化，模式匹配技术会悄然失败，从而导致未知的恶意软件样本。<strong>本文提出了一种利用增量聚类(MVIIC)过程的两层恶意软件变异识别方法，并提出了未知恶意软件样本的聚类方法，以识别恶意软件变异和新的恶意软件家族。</strong>该新的增量聚类算法被用于从未知的恶意软件样本中识别新的恶意软件变体。本研究表明，聚类可以提供比Yara规则更高层次的性能，并且聚类可以抵抗恶意软件变体引入的小变化。本文提出了一种混合的方法，利用Yara扫描来消除已知的恶意软件，然后进行聚类，协同作用，以允许识别新的恶意软件变体。</p>
-<p>Yara是一种模式匹配技术，它可以使用沙箱内存转储来识别恶意软件家族。Yara规则包含正则表达式和字符串。</p>
-<p>方法分为两层，在第一层中，先前开发的Yara规则用于拒绝已知恶意软件家族的样本。在第二层采用了一种新的增量聚类算法。与传统的对启动聚类中心的选择很敏感的聚类算法不同，增量聚类能够找到或近似最佳的聚类分布，并检测到小规模的聚类。</p>
-<p>从每个集群中随机选择的恶意软件样本中包含的新的恶意软件家族（6）和恶意软件变体（6）被识别出来，并使用集群恶意软件样本的内存转储（7）创建新的Yara规则（8）。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps9757.tmp.jpg" alt="img"> </p>
-<p>提供了一种新的增量聚类算法的一个用例；</p>
-<p>提供从实时获取的恶意软件样本的动态分析日志的特征的特征工程；</p>
-<p>开发了一个两层的动态分析系统，该系统使用Yara规则来拒绝已知的恶意软件，并使用一种新的聚类算法和特征工程来对未知样本进行聚类，以识别新的恶意软件家族、变体和Yara规则中的缺陷。</p>
-<p>由于现有恶意软件家族的软件开发和新的恶意软件家族的创建，恶意软件源中的样本会受到持续的<strong>概念漂移</strong>的影响。传统的聚类算法被设计为使用静态地面真实值。为了处理概念漂移，传统的聚类算法要求对整个数据集进行定期的重新聚类，以合并更新后的地面真相。传统聚类算法的执行时间随数据集大小的增加成比例而增加。T</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1914,7 +1778,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-count">51</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1927,7 +1791,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">54</span>
+        <span class="site-state-item-count">55</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1974,12 +1838,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">129k</span>
+    <span title="站点总字数">134k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:57</span>
+    <span title="站点阅读时长">2:02</span>
 </div>
 
         
