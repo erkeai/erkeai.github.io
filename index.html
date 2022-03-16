@@ -130,7 +130,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">51</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">54</span></a>
 
   </li>
   </ul>
@@ -156,6 +156,264 @@
 
           <div class="content index posts-expand">
             
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/03/16/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E5%8D%81%E5%A4%A9/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/03/16/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E5%8D%81%E5%A4%A9/" class="post-title-link" itemprop="url">代码随想录第十天</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-03-16 00:00:00 / 修改时间：10:19:50" itemprop="dateCreated datePublished" datetime="2022-03-16T00:00:00+08:00">2022-03-16</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/leetcode/" itemprop="url" rel="index"><span itemprop="name">leetcode</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>871</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="链表-删除链表的倒数第n个节点"><a href="#链表-删除链表的倒数第n个节点" class="headerlink" title="链表-删除链表的倒数第n个节点"></a>链表-删除链表的倒数第n个节点</h4><p><a target="_blank" rel="noopener" href="https://leetcode-cn.com/problems/SLwz0R/">题目链接</a></p>
+<p>fast先移动n+1个节点，与slow之间要相隔n个节点，然后fast需要和slow一起移动，直到fast指向末尾（C++/C记得释放被删除的节点</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">struct ListNode* <span class="title">removeNthFromEnd</span><span class="params">(struct ListNode* head, <span class="keyword">int</span> n)</span></span>&#123;</span><br><span class="line">    <span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">ListNode</span> <span class="title">ListNode</span>;</span></span><br><span class="line">    ListNode* dummyNode = (ListNode*)<span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(ListNode));</span><br><span class="line">    dummyNode-&gt;next = head;</span><br><span class="line">    ListNode* fast = dummyNode;</span><br><span class="line">    ListNode* slow = dummyNode;</span><br><span class="line">    ListNode* tmp;</span><br><span class="line">    <span class="keyword">while</span>(fast &amp;&amp; n--)&#123;</span><br><span class="line">        fast = fast-&gt;next;</span><br><span class="line">    &#125;</span><br><span class="line">    fast = fast-&gt;next;</span><br><span class="line">    <span class="keyword">while</span>(fast)&#123;</span><br><span class="line">        fast = fast-&gt;next;</span><br><span class="line">        slow = slow-&gt;next;</span><br><span class="line">    &#125;</span><br><span class="line">    tmp = slow-&gt;next;</span><br><span class="line">    slow-&gt;next = slow-&gt;next-&gt;next;</span><br><span class="line">    <span class="built_in">free</span>(tmp);</span><br><span class="line">    <span class="keyword">return</span> dummyNode-&gt;next;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">removeNthFromEnd</span>(<span class="params">self, head: ListNode, n: <span class="built_in">int</span></span>) -&gt; ListNode:</span></span><br><span class="line">        fakehead = ListNode(<span class="built_in">next</span> = head)</span><br><span class="line">        slow, fast = fakehead, fakehead</span><br><span class="line">        <span class="keyword">while</span> (n):         <span class="comment"># python没有--或者++</span></span><br><span class="line">            fast = fast.<span class="built_in">next</span></span><br><span class="line">            n -= <span class="number">1</span></span><br><span class="line">        fast = fast.<span class="built_in">next</span></span><br><span class="line">        <span class="keyword">while</span>(fast):</span><br><span class="line">            fast = fast.<span class="built_in">next</span></span><br><span class="line">            slow = slow.<span class="built_in">next</span></span><br><span class="line">        slow.<span class="built_in">next</span> = slow.<span class="built_in">next</span>.<span class="built_in">next</span></span><br><span class="line">        <span class="keyword">return</span> fakehead.<span class="built_in">next</span></span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/03/15/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%B9%9D%E5%A4%A9/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/03/15/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%B9%9D%E5%A4%A9/" class="post-title-link" itemprop="url">代码随想录第九天</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-03-15 00:00:00 / 修改时间：10:30:41" itemprop="dateCreated datePublished" datetime="2022-03-15T00:00:00+08:00">2022-03-15</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/leetcode/" itemprop="url" rel="index"><span itemprop="name">leetcode</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>876</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="链表-两两交换链表中的节点"><a href="#链表-两两交换链表中的节点" class="headerlink" title="链表-两两交换链表中的节点"></a>链表-两两交换链表中的节点</h4><p><a target="_blank" rel="noopener" href="https://leetcode-cn.com/problems/fan-zhuan-lian-biao-lcof/">题目链接</a></p>
+<p>今天试了一下python编程，还是得慢慢把python熟练起来</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">struct ListNode* <span class="title">swapPairs</span><span class="params">(struct ListNode* head)</span></span>&#123;</span><br><span class="line">    <span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">ListNode</span> <span class="title">ListNode</span>;</span></span><br><span class="line">    ListNode *dummyNode = (ListNode *)<span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(ListNode));</span><br><span class="line">    dummyNode-&gt;next = head;    <span class="comment">//后面好返回值</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">ListNode</span>* <span class="title">cur</span> =</span> dummyNode;</span><br><span class="line">    <span class="keyword">while</span>(cur-&gt;next &amp;&amp; cur-&gt;next-&gt;next )&#123;</span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">ListNode</span>* <span class="title">tmp</span>;</span></span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">ListNode</span>* <span class="title">tmp1</span>;</span></span><br><span class="line">        tmp = cur-&gt;next;</span><br><span class="line">        tmp1 = cur-&gt;next-&gt;next-&gt;next;<span class="comment">//保留中途变换的时候会没有被指向的两个值</span></span><br><span class="line">        cur-&gt;next = cur-&gt;next-&gt;next;</span><br><span class="line">        cur-&gt;next-&gt;next = tmp;</span><br><span class="line">        cur-&gt;next-&gt;next-&gt;next = tmp1;</span><br><span class="line">        cur = cur-&gt;next-&gt;next;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> dummyNode-&gt;next;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">swapPairs</span>(<span class="params">self, head: ListNode</span>) -&gt; ListNode:</span></span><br><span class="line">        dummyNode = ListNode(<span class="built_in">next</span>=head)</span><br><span class="line">        cur = dummyNode</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> cur.<span class="built_in">next</span> <span class="keyword">and</span> cur.<span class="built_in">next</span>.<span class="built_in">next</span>:</span><br><span class="line">            left = cur.<span class="built_in">next</span></span><br><span class="line">            right = cur.<span class="built_in">next</span>.<span class="built_in">next</span></span><br><span class="line"></span><br><span class="line">            left.<span class="built_in">next</span> = right.<span class="built_in">next</span></span><br><span class="line">            right.<span class="built_in">next</span> = left</span><br><span class="line">            cur.<span class="built_in">next</span> = right</span><br><span class="line"></span><br><span class="line">            cur = cur.<span class="built_in">next</span>.<span class="built_in">next</span></span><br><span class="line">        <span class="keyword">return</span> dummyNode.<span class="built_in">next</span></span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/03/14/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E5%85%AB%E5%A4%A9/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/03/14/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E5%85%AB%E5%A4%A9/" class="post-title-link" itemprop="url">代码随想录第八天</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-03-14 00:00:00 / 修改时间：10:21:46" itemprop="dateCreated datePublished" datetime="2022-03-14T00:00:00+08:00">2022-03-14</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/leetcode/" itemprop="url" rel="index"><span itemprop="name">leetcode</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>619</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="链表-反转链表"><a href="#链表-反转链表" class="headerlink" title="链表-反转链表"></a>链表-反转链表</h4><p><a target="_blank" rel="noopener" href="https://leetcode-cn.com/problems/fan-zhuan-lian-biao-lcof/">题目链接</a></p>
+<p>采用双指针方法，并且设置一个临时值保存cur-&gt;next的值</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">struct ListNode* <span class="title">reverseList</span><span class="params">(struct ListNode* head)</span></span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">ListNode</span>* <span class="title">cur</span> =</span> head;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">ListNode</span>* <span class="title">temp</span>;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">ListNode</span>* <span class="title">pre</span> =</span> <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">while</span>(cur)&#123;</span><br><span class="line">        temp = cur-&gt;next;</span><br><span class="line">        cur-&gt;next = pre;</span><br><span class="line"></span><br><span class="line">        pre = cur;</span><br><span class="line">        cur = temp;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> pre;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">struct ListNode* <span class="title">reverse</span><span class="params">(struct ListNode* pre, struct ListNode* cur)</span></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(cur == <span class="literal">NULL</span>) <span class="keyword">return</span> pre;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">ListNode</span>* <span class="title">tmp</span> =</span> cur-&gt;next;</span><br><span class="line">    cur-&gt;next = pre;</span><br><span class="line">    <span class="comment">//下面的步骤也和双指针一个逻辑</span></span><br><span class="line">    <span class="comment">// pre = cur;</span></span><br><span class="line">    <span class="comment">//cur = tmp</span></span><br><span class="line">    <span class="keyword">return</span> reverse(cur, tmp);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function">struct ListNode* <span class="title">reverseList</span><span class="params">(struct ListNode* head)</span></span>&#123;</span><br><span class="line">    <span class="comment">//这里其实和双指针初始化的时候一样</span></span><br><span class="line">    <span class="comment">// pre = NULL</span></span><br><span class="line">    <span class="comment">// cur = head;</span></span><br><span class="line">    <span class="keyword">return</span> reverse(<span class="literal">NULL</span>, head);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -445,10 +703,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2022-03-09 00:00:00 / 修改时间：17:34:58" itemprop="dateCreated datePublished" datetime="2022-03-09T00:00:00+08:00">2022-03-09</time>
+              <time title="创建时间：2022-03-09 00:00:00" itemprop="dateCreated datePublished" datetime="2022-03-09T00:00:00+08:00">2022-03-09</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-03-14 11:15:43" itemprop="dateModified" datetime="2022-03-14T11:15:43+08:00">2022-03-14</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -465,14 +729,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>394</span>
+              <span>4.7k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
+              <span>4 分钟</span>
             </span>
 
         </div>
@@ -484,12 +748,16 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>1.先查壳，看到是C#写的程序，IDA分析也分析不出来个啥，就是个GUI，主要功能还是在那个dll,dll导出函数如下，主要看看<code>checkcode</code></p>
+          <h3 id="外层分析"><a href="#外层分析" class="headerlink" title="外层分析"></a>外层分析</h3><p>1.先查壳，看到是C#写的程序，IDA分析也分析不出来个啥，就是个GUI，主要功能还是在那个dll,dll导出函数如下，主要看看<code>checkcode</code></p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220309111717495.png" alt="image-20220309111717495"></p>
 <p>分析之前用<strong>dnspy</strong>看看exe主要逻辑,当输入的code和id满足条件的时候就会调用dll里的<code>checkcode</code>进行逻辑判断，运行调试时，程序窗口不会出现，应该是有反调试。</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220309113311485.png" alt="image-20220309113311485"></p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220309112558876.png" alt="image-20220309112558876"></p>
-<p>2.用IDA打开dll，点进<code>checkcode</code>,然后用FindCrypt插件查看到用了AES加密</p>
+<p>输入的ID和code进行异或之后等于给定的array即可，异或次数为MAX(len(ID),len(Code))，长度不够的与自身长度进行取模</p>
+<p>id固定为9个字节，code应该会比ID长（因为AES需要十六字节）</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">array = [<span class="number">7</span>,<span class="number">90</span>,<span class="number">115</span>,<span class="number">1</span>,<span class="number">117</span>,<span class="number">99</span>,<span class="number">114</span>,<span class="number">97</span>,<span class="number">24</span>]</span><br><span class="line"><span class="built_in">id</span> = array</span><br><span class="line"><span class="comment"># code应该是乱写的,16位</span></span><br><span class="line">code = <span class="built_in">list</span>(<span class="string">b&#x27;))bba!!!(@@###qq&#x27;</span>) </span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(code)):</span><br><span class="line">    <span class="built_in">id</span>[i%<span class="number">9</span>] = code[i]^<span class="built_in">id</span>[i%<span class="number">9</span>]</span><br><span class="line">idstr = <span class="string">&#x27;&#x27;</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">9</span>):</span><br><span class="line">    idstr+=<span class="built_in">chr</span>(<span class="built_in">id</span>[i])</span><br><span class="line"><span class="built_in">print</span>(idstr)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="动态调试"><a href="#动态调试" class="headerlink" title="动态调试"></a>动态调试</h3><p>2.用IDA打开dll，点进<code>checkcode</code>,然后用FindCrypt插件查看到用了AES加密</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220309161731207.png" alt="image-20220309161731207"></p>
 <p>函数最后将加密之后的输入和一个32字节的数据进行比较并返回结果。</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220309162617066.png" alt="image-20220309162617066"></p>
@@ -498,7 +766,40 @@
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220309172520848.png" alt="image-20220309172520848"></p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220309171841449.png" alt="image-20220309171841449"></p>
 <p>如上就可以跟踪到dll中的某个反调试函数。</p>
-<p>复制当前指令的首字节地址，用ida打开dll并跳转到复制的地址。</p>
+<p>复制当前指令的首字节地址，用ida打开dll并跳转到复制的地址。按照x64dbg的代码将函数名字修改如下</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220310112639564.png" alt="image-20220310112639564"></p>
+<p>现在需要点击X，查找一下哪里引用了该函数</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220310112849790.png" alt="image-20220310112849790"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220310112932194.png" alt="image-20220310112932194"></p>
+<p>发现在<code>sub_18000013F0</code>中用了该函数，并且采用的是创建线程的方式,将<code>createThread</code>第五个参数patch为<strong>0x00000004(CREATE_SUSPENDED)</strong></p>
+<p>因为dll是64位的，所以查了一下调用约定，前四位参数按顺序存放在rcx, rdx, r8, r9，后面的部分存放在堆栈，下面图中，rsp+20h就是第五个参数，rsp+28h就是第六个参数（调试发现rax为0000000000000000，eax是rax后面8位0）</p>
+<p>发现修改后代码占据大小变了。所以直接全部nop然后保存</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220310170155735.png" alt="image-20220310170155735"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220310195651299.png" alt="image-20220310195651299"></p>
+<p>动态调试修改后的dll，就可以绕过反调试部分,其实后面发现不需要绕过该部分反调试，因为iv是全局变量，dll一家在就有数据了，所以可能通过实际加载的Imagebase计算获得key和iv向量的地址，提取数据即可。右键直接在转储中跟随，就可以得到key和iv的值</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220311124512305.png" alt="image-20220311124512305"></p>
+<h3 id="CheckCode分析"><a href="#CheckCode分析" class="headerlink" title="CheckCode分析"></a>CheckCode分析</h3><p>通过这部分的分析我们得获得正确的code，图中圈起来的就是我们前面所提取的iv和key.</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220311124651488.png" alt="image-20220311124651488"></p>
+<p>函数在后面会和另一个字符串比较</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220311124826719.png" alt="image-20220311124826719"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220311124925694.png" alt="image-20220311124925694"></p>
+<p>参考了网上的博客写了如下解决方法，计算得code</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># This is a sample Python script.</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Press Shift+F10 to execute it or replace it with your code.</span></span><br><span class="line"><span class="comment"># Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> Crypto.Cipher <span class="keyword">import</span> AES</span><br><span class="line">sbox = [[<span class="number">0x63</span>, <span class="number">0x7C</span>, <span class="number">0x77</span>, <span class="number">0x7B</span>, <span class="number">0xF2</span>, <span class="number">0x6B</span>, <span class="number">0x6F</span>, <span class="number">0xC5</span>, <span class="number">0x30</span>, <span class="number">0x01</span>, <span class="number">0x67</span>, <span class="number">0x2B</span>, <span class="number">0xFE</span>, <span class="number">0xD7</span>, <span class="number">0xAB</span>, <span class="number">0x76</span>],</span><br><span class="line">        [<span class="number">0xCA</span>, <span class="number">0x82</span>, <span class="number">0xC9</span>, <span class="number">0x7D</span>, <span class="number">0xFA</span>, <span class="number">0x59</span>, <span class="number">0x47</span>, <span class="number">0xF0</span>, <span class="number">0xAD</span>, <span class="number">0xD4</span>, <span class="number">0xA2</span>, <span class="number">0xAF</span>, <span class="number">0x9C</span>, <span class="number">0xA4</span>, <span class="number">0x72</span>, <span class="number">0xC0</span>],</span><br><span class="line">        [<span class="number">0xB7</span>, <span class="number">0xFD</span>, <span class="number">0x93</span>, <span class="number">0x26</span>, <span class="number">0x36</span>, <span class="number">0x3F</span>, <span class="number">0xF7</span>, <span class="number">0xCC</span>, <span class="number">0x34</span>, <span class="number">0xA5</span>, <span class="number">0xE5</span>, <span class="number">0xF1</span>, <span class="number">0x71</span>, <span class="number">0xD8</span>, <span class="number">0x31</span>, <span class="number">0x15</span>],</span><br><span class="line">        [<span class="number">0x04</span>, <span class="number">0xC7</span>, <span class="number">0x23</span>, <span class="number">0xC3</span>, <span class="number">0x18</span>, <span class="number">0x96</span>, <span class="number">0x05</span>, <span class="number">0x9A</span>, <span class="number">0x07</span>, <span class="number">0x12</span>, <span class="number">0x80</span>, <span class="number">0xE2</span>, <span class="number">0xEB</span>, <span class="number">0x27</span>, <span class="number">0xB2</span>, <span class="number">0x75</span>],</span><br><span class="line">        [<span class="number">0x09</span>, <span class="number">0x83</span>, <span class="number">0x2C</span>, <span class="number">0x1A</span>, <span class="number">0x1B</span>, <span class="number">0x6E</span>, <span class="number">0x5A</span>, <span class="number">0xA0</span>, <span class="number">0x52</span>, <span class="number">0x3B</span>, <span class="number">0xD6</span>, <span class="number">0xB3</span>, <span class="number">0x29</span>, <span class="number">0xE3</span>, <span class="number">0x2F</span>, <span class="number">0x84</span>],</span><br><span class="line">        [<span class="number">0x53</span>, <span class="number">0xD1</span>, <span class="number">0x00</span>, <span class="number">0xED</span>, <span class="number">0x20</span>, <span class="number">0xFC</span>, <span class="number">0xB1</span>, <span class="number">0x5B</span>, <span class="number">0x6A</span>, <span class="number">0xCB</span>, <span class="number">0xBE</span>, <span class="number">0x39</span>, <span class="number">0x4A</span>, <span class="number">0x4C</span>, <span class="number">0x58</span>, <span class="number">0xCF</span>],</span><br><span class="line">        [<span class="number">0xD0</span>, <span class="number">0xEF</span>, <span class="number">0xAA</span>, <span class="number">0xFB</span>, <span class="number">0x43</span>, <span class="number">0x4D</span>, <span class="number">0x33</span>, <span class="number">0x85</span>, <span class="number">0x45</span>, <span class="number">0xF9</span>, <span class="number">0x02</span>, <span class="number">0x7F</span>, <span class="number">0x50</span>, <span class="number">0x3C</span>, <span class="number">0x9F</span>, <span class="number">0xA8</span>],</span><br><span class="line">        [<span class="number">0x51</span>, <span class="number">0xA3</span>, <span class="number">0x40</span>, <span class="number">0x8F</span>, <span class="number">0x92</span>, <span class="number">0x9D</span>, <span class="number">0x38</span>, <span class="number">0xF5</span>, <span class="number">0xBC</span>, <span class="number">0xB6</span>, <span class="number">0xDA</span>, <span class="number">0x21</span>, <span class="number">0x10</span>, <span class="number">0xFF</span>, <span class="number">0xF3</span>, <span class="number">0xD2</span>],</span><br><span class="line">        [<span class="number">0xCD</span>, <span class="number">0x0C</span>, <span class="number">0x13</span>, <span class="number">0xEC</span>, <span class="number">0x5F</span>, <span class="number">0x97</span>, <span class="number">0x44</span>, <span class="number">0x17</span>, <span class="number">0xC4</span>, <span class="number">0xA7</span>, <span class="number">0x7E</span>, <span class="number">0x3D</span>, <span class="number">0x64</span>, <span class="number">0x5D</span>, <span class="number">0x19</span>, <span class="number">0x73</span>],</span><br><span class="line">        [<span class="number">0x60</span>, <span class="number">0x81</span>, <span class="number">0x4F</span>, <span class="number">0xDC</span>, <span class="number">0x22</span>, <span class="number">0x2A</span>, <span class="number">0x90</span>, <span class="number">0x88</span>, <span class="number">0x46</span>, <span class="number">0xEE</span>, <span class="number">0xB8</span>, <span class="number">0x14</span>, <span class="number">0xDE</span>, <span class="number">0x5E</span>, <span class="number">0x0B</span>, <span class="number">0xDB</span>],</span><br><span class="line">        [<span class="number">0xE0</span>, <span class="number">0x32</span>, <span class="number">0x3A</span>, <span class="number">0x0A</span>, <span class="number">0x49</span>, <span class="number">0x06</span>, <span class="number">0x24</span>, <span class="number">0x5C</span>, <span class="number">0xC2</span>, <span class="number">0xD3</span>, <span class="number">0xAC</span>, <span class="number">0x62</span>, <span class="number">0x91</span>, <span class="number">0x95</span>, <span class="number">0xE4</span>, <span class="number">0x79</span>],</span><br><span class="line">        [<span class="number">0xE7</span>, <span class="number">0xC8</span>, <span class="number">0x37</span>, <span class="number">0x6D</span>, <span class="number">0x8D</span>, <span class="number">0xD5</span>, <span class="number">0x4E</span>, <span class="number">0xA9</span>, <span class="number">0x6C</span>, <span class="number">0x56</span>, <span class="number">0xF4</span>, <span class="number">0xEA</span>, <span class="number">0x65</span>, <span class="number">0x7A</span>, <span class="number">0xAE</span>, <span class="number">0x08</span>],</span><br><span class="line">        [<span class="number">0xBA</span>, <span class="number">0x78</span>, <span class="number">0x25</span>, <span class="number">0x2E</span>, <span class="number">0x1C</span>, <span class="number">0xA6</span>, <span class="number">0xB4</span>, <span class="number">0xC6</span>, <span class="number">0xE8</span>, <span class="number">0xDD</span>, <span class="number">0x74</span>, <span class="number">0x1F</span>, <span class="number">0x4B</span>, <span class="number">0xBD</span>, <span class="number">0x8B</span>, <span class="number">0x8A</span>],</span><br><span class="line">        [<span class="number">0x70</span>, <span class="number">0x3E</span>, <span class="number">0xB5</span>, <span class="number">0x66</span>, <span class="number">0x48</span>, <span class="number">0x03</span>, <span class="number">0xF6</span>, <span class="number">0x0E</span>, <span class="number">0x61</span>, <span class="number">0x35</span>, <span class="number">0x57</span>, <span class="number">0xB9</span>, <span class="number">0x86</span>, <span class="number">0xC1</span>, <span class="number">0x1D</span>, <span class="number">0x9E</span>],</span><br><span class="line">        [<span class="number">0xE1</span>, <span class="number">0xF8</span>, <span class="number">0x98</span>, <span class="number">0x11</span>, <span class="number">0x69</span>, <span class="number">0xD9</span>, <span class="number">0x8E</span>, <span class="number">0x94</span>, <span class="number">0x9B</span>, <span class="number">0x1E</span>, <span class="number">0x87</span>, <span class="number">0xE9</span>, <span class="number">0xCE</span>, <span class="number">0x55</span>, <span class="number">0x28</span>, <span class="number">0xDF</span>],</span><br><span class="line">        [<span class="number">0x8C</span>, <span class="number">0xA1</span>, <span class="number">0x89</span>, <span class="number">0x0D</span>, <span class="number">0xBF</span>, <span class="number">0xE6</span>, <span class="number">0x42</span>, <span class="number">0x68</span>, <span class="number">0x41</span>, <span class="number">0x99</span>, <span class="number">0x2D</span>, <span class="number">0x0F</span>, <span class="number">0xB0</span>, <span class="number">0x54</span>, <span class="number">0xBB</span>, <span class="number">0x16</span>]]</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">SubBytes</span>(<span class="params">state</span>):</span></span><br><span class="line">    <span class="keyword">return</span> [sbox[i][j] <span class="keyword">for</span> i,j <span class="keyword">in</span> [(t&gt;&gt;<span class="number">4</span>,t&amp;<span class="number">0xf</span>) <span class="keyword">for</span> t <span class="keyword">in</span> state]]</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">Bytesxor</span>(<span class="params">data1,data2</span>):</span></span><br><span class="line">    data1=<span class="built_in">list</span>(data1)</span><br><span class="line">    data2=<span class="built_in">list</span>(data2)</span><br><span class="line">    res=[]</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(data1)):</span><br><span class="line">        res.append(data1[i]^data2[i])</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">bytearray</span>(res)</span><br><span class="line">key=<span class="built_in">bytearray</span>(<span class="string">b&#x27;\x29\x23\xBE\x84\xE1\x6C\xD6\xAE\x52\x90\x49\xF1\xF1\xBB\xE9\xEB&#x27;</span>)</span><br><span class="line">iv=<span class="built_in">bytearray</span>(<span class="string">b&#x27;\xB3\xA6\xDB\x3C\x87\x0C\x3E\x99\x24\x5E\x0D\x1C\x06\xB7\x47\xDE&#x27;</span>)</span><br><span class="line">keyarray=[]</span><br><span class="line">keyarray.append(key)</span><br><span class="line">ivarray=[]</span><br><span class="line">ivarray.append(iv)</span><br><span class="line">data=<span class="string">b&#x27;\xF6\x1C\xE3\xD7\xF9\xFB\x0B\x1A\x8B\xA2\x1D\xD8\x97\x94\x05\xC4\x6D\x97\xE7\x62\xB6\x7C\xEF\x9A\x88\x1B\xA4\x4D\xFD\xB0\xE4\x6E&#x27;</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">31</span>):</span><br><span class="line">    iv=<span class="built_in">bytearray</span>(SubBytes(iv))</span><br><span class="line">    key=Bytesxor(key, iv)</span><br><span class="line">    key=<span class="built_in">bytearray</span>(SubBytes(key))</span><br><span class="line">    keyarray.append(key)</span><br><span class="line">    iv=Bytesxor(key, iv)</span><br><span class="line">    ivarray.append(iv)</span><br><span class="line">keyarray.reverse()</span><br><span class="line">ivarray.reverse()</span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">len</span>(keyarray))</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">32</span>):</span><br><span class="line">    key=keyarray[i]</span><br><span class="line">    iv=ivarray[i]</span><br><span class="line">    aes=AES.new(<span class="built_in">bytes</span>(key), AES.MODE_CBC,<span class="built_in">bytes</span>(iv))</span><br><span class="line">    data=aes.decrypt(data)</span><br><span class="line"><span class="built_in">print</span>(data)</span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">iv=subbytes(iv)</span></span><br><span class="line"><span class="string">key=key^iv</span></span><br><span class="line"><span class="string">key=subbytes(key)</span></span><br><span class="line"><span class="string">iv^=key</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">key</span></span><br><span class="line"><span class="string">29 23 BE 84 E1 6C D6 AE 52 90 49 F1 F1 BB E9 EB</span></span><br><span class="line"><span class="string">1B C5 C5 A8 42 4F 43 09 43 E8 0B 3C 0B C9 3B 42</span></span><br><span class="line"><span class="string">26 27 03 37 AE 17 98 5E 1D 76 5D 86 52 D4 15 5D</span></span><br><span class="line"><span class="string">20 56 F3 DF E4 A7 7E E5 70 68 69 D5 70 F7 F9 C9</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220311131051108.png" alt="image-20220311131051108"></p>
+<p>然后有个外层逻辑，也就是前面提到的，dnspy已经反编得很好认了,python代码如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> z3 <span class="keyword">import</span> *</span><br><span class="line">flag2 = <span class="built_in">bytearray</span>(<span class="string">b&#x27;Meaningless_!$!%*@^%#%_Code&#x27;</span>)</span><br><span class="line"><span class="built_in">id</span> = [BitVec(<span class="string">&#x27;a%d&#x27;</span> % i, <span class="number">8</span>) <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">9</span>)]</span><br><span class="line">fuckId = [i <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">id</span>]</span><br><span class="line">target =[<span class="number">7</span>, <span class="number">90</span>, <span class="number">115</span>, <span class="number">1</span>, <span class="number">117</span>, <span class="number">99</span>, <span class="number">114</span>, <span class="number">97</span>, <span class="number">24</span>]</span><br><span class="line">tt = <span class="built_in">bytearray</span>(target)</span><br><span class="line"><span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(flag2)):</span><br><span class="line">    <span class="built_in">id</span>[j % <span class="built_in">len</span>(target)] ^= flag2[j % <span class="built_in">len</span>(flag2)]</span><br><span class="line">s = Solver()</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">9</span>):</span><br><span class="line">    s.add(<span class="built_in">id</span>[i] == target[i])</span><br><span class="line">s.check()</span><br><span class="line">res = s.model()</span><br><span class="line">id_ = <span class="string">&#x27;&#x27;</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">9</span>):</span><br><span class="line">    id_ += <span class="built_in">chr</span>(res[fuckId[i]].as_long())</span><br><span class="line"><span class="built_in">print</span>(id_)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>得到得ID是<code>ginkgo_CX</code></p>
+<p>所以得到flag{ginkgo_CX@Meaningless_!$!%*@^%#%_Cod}</p>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://bbs.pediy.com/thread-271199.htm">这篇很详细</a>，<a target="_blank" rel="noopener" href="https://blog.csdn.net/m0_51911432/article/details/123120168">还有其他</a></p>
+<h4 id="tips题外话"><a href="#tips题外话" class="headerlink" title="tips题外话"></a>tips题外话</h4><p>python代码中肯呢会提示没有模块名叫Crypto，如果要安装的话肯能会出现这样的问题，按照第二张图片的命令安装就好了</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install pycryptodome -i http://pypi.douban.com/simple/ --trusted-host pypi.douban.com</span><br></pre></td></tr></table></figure>
+
+
+
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220311130907869.png" alt="image-20220311130907869"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220311130933815.png" alt="image-20220311130933815"></p>
 
       
     </div>
@@ -785,277 +1086,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/03/07/reverse/[GKCTF2021]QQQQT/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/03/07/reverse/%5BGKCTF2021%5DQQQQT/" class="post-title-link" itemprop="url">buuctf_[GKCTF2021]QQQQT</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2022-03-07 00:00:00 / 修改时间：16:46:33" itemprop="dateCreated datePublished" datetime="2022-03-07T00:00:00+08:00">2022-03-07</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/buuctf/" itemprop="url" rel="index"><span itemprop="name">buuctf</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>251</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>1.先查壳，看到是Enigma Virtual Box，是一个虚拟文件打包系统，可以将程序和配套文件打包成一个可执行文件</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220307105218538.png" alt="image-20220307105218538"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220307111745958.png" alt="image-20220307111745958"></p>
-<ol start="2">
-<li>脱壳后拖进IDA,在<code>WinMain</code>函数里看不出来个啥，用OD试试。</li>
-</ol>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220307112956567.png" alt="image-20220307112956567"></p>
-<p>先查找所有字符串，看到这里大概是flag,点击去</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220307113542366.png" alt="image-20220307113542366"></p>
-<p>然后到IDA中找到相应位置，f5反汇编得到如下</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220307145252803.png" alt="image-20220307145252803"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220307144339188.png" alt="image-20220307144339188"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220307144352256.png" alt="image-20220307144352256"></p>
-<p>这里是函数<code>sub_4012F0()</code>，可以看到很明显用的是Base58加密，加密后与“56fkoP8KhwCf3v7CEz”字符串进行对比，所以直接找一个网络工具解码得到</p>
-<p><code>flag&#123;12t4tww3r5e77&#125;</code></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/03/04/wkp/Chapter7%20the%20IO%20Request%20Packet/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/03/04/wkp/Chapter7%20the%20IO%20Request%20Packet/" class="post-title-link" itemprop="url">未命名</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2022-03-04 14:33:20 / 修改时间：17:22:38" itemprop="dateCreated datePublished" datetime="2022-03-04T14:33:20+08:00">2022-03-04</time>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>219</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="Chapter-7-the-I-O-Request-Packet"><a href="#Chapter-7-the-I-O-Request-Packet" class="headerlink" title="Chapter 7 the I/O Request Packet"></a>Chapter 7 the I/O Request Packet</h2><h3 id="IRP介绍"><a href="#IRP介绍" class="headerlink" title="IRP介绍"></a>IRP介绍</h3><p>​    首先一个IRP在被分配时，调用者必须指定要分配多少个<strong>IO_STACK_LOCATION</strong>，这些结构直接在内存中伴随着IRP，其数量是设备堆栈中设备对象的数量。</p>
-<p>​    当一个驱动程序接收到一个IRP时，将会获得一个指向IRP结构的指针，后面接着的<strong>IO_STACK_LOCATION</strong>中有一个是供驱动使用的，驱动需要调用<code>IoGetCurrentIrpStackLocation</code>。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220304144523080.png" alt="image-20220304144523080"></p>
-<h3 id="设备节点"><a href="#设备节点" class="headerlink" title="设备节点"></a>设备节点</h3>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/03/04/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%BA%8C%E5%A4%A9/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/03/04/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%BA%8C%E5%A4%A9/" class="post-title-link" itemprop="url">代码随想录第二天</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2022-03-04 00:00:00" itemprop="dateCreated datePublished" datetime="2022-03-04T00:00:00+08:00">2022-03-04</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-03-09 10:47:58" itemprop="dateModified" datetime="2022-03-09T10:47:58+08:00">2022-03-09</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/leetcode/" itemprop="url" rel="index"><span itemprop="name">leetcode</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>665</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h4 id="数组-移除元素"><a href="#数组-移除元素" class="headerlink" title="数组-移除元素"></a>数组-移除元素</h4><p><a target="_blank" rel="noopener" href="https://leetcode-cn.com/problems/binary-search/">题目链接</a></p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">removeElement</span><span class="params">(<span class="keyword">int</span>* nums, <span class="keyword">int</span> numsSize, <span class="keyword">int</span> val)</span></span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; numsSize; i++)&#123;</span><br><span class="line">        <span class="keyword">if</span>(nums[i] == val)&#123;</span><br><span class="line">            <span class="keyword">for</span>(<span class="keyword">int</span> j = i + <span class="number">1</span>; j &lt; numsSize;j++)&#123;</span><br><span class="line">                nums[j<span class="number">-1</span>] = nums[j];</span><br><span class="line">            &#125;</span><br><span class="line">            i--;</span><br><span class="line">            numsSize--;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> numsSize;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这样的党法有一点笨拙，复杂度太高(O(n^2))，看了一下题解的双指针方法：通过一个右指针和左指针在一个For循环下完成两个for循环的工作</p>
-<p>右指针 right 指向当前将要处理的元素，左指针left 指向下一个将要赋值的位置。</p>
-<ul>
-<li><p>如果右指针指向的元素不等于val，它一定是输出数组的一个元素，我们就将右指针指向的元素复制到左指针位置，然后将左右指针同时右移；</p>
-</li>
-<li><p>如果右指针指向的元素等于 val，它不能在输出数组里，此时左指针不动，右指针右移一位。</p>
-</li>
-</ul>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">removeElement</span><span class="params">(<span class="keyword">int</span>* nums, <span class="keyword">int</span> numsSize, <span class="keyword">int</span> val)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> left = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> right = <span class="number">0</span>; right &lt; numsSize; right++) &#123;</span><br><span class="line">        <span class="keyword">if</span> (nums[right] != val) &#123;</span><br><span class="line">            nums[left] = nums[right];</span><br><span class="line">            left++;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> left;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1127,7 +1157,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">51</span>
+          <span class="site-state-item-count">54</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1187,12 +1217,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">134k</span>
+    <span title="站点总字数">141k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">2:02</span>
+    <span title="站点阅读时长">2:08</span>
 </div>
 
         
