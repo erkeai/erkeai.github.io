@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.ico">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"erkeai.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="参考文章：详解ELF文件、ELF文件结构 其实PE文件和ELF文件结构比较类似，学过PE文件后，ELF文件就很好懂。 通俗点说由汇编器和链接器生成的文件都属于ELF文件。通常我们接触的ELF文件主要有以下三类：  可重定位文件（relocatable file） ，一般为.o文件。可以被链接成可执行文件或共享目标文件。静态链接库属于可重定位文件。 可执行文件（excutable file）它保存了">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ELF文件结构">
+<meta property="og:url" content="https://erkeai.github.io/2022/03/22/Cheese_point/ELF%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84/index.html">
+<meta property="og:site_name" content="hazel&#39;blog">
+<meta property="og:description" content="参考文章：详解ELF文件、ELF文件结构 其实PE文件和ELF文件结构比较类似，学过PE文件后，ELF文件就很好懂。 通俗点说由汇编器和链接器生成的文件都属于ELF文件。通常我们接触的ELF文件主要有以下三类：  可重定位文件（relocatable file） ，一般为.o文件。可以被链接成可执行文件或共享目标文件。静态链接库属于可重定位文件。 可执行文件（excutable file）它保存了">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220322201522334.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220322203524439.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220322205037066.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220322205250620.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220322205729738.png">
+<meta property="article:published_time" content="2022-03-21T16:00:00.000Z">
+<meta property="article:modified_time" content="2022-03-22T13:08:56.214Z">
+<meta property="article:author" content="ZouFeIYu">
+<meta property="article:tag" content="ELF文件">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220322201522334.png">
+
+<link rel="canonical" href="https://erkeai.github.io/2022/03/22/Cheese_point/ELF%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>ELF文件结构 | hazel'blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">hazel'blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">58</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">8</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">58</span></a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/03/22/Cheese_point/ELF%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ELF文件结构
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-03-22 00:00:00 / 修改时间：21:08:56" itemprop="dateCreated datePublished" datetime="2022-03-22T00:00:00+08:00">2022-03-22</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%9F%A5%E8%AF%86%E7%82%B9%E8%A1%A5%E5%85%85%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">知识点补充学习</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id=""><a href="#" class="headerlink" title=""></a></h2><p>参考文章：<a target="_blank" rel="noopener" href="https://luomuxiaoxiao.com/?p=139">详解ELF文件</a>、<a target="_blank" rel="noopener" href="http://chuquan.me/2018/05/21/elf-introduce/">ELF文件结构</a></p>
+<p>其实PE文件和ELF文件结构比较类似，学过PE文件后，ELF文件就很好懂。</p>
+<p>通俗点说由汇编器和链接器生成的文件都属于ELF文件。通常我们接触的ELF文件主要有以下三类：</p>
+<ul>
+<li><strong>可重定位文件</strong>（<code>relocatable file</code>） ，一般为<code>.o</code>文件。可以被链接成可执行文件或共享目标文件。静态链接库属于可重定位文件。</li>
+<li><strong>可执行文件</strong>（<code>excutable file</code>）它保存了适合直接加载到内存中执行的二进制程序。</li>
+<li><strong>共享库文件</strong>（<code>shared object file</code>）一般为<code>.so</code>文件。一种特殊的可重定位目标文件，可以在加载或者运行时被动态的加载进内存并链接。</li>
+</ul>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220322201522334.png" alt="image-20220322201522334"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220322203524439.png" alt="image-20220322203524439"></p>
+<p>Note:段（<code>Segment</code>）与节（<code>Section</code>）的区别。很多地方对两者有所混淆。段是程序执行的必要组成，当多个目标文件链接成一个可执行文件时，会将相同权限的节合并到一个段中。相比而言，节的粒度更小。</p>
+<p>ELF文件主要由四部分组成：</p>
+<ul>
+<li>ELF Header</li>
+<li>ELF Program Header Table(程序头)</li>
+<li>ELF Section Header Table(节头表)</li>
+<li>ELF sections</li>
+</ul>
+<h3 id="ELF-Header"><a href="#ELF-Header" class="headerlink" title="ELF Header"></a>ELF Header</h3><p>ELF Header其实对应的是一个结构体，该结构体定义如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> EI_NIDENT 16</span></span><br><span class="line"></span><br><span class="line">   <span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span>                     </span><br><span class="line">       <span class="keyword">unsigned</span> <span class="keyword">char</span> e_ident[EI_NIDENT];</span><br><span class="line">       <span class="keyword">uint16_t</span>      e_type;            </span><br><span class="line">       <span class="keyword">uint16_t</span>      e_machine;         </span><br><span class="line">       <span class="keyword">uint32_t</span>      e_version;         </span><br><span class="line">       ElfN_Addr     e_entry;           </span><br><span class="line">       ElfN_Off      e_phoff;           </span><br><span class="line">       ElfN_Off      e_shoff;           </span><br><span class="line">       <span class="keyword">uint32_t</span>      e_flags;           </span><br><span class="line">       <span class="keyword">uint16_t</span>      e_ehsize;          </span><br><span class="line">       <span class="keyword">uint16_t</span>      e_phentsize;       </span><br><span class="line">       <span class="keyword">uint16_t</span>      e_phnum;           </span><br><span class="line">       <span class="keyword">uint16_t</span>      e_shentsize;       </span><br><span class="line">       <span class="keyword">uint16_t</span>      e_shnum;           </span><br><span class="line">       <span class="keyword">uint16_t</span>      e_shstrndx;        </span><br><span class="line">   &#125; ElfN_Ehdr;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ElfN_Addr       Unsigned program address, uintN_t</span><br><span class="line">ElfN_Off        Unsigned file offset, uintN_t</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>e_ident</code>：包含一个magic number、ABI信息，该文件使用的平台、大小端规则</li>
+<li><code>e_type</code>：文件类型, 表示该文件属于可执行文件、可重定位文件、core dump文件或者共享库</li>
+<li><code>e_entry</code>: 表示程序执行的入口地址，<strong>规定ELF程序的入口虚拟地址，操作系统在加载完该程序后从这个地址开始执行进程的指令。可重定位指令一般没有入口地址，则该值为0</strong></li>
+<li><code>e_phoff</code>: 表示Program Header的入口偏移量（以字节为单位）</li>
+<li><code>e_shoff</code>: 表示Section Header的入口偏移量（以字节为单位）</li>
+<li><code>e_flags</code>: 保存了这个ELF文件相关的特定处理器的flag</li>
+<li><code>e_ehsize</code>: 表示ELF Header大小（以字节为单位）</li>
+<li><code>e_phentsize</code>: 表示Program Header大小（以字节为单位）</li>
+<li><code>e_phnum</code>: 表示Program Header的数量 （十进制数字）</li>
+<li><code>e_shentsize</code>: 表示单个Section Header大小（以字节为单位）</li>
+<li><code>e_shnum</code>: 表示Section Header的数量 （十进制数字）</li>
+<li><code>e_shstrndx</code>: 表示字符串表的索引，字符串表用来保存ELF文件中的字符串，比如段名、变量名。 然后通过字符串在表中的偏移访问字符串。</li>
+</ul>
+<p>magic：通过判断该字段可以确定文件格式和类型。如：ELF的可执行文件格式的头4个字节为<code>0x7F</code>、<code>e</code>、<code>l</code>、<code>f</code>；Java的可执行文件格式的头4个字节为<code>c</code>、<code>a</code>、<code>f</code>、<code>e</code>；如果被执行的是Shell脚本或perl、python等解释型语言的脚本，那么它的第一行往往是<code>#!/bin/sh</code>或<code>#!/usr/bin/perl</code>或<code>#!/usr/bin/python</code>，此时前两个字节<code>#</code>和<code>!</code>就构成了魔数，系统一旦判断到这两个字节，就对后面的字符串进行解析，以确定具体的解释程序路径。</p>
+<h3 id="ELF-Section-Header-Table"><a href="#ELF-Section-Header-Table" class="headerlink" title="ELF Section Header Table"></a>ELF Section Header Table</h3><p>ELF 节头表是一个节头数组。每一个节头都描述了其所对应的节的信息，如节名、节大小、在文件中的偏移、读写权限等。<strong>编译器、链接器、装载器都是通过节头表来定位和访问各个节的属性的。</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    <span class="keyword">uint32_t</span>   sh_name;</span><br><span class="line">    <span class="keyword">uint32_t</span>   sh_type;</span><br><span class="line">    <span class="keyword">uint64_t</span>   sh_flags;</span><br><span class="line">    Elf64_Addr sh_addr;</span><br><span class="line">    Elf64_Off  sh_offset;</span><br><span class="line">    <span class="keyword">uint64_t</span>   sh_size;</span><br><span class="line">    <span class="keyword">uint32_t</span>   sh_link;</span><br><span class="line">    <span class="keyword">uint32_t</span>   sh_info;</span><br><span class="line">    <span class="keyword">uint64_t</span>   sh_addralign;</span><br><span class="line">    <span class="keyword">uint64_t</span>   sh_entsize;</span><br><span class="line">&#125; Elf64_Shdr;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p><code>sh_name</code>：表示该section的名字,节名是一个字符串，保存在一个名为<code>.shstrtab</code>的字符串表（可通过Section Header索引到）。sh_name的值实际上是其节名字符串在<code>.shstrtab</code>中的偏移值。</p>
+</li>
+<li><p><code>sh_type</code>：表示该section中存放的内容类型，比如符号表，可重定位段等。</p>
+</li>
+<li><p><code>sh_flags</code>： 表示该section的一些属性，比如是否可写，可执行等。</p>
+</li>
+<li><p><code>sh_addr</code>： 表示该section在程序运行时的内存地址</p>
+</li>
+<li><p><code>sh_offset</code>： 如果该节存在于文件中，则表示该节在文件中的偏移；否则无意义，如sh_offset对于BSS 节来说是没有意义的</p>
+</li>
+<li><p><code>sh_size</code>： 表示该section的大小</p>
+</li>
+<li><p><code>sh_link</code>： 配合sh_info保存section的额外信息</p>
+</li>
+<li><p><code>sh_info</code>：保存该section相关的一些额外信息</p>
+</li>
+<li><p><code>sh_addralign</code>：表示该section需要的地址对齐信息</p>
+</li>
+<li><p><code>sh_entsize</code>：有些section里保存的是一些固定长度的条目，比如符号表。对于这些section来讲，sh_entsize里保存的就是条目的长度。</p>
+<h4 id="sh-type（节类型）"><a href="#sh-type（节类型）" class="headerlink" title="sh_type（节类型）"></a>sh_type（节类型）</h4></li>
+</ul>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220322205037066.png" alt="image-20220322205037066"></p>
+<h4 id="sh-link、sh-info-节链接信息"><a href="#sh-link、sh-info-节链接信息" class="headerlink" title="sh_link、sh_info(节链接信息)"></a>sh_link、sh_info(节链接信息)</h4><p>如果节的类型是与链接相关的（无论是动态链接还是静态链接），如<strong>重定位表、符号表、</strong>等，则<code>sh_link</code>、<code>sh_info</code>两个成员所包含的意义如下所示。其他类型的节，这两个成员没有意义。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220322205250620.png" alt="image-20220322205250620"></p>
+<h3 id="ELF-Sections"><a href="#ELF-Sections" class="headerlink" title="ELF Sections"></a>ELF Sections</h3><p>在ELF文件中，数据和代码分开存放的，这样可以按照其功能属性分成一些区域，比如程序、数据、符号表等。这些分离存放的区域在ELF文件中反映成<code>section</code>。ELF文件中典型的<code>section</code>如下：</p>
+<ul>
+<li><code>.text</code>: 已编译程序的二进制代码</li>
+<li><code>.rodata</code>: 只读数据段，比如常量</li>
+<li><code>.data</code>: 已初始化的全局变量和静态变量</li>
+<li><code>.bss</code>: 未初始化的全局变量和静态变量，所有被初始化成0的全局变量和静态变量(<strong>记得与PE文件区分开</strong>)</li>
+<li><code>.sysmtab</code>: 符号表，它存放了程序中定义和引用的函数和全局变量的信息</li>
+<li><code>.debug</code>: 调试符号表，它需要以<code>&#39;-g&#39;</code>选项编译才能得到，里面保存了程序中定义的局部变量和类型定义，程序中定义和引用的全局变量，以及原始的C文件</li>
+<li><code>.line</code>: 原始的C文件行号和<code>.text节</code>中机器指令之间的映射</li>
+<li><code>.strtab</code>: 字符串表，内容包括<code>.symtab</code>和<code>.debug</code>节中的符号表</li>
+</ul>
+<p>特殊的，<br>1）对于<strong>可重定位的文件</strong>，由于在编译时，并不能确定它引用的外部函数和变量的地址信息，因此，编译器在生成目标文件时，增加了两个section：</p>
+<ul>
+<li><code>.rel.text</code> 保存了程序中引用的外部函数的重定位信息，这些信息用于在链接时重定位其对应的符号。</li>
+<li><code>.rel.data</code> 保存了被模块引用或定义的所有全局变量的重定位信息，这些信息用于在链接时重定位其对应的全局变量。</li>
+</ul>
+<p>2）对于<strong>可执行文件</strong>，由于它已经全部完成了重定位工作，可以直接加载到内存中执行，所以它不存在<code>.rel.text</code>和<code>.rel.data</code>这两个section。但是，它增加了一个section：</p>
+<ul>
+<li><code>.init</code>: 这个section里面保存了程序运行前的初始化代码</li>
+</ul>
+<p>重定位表是一个<code>Elf_Rel</code>类型的数组结构，每一项对应一个需要进行重定位的项。<br>其成员含义如下表所示：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220322205729738.png" alt="image-20220322205729738"></p>
+<h3 id="ELF-Program-Header-Table"><a href="#ELF-Program-Header-Table" class="headerlink" title="ELF Program Header Table"></a>ELF Program Header Table</h3><p>在可执行文件中，ELF header下面紧接着就是Program Header Table。它描述了各个segment在ELF文件中的位置以及在程序执行过程中系统需要准备的其他信息。它也是用一个结构体数组来表示的。具体代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">uint64_t</span>  Elf64_Addr;</span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">uint64_t</span>  Elf64_Off;</span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">uint32_t</span>  Elf64_Word;</span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">uint64_t</span>  Elf64_Xword;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    Elf64_Word      p_type;         <span class="comment">// 4</span></span><br><span class="line">    Elf64_Word      p_flags;        <span class="comment">// 4</span></span><br><span class="line">    Elf64_Off       p_offset;       <span class="comment">// 8</span></span><br><span class="line">    Elf64_Addr      p_vaddr;        <span class="comment">// 8</span></span><br><span class="line">    Elf64_Addr      p_paddr;        <span class="comment">// 8</span></span><br><span class="line">    Elf64_Xword     p_filesz;       <span class="comment">// 8</span></span><br><span class="line">    Elf64_Xword     p_memsz;        <span class="comment">// 8</span></span><br><span class="line">    Elf64_Xword     p_align;        <span class="comment">// 8</span></span><br><span class="line">&#125; Elf64_Phdr;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>p_type</code>：描述了当前segment是何种类型的或者如何解释当前segment，比如是动态链接相关的或者可加载类型的等</li>
+<li><code>p_flags</code>：保存了该segment的flag</li>
+<li><code>p_offset</code>：表示从ELF文件到该segment第一个字节的偏移量</li>
+<li><code>p_vaddr</code>：表示该segment的第一个字节在内存中的虚拟地址</li>
+<li><code>p_paddr</code>：对于使用物理地址的系统来讲，这个成员表示该segment的物理地址</li>
+<li><code>p_filesz</code>：表示该segment的大小，以字节表示</li>
+<li><code>p_memsz</code>：表示该segment在内存中的大小，以字节表示</li>
+<li><code>p_align</code>：表示该segment在文件中或者内存中需要以多少字节对齐</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>ZouFeIYu
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://erkeai.github.io/2022/03/22/Cheese_point/ELF%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84/" title="ELF文件结构">https://erkeai.github.io/2022/03/22/Cheese_point/ELF文件结构/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/ELF%E6%96%87%E4%BB%B6/" rel="tag"># ELF文件</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/03/22/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E5%8D%81%E4%BA%8C%E5%A4%A9/" rel="prev" title="代码随想录第十二天">
+      <i class="fa fa-chevron-left"></i> 代码随想录第十二天
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-number">1.</span> <span class="nav-text"></span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ELF-Header"><span class="nav-number">1.1.</span> <span class="nav-text">ELF Header</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ELF-Section-Header-Table"><span class="nav-number">1.2.</span> <span class="nav-text">ELF Section Header Table</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#sh-type%EF%BC%88%E8%8A%82%E7%B1%BB%E5%9E%8B%EF%BC%89"><span class="nav-number">1.2.1.</span> <span class="nav-text">sh_type（节类型）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#sh-link%E3%80%81sh-info-%E8%8A%82%E9%93%BE%E6%8E%A5%E4%BF%A1%E6%81%AF"><span class="nav-number">1.2.2.</span> <span class="nav-text">sh_link、sh_info(节链接信息)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ELF-Sections"><span class="nav-number">1.3.</span> <span class="nav-text">ELF Sections</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ELF-Program-Header-Table"><span class="nav-number">1.4.</span> <span class="nav-text">ELF Program Header Table</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ZouFeIYu"
+      src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+  <p class="site-author-name" itemprop="name">ZouFeIYu</p>
+  <div class="site-description" itemprop="description">reading, coding, travelling</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">58</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/erkeai" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;erkeai" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:563783592@qq.com" title="E-Mail → mailto:563783592@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-feather"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ZouFeIYu</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">149k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:16</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

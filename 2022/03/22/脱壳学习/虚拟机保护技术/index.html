@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.ico">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"erkeai.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="参考文章：看雪虚拟机保护技术浅谈，人肉跟踪VMProtect入口 虚拟机概览​        所谓虚拟机保护技术，是指将代码翻译为机器和人都无法识别的一串伪代码字节流（字节码）；在具体执行时再对这些伪代码进行一一翻译解释，逐步还原为原始代码并执行。字节码它是由指令执行系统定义的一套指令和数据组成的一串数据流。 ​        负责用于翻译伪代码并负责具体执行的子程序就叫做虚拟机VM,好似一个抽象">
+<meta property="og:type" content="article">
+<meta property="og:title" content="虚拟机保护技术">
+<meta property="og:url" content="https://erkeai.github.io/2022/03/22/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%BF%9D%E6%8A%A4%E6%8A%80%E6%9C%AF/index.html">
+<meta property="og:site_name" content="hazel&#39;blog">
+<meta property="og:description" content="参考文章：看雪虚拟机保护技术浅谈，人肉跟踪VMProtect入口 虚拟机概览​        所谓虚拟机保护技术，是指将代码翻译为机器和人都无法识别的一串伪代码字节流（字节码）；在具体执行时再对这些伪代码进行一一翻译解释，逐步还原为原始代码并执行。字节码它是由指令执行系统定义的一套指令和数据组成的一串数据流。 ​        负责用于翻译伪代码并负责具体执行的子程序就叫做虚拟机VM,好似一个抽象">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220322164833574.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220322150225897.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220322153743802.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220322160413449.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220322160612021.png">
+<meta property="article:published_time" content="2022-03-21T16:00:00.000Z">
+<meta property="article:modified_time" content="2022-03-22T13:08:06.638Z">
+<meta property="article:author" content="ZouFeIYu">
+<meta property="article:tag" content="虚拟机保护技术">
+<meta property="article:tag" content="VMprotect">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220322164833574.png">
+
+<link rel="canonical" href="https://erkeai.github.io/2022/03/22/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%BF%9D%E6%8A%A4%E6%8A%80%E6%9C%AF/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>虚拟机保护技术 | hazel'blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">hazel'blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">58</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">8</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">58</span></a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/03/22/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%BF%9D%E6%8A%A4%E6%8A%80%E6%9C%AF/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          虚拟机保护技术
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-03-22 00:00:00 / 修改时间：21:08:06" itemprop="dateCreated datePublished" datetime="2022-03-22T00:00:00+08:00">2022-03-22</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">脱壳学习</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>参考文章：<a target="_blank" rel="noopener" href="https://bbs.pediy.com/thread-139586.htm">看雪虚拟机保护技术浅谈</a>，<a target="_blank" rel="noopener" href="https://bbs.pediy.com/thread-220689.htm">人肉跟踪VMProtect入口</a></p>
+<h3 id="虚拟机概览"><a href="#虚拟机概览" class="headerlink" title="虚拟机概览"></a>虚拟机概览</h3><p>​        所谓虚拟机保护技术，是指将代码翻译为机器和人都无法识别的一串伪代码字节流（字节码）；在具体执行时再对这些伪代码进行一一翻译解释，逐步还原为原始代码并执行。字节码它是由指令执行系统定义的一套指令和数据组成的一串数据流。</p>
+<p>​        负责用于翻译伪代码并负责具体执行的子程序就叫做虚拟机VM,好似一个抽象的CPU。它以一个函数的形式存在，函数的参数就是字节码的内存地址。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220322164833574.png" alt="image-20220322164833574"></p>
+<p>​        这张图是一个虚拟机执行时的整图概述，VStartVM部分初始化虚拟机，VMDispatcher负责调度这些Handler，Handler可以理解为一个个的子函数(功能代码)，它是每一个伪指令对应的执行功能代码.</p>
+<blockquote>
+<p>为什么要出现一条伪指令对应着一个Handler执行模块呢？</p>
+<p>这和虚拟机加壳的指令膨胀有关，被虚拟机加壳后，同样一条指令被翻译成了虚拟伪指令，<br>一条虚拟伪指令往往对应着好几倍的等效代码，当中可能还加入了花指令，整个Handler加起来可能就等效为原本的一条x86汇编指令。</p>
+</blockquote>
+<p>​        Bytecode就是虚拟伪指令，在程序中，VMDispatcher往往是一个类while结构，不断的循环读取伪指令，然后执行。</p>
+<h4 id="虚拟机架构"><a href="#虚拟机架构" class="headerlink" title="虚拟机架构"></a>虚拟机架构</h4><p>​        虚拟机不可能针对每一种具体情况都进行翻译处理。必须对所有可能遇到的指令先进行抽象归类，然后分解为若干简单的小指令，再交由各个专门的子程序（handler）去处理。</p>
+<blockquote>
+<p>三元式代码（3地址代码）</p>
+<p>即不论多么复杂的赋值公式，都可以分解为数个3地址代码式序列。1段3地址代码只完成1次运算，譬如1次二目运算、1次比较，或者1次分支跳转运算。论多么复杂的指令，都可以分解为一串不可再分割的<strong>原子指令序列。</strong></p>
+</blockquote>
+<p>​         虚拟机（CPU）的体系架构可分为3种，基于堆栈的(Stack based)，基于寄存器的(Register based)和3地址机器。基于堆栈的虚拟机体系架构需要频繁操作堆栈，其使用的虚拟寄存器保存在堆栈中，每个原子指令的handler都需要push,pop。譬如指令add,基于堆栈的CPU首先从堆栈里Pop两个数，然后将两数相加，再把和Push到堆栈。Add指令只占用1个字节。而基于寄存器的CPU对应指令为 add Reg1,Reg2，需要3个字节。</p>
+<p>​        虚拟机保护技术，就是把基于寄存器的CPU代码，改造成基于堆栈的CPU的伪代码。然后再由基于堆栈的虚拟机(CPU)对伪代码解释执行。</p>
+<p>​        VStartVM是虚拟机的入口，负责保存运行环境(各个寄存器的值)、以及初始化堆栈(虚拟机使用的变量全部在堆栈中)。Bytecode是伪代码；VMDispatcher对伪代码逐个阅读处理，然后分发给下面的各个子程序(Handler)。        加壳程序先把已知的X86指令解释成了字节码，放在PE文件中，然后将原处代码删掉，改成类似的代码进入虚拟机执行循环。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">push bytecode         ;伪代码地址 ，作为参数</span><br><span class="line">jmp   VstartVM</span><br><span class="line">VStartVM:</span><br><span class="line">   push eax   ;将寄存器压入堆栈,后面会由伪指令取出并存放到VMContext中;此处也可以加入一些随机特征用于迷惑</span><br><span class="line">   push ebx</span><br><span class="line">   push ecx</span><br><span class="line">   push edx</span><br><span class="line">   push esi</span><br><span class="line">   push edi</span><br><span class="line">   push ebp</span><br><span class="line">   pushfd</span><br><span class="line">   mov esi ,[esp+0x20]   ;esp+0x20指向VStartVM的参数,即伪代码的内存地址</span><br><span class="line">   mov ebp,esp           ;ebp指向当前堆栈</span><br><span class="line">   Sub esp,0x200         ;在堆栈中开辟0x200字节,存放VMcontext</span><br><span class="line">   mov edi,esp           ;edi指向VMcontext</span><br><span class="line">   Sub esp,0x40          ;到这里，才到达VM真正使用的堆栈，不一定非要0x40字节</span><br><span class="line">VMDispatcher:</span><br><span class="line">        Mov eax,byte ptr[esi]  ;获得伪代码 bytecode</span><br><span class="line">        Lea esi,[esi+1]         </span><br><span class="line">        Jmp dword ptr [eax*4+JumpAddr];跳到Handler执行处，由加壳引擎填充</span><br><span class="line">                                      ;每读一个byte就跳到函数表模拟执行代码。(堆栈型CPU的指令短，1字节足够)</span><br><span class="line">                                      ;JUMPADDR就是一张函数表（有点类似VTBL或者switch-case表），</span><br><span class="line">VM_END                            ;VM结束标记</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220322150225897.png" alt="image-20220322150225897"></p>
+<p>​        初始化后堆栈如图 ：<strong>edi指向VMcontext；esi指向伪代码的地址；ebp指向真实堆栈的栈顶; 这三个寄存器在VM内不要再改了。</strong><br> VMContext是虚拟机VM使用的虚拟环境结构：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Struct VMContext</span><br><span class="line"> &#123;</span><br><span class="line">     DWORD v_eax;</span><br><span class="line">     DWORD v_ebx;</span><br><span class="line">     DWORD v_ecx;</span><br><span class="line">     DWORD v_edx;</span><br><span class="line">     DWORD v_esi;</span><br><span class="line">     DWORD v_edi;</span><br><span class="line">     DWORD v_ebp;</span><br><span class="line">     DWORD v_efl;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>用简单的add指令作为示例</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">Vadd:                            ;virtual add</span><br><span class="line">        Mov eax,[esp+4]          ;取源操作数</span><br><span class="line">        Mov ebx,[esp]            ;取目的操作数</span><br><span class="line">        Add ebx,eax              ;</span><br><span class="line">        Add esp,8                ;把参数从堆栈中删掉，平衡堆栈</span><br><span class="line">        Push ebx                 ;把结果压入堆栈.而原有的add命令的参数，我们需要翻译为 push 命令 。根据push 的对象不同，需要不同的实现：</span><br><span class="line">vPushReg32:                      ;寄存器入栈 。esi指向字节码的内存地址</span><br><span class="line">      Mov eax,dword ptr[esi]     ;从伪代码(字节码)中获得寄存器在VMcontext结构中的偏移地址</span><br><span class="line">      Add esi,4                  ;VMcontext结构保存了各个寄存器的值。该结构保存在堆栈内。</span><br><span class="line">      Mov eax,dowrd ptr [edi +eax]   ;得到寄存器的值。edi指向VMcontext结构的基址</span><br><span class="line">      Push eax                    ;压入堆栈</span><br><span class="line">      Jmp VMDispatcher            ;任务完成,跳回任务分派点</span><br><span class="line">vPushImm32:                       ;立即数入栈</span><br><span class="line">      Mov eax,dword ptr[esi]      ;字节码，不用翻译就是了</span><br><span class="line">      Add esi,4</span><br><span class="line">      Push eax                    ;立即数入栈</span><br><span class="line">      Jmp VMDispatcher</span><br><span class="line">     有Push指令了，也得有Pop指令：</span><br><span class="line">vPopReg32:</span><br><span class="line">      Mov eax,dword,ptr[esi]     ;从伪代码(字节码)中获得寄存器在VMcontext结构中的偏移地址</span><br><span class="line">      Add esi,4</span><br><span class="line">      Pop dword ptr [edi+eax]    ;弹回寄存器</span><br><span class="line">      Jmp VMDispatcher</span><br><span class="line"> ================================================================</span><br><span class="line">      Add esi,eax</span><br><span class="line">        ;转换为虚拟机的指令如下:</span><br><span class="line">      vPushReg32 eax_index</span><br><span class="line">      vPushReg32 esi_index</span><br><span class="line">      Vadd</span><br><span class="line">      vPopReg32 esi_index      ;不弹eax_index，它作为返回结果保存在堆栈里</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220322153743802.png" alt="image-20220322153743802"></p>
+<p>​        上图是参考文章中的图，和我自己画的那个差不多，区分了颜色来说一下<strong>蓝-橙-黄部分作用（一条vmp指令的执行）</strong>。</p>
+<pre><code>    * 蓝色：加载并解密字节码。
+</code></pre>
+<ul>
+<li>橙色：根据字节码数值计算出handler地址。</li>
+<li>黄色：执行该handler逻辑。</li>
+</ul>
+<p>​        前十几个蓝橙黄组合都是一种handler，执行的是一种vPop操作，如上图箭头，是将真实寄存器的值移动到<code>VMcontext</code>区域，一个vPop移动一个值。</p>
+<p>​        后十几个蓝橙黄组合</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220322160413449.png" alt="image-20220322160413449"></p>
+<p>​        最后一个vRet，将压入vmp运算栈中vmp虚拟寄存器值，更新到真实cpu寄存器中，至此，退出虚拟机。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220322160612021.png" alt="image-20220322160612021"></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>ZouFeIYu
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://erkeai.github.io/2022/03/22/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%BF%9D%E6%8A%A4%E6%8A%80%E6%9C%AF/" title="虚拟机保护技术">https://erkeai.github.io/2022/03/22/脱壳学习/虚拟机保护技术/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%BF%9D%E6%8A%A4%E6%8A%80%E6%9C%AF/" rel="tag"># 虚拟机保护技术</a>
+              <a href="/tags/VMprotect/" rel="tag"># VMprotect</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/03/21/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E5%8D%81%E4%B8%80%E5%A4%A9/" rel="prev" title="代码随想录第十一天">
+      <i class="fa fa-chevron-left"></i> 代码随想录第十一天
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/03/22/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E5%8D%81%E4%BA%8C%E5%A4%A9/" rel="next" title="代码随想录第十二天">
+      代码随想录第十二天 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E6%9C%BA%E6%A6%82%E8%A7%88"><span class="nav-number">1.</span> <span class="nav-text">虚拟机概览</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E6%9C%BA%E6%9E%B6%E6%9E%84"><span class="nav-number">1.1.</span> <span class="nav-text">虚拟机架构</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ZouFeIYu"
+      src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+  <p class="site-author-name" itemprop="name">ZouFeIYu</p>
+  <div class="site-description" itemprop="description">reading, coding, travelling</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">58</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/erkeai" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;erkeai" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:563783592@qq.com" title="E-Mail → mailto:563783592@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-feather"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ZouFeIYu</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">149k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:16</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
