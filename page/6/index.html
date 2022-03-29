@@ -120,7 +120,7 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">58</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">61</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -130,7 +130,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">58</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">63</span></a>
 
   </li>
   </ul>
@@ -156,6 +156,691 @@
 
           <div class="content index posts-expand">
             
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/08/15/wkp/Chapter%205%20Debugging/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/08/15/wkp/Chapter%205%20Debugging/" class="post-title-link" itemprop="url">Chapter 5 Debugging</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-08-15 00:00:00" itemprop="dateCreated datePublished" datetime="2021-08-15T00:00:00+08:00">2021-08-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 12:51:26" itemprop="dateModified" datetime="2021-12-22T12:51:26+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">驱动开发</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="Windows调试工具"><a href="#Windows调试工具" class="headerlink" title="Windows调试工具**"></a>Windows调试工具**</h3><p>主要简单介绍了Cdb、Ntsd、Kd、Windbg四个调试器，但是Windbg是唯一具有图形用户界面的调试器</p>
+<h3 id="Windbg介绍"><a href="#Windbg介绍" class="headerlink" title="Windbg介绍**"></a>Windbg介绍**</h3><p>Windbg主要有三种命令：</p>
+<p>标准命令，这些命令被内置到调试器中，它们对正在调试的目标进行操作。</p>
+<p>元命令，这些命令以“.”开始。它们操作调试过程本身，而不是直接操作被调试的目标。</p>
+<p>Bang（扩展）命令，这些命令以“!”开头，提供了调试器的强大功能。所有的扩展命令都是在扩展dll中实现的。默认情况下，调试器加载一组预定义的扩展dll，但可以从调试器目录或其他源加载其他dll.</p>
+<p><strong>Note:不用双击内核调试直接本地打开即可</strong></p>
+<p>因为目前windbg正在调试内核，调试器不在notepad.exe进程上下文中，为了达到目的，需要枚举系统中的进程并切换到notepad.exe</p>
+<p>！process 0 0       //枚举所有进程</p>
+<p>.process /i /r /p       //切换到进程</p>
+<p> kernel调试时windbg并不会加载用户态dll，但是切换到指定进程后可以加载用户态调试符号，如下：</p>
+<p>.reload /user /f</p>
+<h3 id="线程介绍"><a href="#线程介绍" class="headerlink" title="线程介绍"></a>线程介绍</h3><p>输入命令 k显示当前线程堆栈，带有符号的地址的一般格式是“模块名！函数名+偏移量”。该偏移量是可选的，如果它恰好是这个函数的开始，则可以为零。</p>
+<p>命令  ~ns表示切换线程</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6954.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6955.tmp.jpg" alt="img"> </p>
+<p>进程ID显示为十六进制，输入下面的命令可以将其转化为十进制，与任务管理器对比发现是正确的</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6956.tmp.jpg" alt="img"> </p>
+<p>也可以在十进制前加个前缀“0n”这样可以得到十六进制的结果</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6957.tmp.jpg" alt="img"> </p>
+<p>显示当前活动的线程</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6958.tmp.jpg" alt="img"> </p>
+<p>显示当前线程的teb(线程环境块)，该命令显示的是幕后真实的结构，可以用dt命令查看实际结构</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6959.tmp.jpg" alt="img"> </p>
+<p>以下只显示了部分信息</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps695A.tmp.jpg" alt="img"> </p>
+<p>我们可以点击查看NtTib</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps695B.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps695C.tmp.jpg" alt="img"> </p>
+<h4 id="断点"><a href="#断点" class="headerlink" title="断点"></a>断点</h4><p>下个断点</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps695D.tmp.jpg" alt="img"> </p>
+<p>可以用bl命令查看断点，e表示启用，d表示禁用</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps695E.tmp.jpg" alt="img"> </p>
+<p>因为下了断点，所以我们打开文件的时候windbg会断在这里</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps695F.tmp.jpg" alt="img"> </p>
+<p>我们现在可以看看调用堆栈是什么样的</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6960.tmp.jpg" alt="img"> </p>
+<p>如果想知道正在打开的是什么文件。我们可以根据CreateFileW函数的调用约定来获得这些信息。由于这是一个64位进程(处理器是Intel/AMD)，调用约定声明第一个整数/指针参数在RCX、RDX、R8和R9寄存器中传递。由于CreateFileW中的文件名是第一个参数，因此相关的寄存器是RCX。我们用命令r rcx查看寄存器，紧接着用 db 地址查看指向的内存，但是因为字符是ASCII所以看起来不是很方便，我们用 du 地址查看Unicode地址</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6970.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6971.tmp.jpg" alt="img"> </p>
+<p>如果不想用地址，也可以在寄存器前面加“@”</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6972.tmp.jpg" alt="img"> </p>
+<p>再下一个断点</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6973.tmp.jpg" alt="img"> </p>
+<p>u（unassemble）命令列出即将执行的8条指令，注意该值0x55已被复制到EAX寄存器中。这是NtCreateFile的系统服务编号，如第1章所述。所示的系统所有指令是导致转换到内核，然后执行NtCreateFile系统服务本身的指令。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6974.tmp.jpg" alt="img"> </p>
+<p>可以用指令p(f10)单步运行，也可以用t(f11)步入函数中，单步执行到ret后，我们要知道在x64调用约定中，函数的返回值存储在EAX或RAX中。对于系统调用，它是一个无状态，所以EAX包含了返回的状态：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6975.tmp.jpg" alt="img"> </p>
+<p>下一个NtWriteFile的断点，然后修改文件在保存的时候会断下来，紧接着用k查看调用堆栈</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6976.tmp.jpg" alt="img"> </p>
+<p>用u指令查看到，8 是NtWriteFile系统服务编号</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6977.tmp.jpg" alt="img"> </p>
+<h3 id="本地内核调试"><a href="#本地内核调试" class="headerlink" title="本地内核调试"></a>本地内核调试</h3><p>本地内核调试（LKD）与内核调试的区别就是无法下断点，只能看见系统当前运行状态。</p>
+<p>按照书上的步骤，先在管理员权限下的cmd输入命令</p>
+<p>bcdedit /debug on</p>
+<p>然后重启系统，以管理员身份打开windbg，选择attach to kernel，然后选择Local，点击ok</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6978.tmp.jpg" alt="img"> </p>
+<h3 id="本地内核调试详细教程"><a href="#本地内核调试详细教程" class="headerlink" title="本地内核调试详细教程"></a>本地内核调试详细教程</h3><p>​    输入!process 0 0显示如下<img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps6979.tmp.jpg" alt="img">    输入.reload同样没用，按照他的提示输入命令!sym noisy，然后输入.reload，同时查看一下符号路径是否正确。最后得到现在的进程情况</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps697A.tmp.jpg" alt="img"> </p>
+<p>PROCESS后的是进程的EPROCESS地址（内核空间）；</p>
+<p>SessionId表示进程所处的会话；</p>
+<p>Cid是独一无二的进程ID(Client ID);</p>
+<p>Peb是进程环境块(PEB)的地址，这个地址在用户空间中；</p>
+<p>ParentCid是Parent Client ID）父进程的进程ID。注意，父进程可能不再存在，并且可以重用此ID；</p>
+<p>DirBase是该进程的Master Page Directory的物理地址，用作虚拟地址转换的基础。在x64上，这被称为Pagr Map Level 4，在x86上，它是Page Directory Pointer Table(PDPT);</p>
+<p>ObjectTable是指向进程的私有句柄表的指针；</p>
+<p>HandleCount是进程的句柄数；</p>
+<p>Image是可执行文件名或者是对于那些与可执行文件没有关联的程序的特殊进程名称（exp: Secure System,system）。</p>
+<p>!process命令至少接受两个参数，第一个参数用EPROCESS地址表示感兴趣的进程，0表示所有进程。第二个参数是所需的详细信息级别，其中零表示最少的详细信息量（一个位掩码）。可以添加第三个参数来搜索特定的可执行文件。    列出所有正在运行的csrss.exe。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps697B.tmp.jpg" alt="img"> </p>
+<p>可以通过指定地址以及更高级别的详细信息来列出相关进程的详细信息</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps697C.tmp.jpg" alt="img"> </p>
+<p>其余的命令等到具体用到的时候再一一查阅</p>
+<h3 id="内核驱动程序调试教程"><a href="#内核驱动程序调试教程" class="headerlink" title="内核驱动程序调试教程"></a>内核驱动程序调试教程</h3><p>我们调试在第四章写好的驱动程序，首先安装驱动，但是不能加载，因为加载就会进入驱动入口。（我们需要在入口下一个断点。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps697D.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp5/wps697E.tmp.jpg" alt="img"> </p>
+<p>具体的调试过程其实和平时双机调试程序的时候差不多，因为这部分已经熟悉就不详细写了。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/08/11/reverse/Reverse1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/08/11/reverse/Reverse1/" class="post-title-link" itemprop="url">buuctf_reverse</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-08-11 00:00:00" itemprop="dateCreated datePublished" datetime="2021-08-11T00:00:00+08:00">2021-08-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 10:22:59" itemprop="dateModified" datetime="2021-12-22T10:22:59+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/buuctf/" itemprop="url" rel="index"><span itemprop="name">buuctf</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>139</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="Reverse1"><a href="#Reverse1" class="headerlink" title="Reverse1"></a>Reverse1</h3><p>1.查到无壳，用IDA直接打开exe分析，一步一步到下图，好像看不出来个什么</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse1/image-20210811105908854.png" alt="image-20210811105908854"></p>
+<p>查看字符串，一般来说会有flag提示的字符串，查找调用的位置</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse1/image-20210811110017965.png" alt="image-20210811110017965"></p>
+<p>可以看到关键的<code>str2</code>，注意函数种有一个替换操作，111是字母o,48是数字0</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse1/image-20210811110217990.png" alt="image-20210811110217990"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse1/image-20210811110303832.png" alt="image-20210811110303832"></p>
+<p>所以flag是flag{hell0_w0rld}</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/07/31/wkp/Chapter%204%20Driver%20from%20Start%20to%20Finish/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/07/31/wkp/Chapter%204%20Driver%20from%20Start%20to%20Finish/" class="post-title-link" itemprop="url">Chapter 4 Driver from Start to Finish</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-07-31 00:00:00" itemprop="dateCreated datePublished" datetime="2021-07-31T00:00:00+08:00">2021-07-31</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 12:50:28" itemprop="dateModified" datetime="2021-12-22T12:50:28+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">驱动开发</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>​    在本章中，将使用我们在前几章中学到的许多概念，并构建一个简单但完整的驱动程序和客户机应用程序，同时填补一些缺失的细节。我们将部署驱动程序并使用它的功能——在内核模式下执行用户模式不可用的一些操作。</p>
+<h4 id="1-介绍"><a href="#1-介绍" class="headerlink" title="1.介绍"></a>1.介绍</h4><p>​    我们将要用一个简单的内核驱动来解决的问题是用Windows API设置线程优先级的不灵活性。在用户模式下，一个线程的优先级是由其进程PriorityClass与具有有限数量级别的每个线程基础上的偏移量的组合决定的。</p>
+<p>​    改变进程/优先级：SetPriorityClass,该函数设置的优先级是线程的默认优先级，也可以使用SetThreadPriority设置线程优先级（都是用偏移量设置），下面的表格展示了基于进程优先级类和线程的优先级偏移量的可用线程优先级。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps691D.tmp.jpg" alt="img"> </p>
+<p>​    实时优先级类并不意味着Windows是一个实时操作系统；此外，由于实时优先级非常高，并且与许多做重要工作的内核线程竞争，这样的进程必须使用管理员特权运行；否则，试图将优先级类设置为实时会将值设置为“高”。</p>
+<p>​    只有一小部分优先级可以直接设置。我们希望<strong>创建一个驱动程序，以规避这些限制，并允许将线程的优先级设置为任何数字，而不管其进程优先级类如何。</strong></p>
+<h4 id="2-驱动初始化"><a href="#2-驱动初始化" class="headerlink" title="2.驱动初始化"></a>2.驱动初始化</h4><p>​    创建一个新的项目命名为PriorityBooster并且删掉INF文件,新建一个cpp文件，大多数软件驱动程序需要在驱动器条目中执行以下操作：</p>
+<ul>
+<li><p>设置一个卸载例程；</p>
+</li>
+<li><p>设置驱动程序所支持的调度例程；</p>
+</li>
+<li><p>创建一个设备对象；</p>
+</li>
+<li><p>创建一个到设备对象的符号链接。</p>
+<p>一旦执行了所有这些操作，驱动程序就已经准备好接受请求了。第一步是添加一个卸载例程，并从驱动程序对象指向它。以下是新的具有卸载程序的DriverEntry，当然我们需要根据我们实际工作中的需要添加代码。</p>
+</li>
+</ul>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps691E.tmp.jpg" alt="img"> </p>
+<p>​    接下来我们需要设置我们要支持的调度例程，实际上，所有的驱动程序都必须支持IRP_MJ_CREATE和IRP_MJ_CLOSE，否则就无法为该驱动程序的任何设备打开手柄。所以我们将以下内容添加到DriverEntry中。</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">DriverObject-&gt;MajorFunction[IRP_MJ_CREATE] = PriorityBoosterCreateClose;</span><br><span class="line"></span><br><span class="line">DriverObject-&gt;MajorFunction[IRP_MJ_CLOSE] = PriorityBoosterCreateClose;</span><br></pre></td></tr></table></figure>
+
+<p>​    所有的major function都有同样的类型（它们是函数指针数组的一部分），因此我们需要给函数PriorityBoosterCreateClose加一个类型NTSTATUS</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps691F.tmp.jpg" alt="img"> </p>
+<h5 id="传递信息给驱动"><a href="#传递信息给驱动" class="headerlink" title="传递信息给驱动"></a>传递信息给驱动</h5><p>​    我们的目的是为了设置现成的优先级，所以我们需要一种方式告诉驱动程序是哪个线程以及设置什么值。从我们的目的处罚，我们需要用到WriteFile或者 DeviceIoControl,一般的思维是使用前者，但是在这里，后者是一种向驱动程序传递数据的通用机制。由于更改线程的优先级不是纯粹的写操作，所以我们将使用<strong>DeviceIoControl</strong>。此函数具有以下原型（我们主要关注三个参数）：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6920.tmp.jpg" alt="img"> </p>
+<p>​    操作的控制代码标识要执行的特定操作以及执行该操作的设备的类型。每个控制代码的文档都提供了lpInBuffer，nInBufferSize，lpOutBuffer和nOutBufferSize参数的使用细节。</p>
+<p>​    在驱动程序方面，DeviceIoControl对应于IRP_MJ_DEVICE_CONTROL的major function代码。我们将其添加到调度例程的初始化中：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6931.tmp.jpg" alt="img"> </p>
+<h5 id="客户端-驱动程序通信协议"><a href="#客户端-驱动程序通信协议" class="headerlink" title="客户端/驱动程序通信协议"></a>客户端/驱动程序通信协议</h5><p>​    前面提到我们需要ControlCode以及Inputbuffer（包括线程id以及设置的优先级）这些信息片段必须可由驱动程序和客户端同时使用。客户端将提供数据，而驱动程序将对其采取行动。这意味着这些定义必须包含在驱动程序和客户端代码必须包含的单独文件中。</p>
+<p>​    基于此我需要创建一个头文件，这个头文件需要定义驱动程序期望从客户端获得的数据结构和用于更改线程优先级的控制代码。（请注意为什么不用DWORD，因为该类型只在用户模式下定义，ULONG在用户以及内核模式下都有定义）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6932.tmp.jpg" alt="img"> </p>
+<p>​    ControlCode必须使用CTL_CODE宏构建，该宏接受组成最终ControlCode的四个参数。CTL_CODE的定义如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#define CTL_CODE( DeviceType, Function, Method, Access ) (</span><br><span class="line"></span><br><span class="line">((DeviceType) &lt;&lt; 16) | ((Access) &lt;&lt; 14) | ((Function) &lt;&lt; 2) | (Method))</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p><strong>DeviceType</strong>定义设备类型，可以是WDK头文件中的某个FILE_DEVICE_XXX常量，但是这个变量是针对于基于硬件的驱动程序。（我们的是基于软件的，尽管如此，微软的文档还是规定，第三方驱动程序应该从0x8000开始。</p>
+</li>
+<li><p><strong>Function</strong> 一个表示特定操作的升序数字。如果没有其他内容，那么这个数字在同一驱动程序的不同控制代码之间必须有所不同。同样，任何数字都可以，但官方文件显示，第三方驱动程序应该从0x800开始。</p>
+</li>
+<li><p><strong>Method</strong>  ControlCode中最重要的部分。它指示Client提供的输入和输出缓冲区如何传递给驱动程序。对于我们的驱动程序，我们将使用最简单的值METHOD_NEITHER。</p>
+</li>
+<li><p><strong>Access</strong> 指示此操作是来自FILE_WRITE_ACCESS、FILE_READ_ACCESS还是FILE_ANY_ACCESS。典型的驱动程序只使用FILE_ANY_ACCESS并处理IRP_MJ_DEVICE_CONTROL处理程序中的实际请求。</p>
+</li>
+</ul>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6933.tmp.jpg" alt="img"> </p>
+<h5 id="创建设备对象"><a href="#创建设备对象" class="headerlink" title="创建设备对象"></a>创建设备对象</h5><p>​    一个典型的软件驱动程序只需要一个设备对象，其中有一个符号链接指向它，这样用户模式客户端就可以获得句柄。用IoCreateDevice实现该功能。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6934.tmp.jpg" alt="img"> </p>
+<ul>
+<li><p><strong>DeviceExtensionSize</strong> 除了sizeof(DEVICE_OBJECT)之外，还将分配的额外字节。可用于将某些数据结构与设备相关联。它对于仅创建一个设备对象的软件驱动程序不那么有用，因为设备所需的状态可以简单地由全局变量来管理。</p>
+</li>
+<li><p><strong>Devicetype</strong> 与某些类型的基于硬件的驱动程序相关。对于软件驱动程序，应该使用值FILE_DEVICE_UNKNOWN。</p>
+</li>
+<li><p><strong>Exclusive</strong> 是否应该允许多个文件对象打开同一设备？大多数驱动程序应该指定false，但在某些情况下，TRUE更合适；它强制单个客户端到设备。</p>
+</li>
+<li><p><strong>DeviceObject</strong> 返回的指针，作为指针传递给一个指针。如果成功，Io创建device将从非页面池中分配结构，并将生成的指针存储在取消引用的参数中</p>
+</li>
+</ul>
+<p>​    在调用IoCreateDevice之前，我们必须创建一个UNICODE_STRING来保存内部设备的名称.</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6935.tmp.jpg" alt="img"> </p>
+<p>​    设备名称可以是任何东西，但是应该在设备对象管理器目录中。有两种方法可以用一个常量字符串来初始化一个UNICODE_STRING。第一个是使用<strong>RtlInitUnicodeString</strong>。但是RtlInitUnicode字符串必须计算字符串中的字符数，才能适当地初始化长度和最大长度。有一种更快的方法,使用<strong>RTL_CONSTANT_STRING宏</strong>，在编译时静态计算字符串的长度，这意味着它只能对常量字符串正确操作。</p>
+<p>​    如果一切顺利，我们现在有了一个指向设备对象的指针。下一步是通过提供一个符号链接，使用户模式调用者可以访问此设备对象。以下行创建符号链接并将其连接到我们的设备对象：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6936.tmp.jpg" alt="img"> </p>
+<p>​    IoCreateSymbolicLink通过接受符号链接和链接的目标来完成工作。注意，如果创建失败，我们必须通过调用IoDeleteDevice来撤销到这里我们所做的所有操作（目前我们只是创建了对象，所以删除就好了）。如果驱动器条目返回任何故障状态，则不调用卸载例程。如果我们有更多的初始化步骤要做，我们将必须记住在那之前撤销所有内容，直到出现失败。（第五章有更好的处理方式）</p>
+<p>​    符号链接这一步成功后，DriverEntry就返回成功，驱动程序就可以接受请求了。</p>
+<p>​    卸载程序：在我们的例子中，有两件事（设备对象创建和符号链接创建）。我们将按相反的顺序撤销它们：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6937.tmp.jpg" alt="img"> </p>
+<h5 id="客户端代码"><a href="#客户端代码" class="headerlink" title="客户端代码"></a>客户端代码</h5><p>​    客户端项目（控制台桌面项目）<strong>首先需要</strong>include由驱动端创建的头文件并且需要在主函数中接受命令行参数（线程ID和优先级），请求驱动程序将线程的优先级更改为给定的值。</p>
+<p>​    <strong>然后需要</strong>打开设备句柄（note:<strong>如果驱动程序此时没有加载，这意味着没有设备对象，也没有符号链接，我们将得到一个错误号2</strong>）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6938.tmp.jpg" alt="img"> </p>
+<p>​    打开设备对象后将参数传给ThreadData结构体，<strong>然后</strong>开始DeviceIoControl</p>
+<p>​    该函数主要调用IRP_MJ_DEVICE_CONTROL主函数例程到达驱动程序。</p>
+<h5 id="创建和关闭派遣函数"><a href="#创建和关闭派遣函数" class="headerlink" title="创建和关闭派遣函数"></a>创建和关闭派遣函数</h5><p>所需要的只需以一个成功的状态完成请求。以下是完整的创建/关闭调度例行程序实现，IoCompleteRequest函数的第一个参数是将IRP返回给它的创建者（通常是I/O manager）,第二个参数是驱动程序可以向其客户端提供的临时优先级提升值。在大多数情况下，零的值是最好的(IO_NO_INCREMENT被定义为零)，因为请求同步完成，因此调用者不必获得优先级提升。详细可见第六章</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6939.tmp.jpg" alt="img"> </p>
+<h5 id="DeviceToControl派遣函数"><a href="#DeviceToControl派遣函数" class="headerlink" title="DeviceToControl派遣函数"></a>DeviceToControl派遣函数</h5><p>这一部分是项目的核心工作，<strong>首先需要</strong>IRP信息，关键是查看与当前设备层相关联的IO_STACK_LOCATION内部。调用IoGetCurrentIrpStackLocation将返回一个指向正确的IO_STACK_LOCATION的指针。IO_STACK_LOCATION的主要组成部分是一个名为Parameters的巨大联合成员，它包含一组结构，每种类型的IRP都一个。在IRP_MJ_DEVICE_CONTROL的情况下，要看的结构是DeviceIoControl。在该结构中，我们可以找到客户端所传递的信息，如控制代码、缓冲区及其长度。在我们的例子中，实际上只有一个IO_STACK_LOCATION.</p>
+<p><strong>其次需要</strong>检查控制代码是否是驱动程序支持的，如果没有，我们只将状态设置为成功以外的东西，我们需要的最后一段通用代码是在switch块之后完善IRP，无论它是否成功。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps693A.tmp.jpg" alt="img"> </p>
+<p><strong>然后第一步</strong>是检查我们收到的缓冲区是否大到足以包含一个线程数据对象。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps693B.tmp.jpg" alt="img"> </p>
+<p><strong>接下来</strong>让我们看看优先级是否在1到31的范围内，如果没有，则中止：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps693C.tmp.jpg" alt="img"> </p>
+<p>设置优先级之前，<strong>我们需要</strong>获得内核空间中真是的线程对象的指针，用到PsLookupThreadByThreadId函数，通过线程Id获得（note:include ntfis.h）。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps693D.tmp.jpg" alt="img"> </p>
+<p>函数的第一个参数是一个句柄，这个ID它是一个作为句柄输入的ID。其原因与进程和线程id的生成方式有关。这些都是由全局私有内核句柄表生成的，所以句柄“值”是实际的id。ULongToHandle宏提供了必要的转换。（请记住，64位系统上的句柄是64位，但客户端提供的线程ID总是32位。）</p>
+<p>KeSetPriorityThread需要的参数是一个PKTHREAD，但是PETHREAD的第一个成员就是前者类型，所以两者可以相互转换</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps693E.tmp.jpg" alt="img"> </p>
+<h5 id="安装和测试"><a href="#安装和测试" class="headerlink" title="安装和测试"></a>安装和测试</h5><p><strong>1.管理员打开cmd</strong></p>
+<p>sc create booster type= kernel binPath= c:\PriorityBooster.sys</p>
+<p>booster是注册表键值，所以必须是独一无二的</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps693F.tmp.jpg" alt="img"> </p>
+<p><strong>2.加载驱动</strong></p>
+<p>sc start booster<strong>（note:生成文件后缀没有recipe只有sys）</strong></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6940.tmp.jpg" alt="img"> </p>
+<p>然后采用ProcessExplorer查看cmd.exe的一个线程，将其作为实践对象</p>
+<p><strong>3.使用线程ID和所需的优先级运行客户端：</strong></p>
+<p>booster 3384 25</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6951.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6952.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6953.tmp.jpg" alt="img"> </p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/07/16/Q_record/%E5%8F%8C%E6%9C%BA%E8%B0%83%E8%AF%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/07/16/Q_record/%E5%8F%8C%E6%9C%BA%E8%B0%83%E8%AF%95/" class="post-title-link" itemprop="url">双机调试</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-07-16 00:00:00" itemprop="dateCreated datePublished" datetime="2021-07-16T00:00:00+08:00">2021-07-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 11:33:26" itemprop="dateModified" datetime="2021-12-22T11:33:26+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%BC%80%E5%8F%91%E9%97%AE%E9%A2%98%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">开发问题笔记</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>611</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="双机调试"><a href="#双机调试" class="headerlink" title="双机调试"></a>双机调试</h3><p>双机调试</p>
+<p>1.打开源代码文件a.cpp</p>
+<p>2.!process 0 0 进程名</p>
+<p>3.显示eprocess结构体地址，输命令 .process /i /r /p 地址</p>
+<p>4.g</p>
+<p>5..reload /user /f</p>
+<p>6.在cpp下断点，g</p>
+<p><strong>双机调试应用实例：</strong></p>
+<p>ps（调试的时候记得看microsoft file有没有文件；virtualKD：将target64复制到虚拟机，然后启动程序）</p>
+<p>首先虚拟机按f8关闭强制签名</p>
+<p>运行AutoRun.exe，然后在Windbg打开源代码文件，再break(注意这里打开的exe与cpp一定要是同一个文件)</p>
+<p>!process 0 0 进程名(显示进程名)</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/ProjectRecord2/wps6917.tmp.jpg" alt="img"> </p>
+<p>显示eprocess结构体地址，输命令 .process /i /r /p 地址，然后输入g继续运行，再.reload /user /f加载符号</p>
+<p>在cpp中下断点，断在CreateService函数的位置，一步一步调试到要到的位置，这个位置的选定要结合IDA，首先IDA打开CreateService的dll,下图中圈出来的前三个是该函数的开头字节码。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/ProjectRecord2/wps6918.tmp.jpg" alt="img"> </p>
+<p>下图是该函数的伪代码，调试发现函数进的是箭头指向的函数，所以直接动态调试进该函数，我们动态调试的目的是需要看该函数的第二个参数是什么。但是由于参数地址后面加了3090，所以在静态分析的时候不能准确判断。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/ProjectRecord2/wps6919.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/ProjectRecord2/wps691A.tmp.jpg" alt="img"> </p>
+<p>在windbg中动态调试查看第二个参数压入栈的寄存器的值，在IDA中找到该地址的值，就可以得到我们要的函数字节码</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/ProjectRecord2/wps691B.tmp.jpg" alt="img"> </p>
+<p>对比发现是4800h开头的值</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/ProjectRecord2/wps691C.tmp.jpg" alt="img"> </p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/07/06/wkp/Chapter%203%20Kernel%20Programming%20Basics/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/07/06/wkp/Chapter%203%20Kernel%20Programming%20Basics/" class="post-title-link" itemprop="url">Chapter 3 Kernel Programming Basics</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-07-06 00:00:00" itemprop="dateCreated datePublished" datetime="2021-07-06T00:00:00+08:00">2021-07-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 12:37:54" itemprop="dateModified" datetime="2021-12-22T12:37:54+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">驱动开发</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6901.tmp.jpg" alt="img"> </p>
+<h5 id="未处理的异常"><a href="#未处理的异常" class="headerlink" title="未处理的异常"></a>未处理的异常</h5><p>用户模式情况下会崩溃该进程，内核模式下会崩溃系统，导致蓝屏（实质上是一种保护机制，如果允许代码继续执行可能会造成一些不可逆转的损坏）。</p>
+<h5 id="终止"><a href="#终止" class="headerlink" title="终止"></a>终止</h5><p>进程会自动释放内存和资源，包括关闭句柄，没有资源泄露。而对于内核驱动来说，如果没有释放资源，这些资源不会被自动释放，只有在下一次系统启动时才能被释放。</p>
+<h5 id="函数返回值"><a href="#函数返回值" class="headerlink" title="函数返回值"></a>函数返回值</h5><p>要注意处理内核模式下的函数返回值，因为一些简单的API函数也有可能失败，失败造成的结果相比用户模式比较严重。</p>
+<h5 id="IRQL"><a href="#IRQL" class="headerlink" title="IRQL"></a>IRQL</h5><p>中断请求级别，当一个用户模式代码正在执行时，<strong>总是</strong>为0；内核模式下<strong>大部分时间</strong>为0.</p>
+<h5 id="C-使用"><a href="#C-使用" class="headerlink" title="C++使用"></a>C++使用</h5><p>C++作为一种语言几乎完全支持内核代码，C++的一个术语RAII(资源获取就是初始化)，是C++常用的管理资源、避免内存泄漏的方法，保证在任何情况下，使用对象是先构造对象，然后析构对象。但是在内核钟没有C++运行，所以<strong>一些C++特性不能被使用：</strong></p>
+<ul>
+<li><p>new和delete不被支持并且不会被编译，这是因为它们的正常操作是从用户模式堆中分配，这和内核无关。但是内核API会有替换函数，但是模仿的函数更类似malloc和free,</p>
+</li>
+<li><p>将不会调用具有非默认构造函数的全局变量，当然这些情况可以<strong>通过这些方式避免</strong>：<strong>避免使用构造函数中的任何代码，而是创建一些要从驱动程序代码中显式调用的Init函数</strong>；<strong>只将指针分配为全局变量，并动态地创建实际实例。编译器将生成正确的代码来调用构造函数。</strong></p>
+</li>
+<li><p>C++异常处理关键字（try,catch,throw）不进行编译。这是因为C++异常处理机制需要它自己的运行时，异常处理只能使用结构化异常处理(SEH)来完成——这是一种处理异常的内核机制</p>
+</li>
+<li><p>在内核中无法使用标准的C++库。</p>
+</li>
+</ul>
+<p>严格地说，驱动程序可以用纯C语编写，没有任何问题。如果您更喜欢使用该路由，请使用具有C扩展名的文件，而不是CPP，这将自动调用C编译器。</p>
+<h4 id="2-Debug与Release"><a href="#2-Debug与Release" class="headerlink" title="2.Debug与Release"></a>2.Debug与Release</h4><p>​    Debug默认不适用优化但是更易于调试。Release利用编译器优化来尽可能快地生成代码，在内核中是checked\Free.从编译角度看，内核调试定义符号DBG，并将其设置为1（用户模式定_DEBUG），这实际上是KdPrint宏所做的：在debug构建中，它编译为调用DbgPrint，而在Realse中，它什么都不编译，所以vKdPrint调用在Realse中没有影响。</p>
+<h4 id="3-内核API"><a href="#3-内核API" class="headerlink" title="3.内核API"></a>3.内核API</h4><p>​    内核驱动程序使用从内核组件导出的函数，大多数都是在内核模块本身(NtOskrnl.exe)中实现的，但有些功能可以由其他内核模块实现，比如HAL(hal.dll)。</p>
+<p>​    大多数函数都以实现该功能地组件前缀开头，比如Nt，Ex。</p>
+<p>​    如果内核驱动程序需要调用系统服务，则它不应该受到对用户模式调用者施加的相同的检查和约束。这就是Zw函数发挥作用的地方。调用Zw函数会将前面的调用者模式设置为KernelMode（0），然后调用本机函数。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6911.tmp.jpg" alt="img"> </p>
+<p>​    调用Zw函数将前一个调用者模式设置为KernelMode（0），然后调用本机函数。例如，调用ZwCreateFile将上一个调用方设置为kernelMode，然后调用NtCreateFile，从而使NtCreateFile绕过一些安全性和缓冲区检查，否则将执行这些检查。</p>
+<p>​    <strong>内核驱动都推荐用Zw，可以避免不必要的检查。</strong></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6912.tmp.jpg" alt="img"> </p>
+<h4 id="4-函数和错误代码"><a href="#4-函数和错误代码" class="headerlink" title="4.函数和错误代码"></a>4.函数和错误代码</h4><p>​    大多数内核API函数返回一个指示操作成功或失败的状态。这是一个类型NTSTATUS，一个有符号的32位整数。值STATUS_SUCCESS（0）表示成功，负值表示存在某种错误。</p>
+<p>​    大多数代码路径都不关心错误的确切性质，因此测试最重要的位就足够了。这可以通过NT_SUCCESS宏来完成。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6913.tmp.jpg" alt="img"> </p>
+<p>​    在某些情况下，NTSTATUS将从函数返回并最终到用户模式。在这些情况下，STATUS_xxx值将通过<strong>GetLastError</strong>函数转换为用户模式可用的某些ERROR_yyy值。请注意，这些都不是相同的数字。首先，用户模式下的错误代码具有正值，其次，该映射并不是一对一的。</p>
+<h4 id="5-字符串"><a href="#5-字符串" class="headerlink" title="5.字符串"></a>5.字符串</h4><p>​    _UNICODE_STRING，操作该结构通常用Rtl开头的函数。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6914.tmp.jpg" alt="img"> </p>
+<h4 id="6-动态分配内存"><a href="#6-动态分配内存" class="headerlink" title="6.动态分配内存"></a>6.动态分配内存</h4><p>​    驱动通常都需要动态分配内存，驱动一般提供两种内存池，</p>
+<p>​    分页池—如果需要，可以调出的内存池。</p>
+<p>​    非分页池—从不分页并保证保留在RAM中的内存池（慎用）</p>
+<p>​    某些函数中的tag参数允许用4字节值标记分配。通常，此值最多由4个ASCII字符组成，这些字符在逻辑上标识驱动程序或驱动程序的某些部分。这些标记可用于指示内存泄漏—如果在卸载驱动程序后仍保留任何带有驱动程序标记的分配。</p>
+<h4 id="7-链表"><a href="#7-链表" class="headerlink" title="7.链表"></a>7.链表</h4><p>​    系统上的所有进程都由EPROCESS结构管理，连接在一个循环的双链表中，它的头存储在内核变量PsActiveProcessHead中。</p>
+<p>​    CONTAINING_RECORD是一个宏，根据一个结构体变量成员的地址来获取该结构体变量的地址,成员变量的地址-成员变量和结构体首地址间的偏移量，就是结构体的首地址了。<br>​    CONTAINING_RECORD (entry, PDO_DEVICE_DATA, Link);<br>​    entry是一个PDO_DEVICE_DATA结构中Link成员的地址，表达式得到的是其所在结构体变量的地址。<br>​    LIST_ENTRY是一个链表节点成员，一些结构中会定义一个此类型的成员，以便把很多结构体变量连成一个链表。在自定义结构中，最好把链表节点成员定义在最前，这样该成员的地址就是结构体的地址，不需要这样转换。</p>
+<h4 id="8-驱动对象"><a href="#8-驱动对象" class="headerlink" title="8.驱动对象"></a>8.驱动对象</h4><p>​    Driver在启动时对Driver_Object初始化，MajorFunction指定驱动支持哪些操作比如读写创建等等，通常这些都需要IRP_MJ前缀以前的MajorFunction队列由内核初始化，一个驱动至少要有Creat和Close操作。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6915.tmp.jpg" alt="img"> </p>
+<h4 id="9-设备对象"><a href="#9-设备对象" class="headerlink" title="9.设备对象"></a>9.设备对象</h4><p>​    客户端与驱动程序对话的实际通信端点是<strong>设备对象</strong>，要与Driver_Object通信，必须创建一个DeviceObject与之连接，一个驱动对象可以有多个设备对象，以链表方式存在。</p>
+<p>​    CreateFile函数第一个参数是文件名，其实应该是驱动对象名。CreateFile的file其实意味着文件对象。打开一个文件或者设备句柄会创建内核结构FILE_OBJECT的实例。更准确地说，CreateFile接受一个<strong>符号链接</strong>（一个知道如何指向另外一个内核对象得内核对象。类似文件的快捷方式）。</p>
+<p>​    大部分的符号链接都在这个Global??目录里，指向设备目录下的内部设备名称。用户模式调用者不能直接访问此目录中的名称。但是内核调用者可以使用IoGetDevice对象指针API访问它们。</p>
+<p>​    驱动程序使用IoCreateDevice函数创建设备对象。此函数分配并初始化设备对象结构，并将其指针返回给调用者。设备对象实例存储在DRIVER_OBJECT结构的DeviceObject成员中。如果创建了多个设备对象，它们将形成一个单独的链接列表，其中DEVICE_OBJECT的成员NextDevice指向下一个设备对象。注意，设备对象插入到列表的顶部，因此创建的第一个设备对象最后存储；其NextDevice指向NULL。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6916.tmp.jpg" alt="img"> </p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -662,508 +1347,10 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/04/28/sample/KimSuky%E7%BB%84%E7%BB%87%E6%A0%B7%E6%9C%AC%E5%88%86%E6%9E%90/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/04/28/sample/KimSuky%E7%BB%84%E7%BB%87%E6%A0%B7%E6%9C%AC%E5%88%86%E6%9E%90/" class="post-title-link" itemprop="url">KimSuky样本分析</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-04-28 00:00:00" itemprop="dateCreated datePublished" datetime="2021-04-28T00:00:00+08:00">2021-04-28</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-24 15:32:08" itemprop="dateModified" datetime="2021-12-24T15:32:08+08:00">2021-12-24</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%A0%B7%E6%9C%AC%E5%88%86%E6%9E%90/" itemprop="url" rel="index"><span itemprop="name">样本分析</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>2.3k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>2 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="KimSuky组织样本分析"><a href="#KimSuky组织样本分析" class="headerlink" title="KimSuky组织样本分析"></a>KimSuky组织样本分析</h2><blockquote>
-<p>MD5：ae986dd436082fb9a7fec397c8b6e717</p>
-<p>SHA1:31a0168eb814b0d0753f88f6a766c04512b6ef03</p>
-<p>SHA256:3110f00c1c48bbba24931042657a21c55e9a07d2ef315c2eae0a422234623194</p>
-</blockquote>
-<h3 id="1-行为分析"><a href="#1-行为分析" class="headerlink" title="1. 行为分析"></a>1. 行为分析</h3><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/1.png" alt="image-20210428092813810"></p>
-<p>图标伪装成ESET杀毒软件，样本名字为eset_update.exe，伪装成升级程序。</p>
-<p>打开火绒剑进行进程过滤 （过滤-&gt;进程过滤-&gt;添加-&gt;开启监控），双击样本后程序运行如下</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/2.png" alt="image-20210428093420835"></p>
-<p>可以看到火绒剑在这里高亮了蓝色，这个是把C:\Users\Administrator\AppData\Roaming\目录下的程序加到开机启动项，前面的几步就是把释放的程序放到这个目录下</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/3.png" alt="image-20210428093654954"></p>
-<p>有一个网络连接，应该是要和远程的一个网站进行交互</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/4.png" alt="image-20210428094217330"></p>
-<h3 id="2-PE结构和IDA分析"><a href="#2-PE结构和IDA分析" class="headerlink" title="2.PE结构和IDA分析"></a>2.PE结构和IDA分析</h3><pre><code>#### 2.1PEiD与Keygener
-</code></pre>
-<p>首先用PEiD查壳,显示32位程序无壳。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/5.png" alt="image-20210428094601103"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/6.png" alt="image-20210428100058824"></p>
-<p>在Keygener中发现有Base64和CRC32怀疑程序内有一定的加密措施，后续直接拖到IDA分析</p>
-<h4 id="2-2-IDA分析"><a href="#2-2-IDA分析" class="headerlink" title="2.2 IDA分析"></a>2.2 IDA分析</h4><h5 id="2-2-1导入表分析"><a href="#2-2-1导入表分析" class="headerlink" title="2.2.1导入表分析"></a>2.2.1导入表分析</h5><p>可以看到关于文件的操作以及网络连接，印证了火绒剑行为分析</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/8.png" alt="image-20210428101855133"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/7.png" alt="image-20210428101618564"></p>
-<h5 id="2-2-2-WinMain函数分析"><a href="#2-2-2-WinMain函数分析" class="headerlink" title="2.2.2 WinMain函数分析"></a>2.2.2 WinMain函数分析</h5><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/9.png" alt="image-20210428102245344"></p>
-<p>在<code>winmain</code>函数中可以看到首先是创建了一个互斥对象，应该是为了创建相关进程或者检测相关进程是否存在，<code>getlasterror</code>判断指定的本地组是否存在</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/10.png" alt="image-20210428102523874"></p>
-<h5 id="2-2-3-sub-4011E0函数分析"><a href="#2-2-3-sub-4011E0函数分析" class="headerlink" title="2.2.3 sub_4011E0函数分析"></a>2.2.3 sub_4011E0函数分析</h5><p>进入函数后有一堆加密过的字符串和一堆<code>GetProcAddress</code>函数调用，猜测该函数为加载dll和相关字串解密获取相关api函数地址</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/11.png" alt="image-20210428103256337"></p>
-<p>用OD动态调试查看加密的DLL名字，打开OD发现基址是00480000，所以在4811E0处f2下断点，f9直接运行到函数处调试,可以看到导入的3个dll(<code>WINNET.dll</code>,<code>urlmon.dll</code>,<code>kernel32.dll</code>)<img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/12.png" alt="image-20210429095022290"></p>
-<p>前两个dll是获取了与网络相关的函数，kernel32获取了<code>CreateToolhelp32Snapshot</code>和<code>WinExec</code></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/13.png" alt="image-20210429095622308"></p>
-<h5 id="2-2-4-sub-403600函数分析"><a href="#2-2-4-sub-403600函数分析" class="headerlink" title="2.2.4 sub_403600函数分析"></a>2.2.4 sub_403600函数分析</h5><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/14.png" alt="image-20210429150725499"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/15.png" alt="image-20210429151023968"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/16.png" alt="image-20210429152301294"></p>
-<p>先在OD里面一步一步看看这个函数里面的各个函数要做什么，参数是什么，注释在下图，这个函数功能主要是将自身复制到特定目录，然后操作注册表实现自启动，最后弹窗欺骗用户ESET升级成功，电脑已被保护。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/17.png" alt="image-20210429161950264"></p>
-<h5 id="2-2-5-401580函数分析"><a href="#2-2-5-401580函数分析" class="headerlink" title="2.2.5 401580函数分析"></a>2.2.5 401580函数分析</h5><p>​    主要功能为获取本机网卡信息和执行获取磁盘序列号，以及随机数的生成，通过<code>GetAdaptersInfo</code>获取网卡配置和ip信息，后又通过<code>GetVolumeInformationA</code>来获取磁盘序列号，最后通过<code>GetTickCount</code>来生成随机数</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/18.png" alt="image-20210429165557251"></p>
-<h5 id="2-2-6-401770函数分析"><a href="#2-2-6-401770函数分析" class="headerlink" title="2.2.6 401770函数分析"></a>2.2.6 401770函数分析</h5><p>该函数主要为获取系统版本信息的获取和操作系统的位数，通过<code>GetVersion</code>函数获取相关系统版本信息，然后通过<code>GetNativeSystemInfo</code>,格式化一下，然后做数学运算应该是一些加密操作。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/19.png" alt="image-20210429170323853"></p>
-<h5 id="2-2-7-402790函数分析"><a href="#2-2-7-402790函数分析" class="headerlink" title="2.2.7 402790函数分析"></a>2.2.7 402790函数分析</h5><p>和前面一样，先OD动态调试查看解密后的值等</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/20.png" alt="image-20210429170936573"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/21.png" alt="image-20210429171202113"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/22.png" alt="image-20210429172418964"></p>
-<p>函数功能为注册表信息修改，然后将存储在<code>qword_41A620</code>处的恶意url写入注册表（此处先猜测该域名为C2服务器域名</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/23.png" alt="image-20210429172627346"></p>
-<h5 id="2-2-8-CreateThread分析"><a href="#2-2-8-CreateThread分析" class="headerlink" title="2.2.8 CreateThread分析"></a>2.2.8 CreateThread分析</h5><p>进入线程函数中查看线程函数完成的功能，首先是<code>sub_402F30</code>，前半部分构造http请求包</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/24.png" alt="image-20210429193038167"></p>
-<p>用OD调试发现后半部分是网络请求设置（头，方式，协议）</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/25.png" alt="image-20210429194705684"></p>
-<p>后续就是从C2服务器接受数据，然后Base64解码传输的数据，在进行多字节到宽字节的转换，把传输过来的数据经过一系列的运算来到<code>sub_401AA0</code>函数，</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/26.png" alt="image-20210429195608233"></p>
-<p>但是因为C2服务器现在无法连接了，所以动态调试没法接受传输过来的数据，下面分析<code>sub_401AA0</code>函数，由于无法动态调试，所以无法知道加密的字符串是什么，查找网上的博客知道是rundll32.exe.<img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/27.png" alt="image-20210429203028478"></p>
-<p>下面对C2服务器收到的数据通过”|“分割，依靠动物名字下达指令（核心功能远程控制）</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/28.png" alt="image-20210429203440338"></p>
-<p>比如tiger为cmd操作，mongkey为创建进程执行下载程序。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample3/29.png" alt="image-20210429203656736"></p>
-<h3 id="3-总结"><a href="#3-总结" class="headerlink" title="3.总结"></a>3.总结</h3><ul>
-<li><p>样本通过sub_4011E0调用解密函数解密一部分关键api,加载了WININET.dll、urlmon.dll、<br> kennel32.dll，并通过GetProcAddress函数获取相应函数地址，函数如下InternetOpenA、InternetCloseHandle、InternetConnectA、HttpOpenRequestAHttpSend、RequestAURLDownloadToFileA、DeleteUrlCacheEntryA、WinExec、CreateToolhelp32Snapshot、InternetReadFile、InternetQueryDataAvailable。</p>
-</li>
-<li><p>通过sub_403600函数实现文件自拷贝，自启动设置，程序弹窗设置。</p>
-</li>
-<li><p>通过sub_401580获取主机网卡和ip信息。</p>
-</li>
-<li><p>通过sub_401770获取系统版本信息的获取和操作系统的位数。</p>
-</li>
-<li><p>通过sub_402790修改注册表写入恶意url。</p>
-</li>
-<li><p>通过sub_931AA0实现相关的远程注入。</p>
-</li>
-<li><p> 该样本代码中加入了一系列动物名称，例如tiger、wolf等，属于KimSuky家族系列。</p>
-</li>
-</ul>
-<h5 id="个人体会"><a href="#个人体会" class="headerlink" title="个人体会"></a>个人体会</h5><p>  这次样本分析发现该样本其实用到的函数在项目中经常见到，所以分析起来比较顺手，知道各个API在用的时候企图达到什么样的目的。并且在这一次分析用到了OD，并且学会了OD动态调试查看dll调用情况以及加密的参数值。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/04/16/sample/%E7%AE%80%E5%8D%95%E7%9A%84%E9%97%B4%E8%B0%8D%E6%9C%A8%E9%A9%AC%E5%88%86%E6%9E%90/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/04/16/sample/%E7%AE%80%E5%8D%95%E7%9A%84%E9%97%B4%E8%B0%8D%E6%9C%A8%E9%A9%AC%E5%88%86%E6%9E%90/" class="post-title-link" itemprop="url">简单的间谍木马分析</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-04-16 00:00:00" itemprop="dateCreated datePublished" datetime="2021-04-16T00:00:00+08:00">2021-04-16</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-30 16:58:09" itemprop="dateModified" datetime="2021-12-30T16:58:09+08:00">2021-12-30</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%A0%B7%E6%9C%AC%E5%88%86%E6%9E%90/" itemprop="url" rel="index"><span itemprop="name">样本分析</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>2.1k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>2 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="简单的间谍木马分析"><a href="#简单的间谍木马分析" class="headerlink" title="简单的间谍木马分析"></a>简单的间谍木马分析</h1><h3 id="0-前言"><a href="#0-前言" class="headerlink" title="0.前言"></a>0.前言</h3><p>此篇笔记记录一下分析实战样本11_1的样本，技术已经过时，只是为了了解一下间谍木马的特征和行为。</p>
-<h3 id="1-静态分析"><a href="#1-静态分析" class="headerlink" title="1.静态分析"></a>1.静态分析</h3><ul>
-<li>由下图可知程序没有加壳是一个控制台程序。</li>
-</ul>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/1.png" alt="image-20210416161119304"></p>
-<ul>
-<li>查看导入表，可以看到对资源节操作的API,还有一些注册表相关的API</li>
-</ul>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/2.png" alt="image-20210416162024328"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/3.png" alt="image-20210416162311061"></p>
-<ul>
-<li>使用ResHack查看资源数据, 可以发现一段未经加密的PE数据,  后续会分析这段PE</li>
-</ul>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/4.png" alt="image-20210416163141671"></p>
-<ul>
-<li><p>IDA查看字符串，可以看到GinaDll,Windows的开机密码认证模块一般是由Gina DLL完成的。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/5.png" alt="image-20210419092154616"></p>
-<h3 id="2-火绒剑行为检测"><a href="#2-火绒剑行为检测" class="headerlink" title="2.火绒剑行为检测"></a>2.火绒剑行为检测</h3><p>查看行为，发现样本在同目录下释放了一个dll,经过对比发现，释放的dll就是资源中的PE数据<strong>（为什么）</strong>，然后对注册表写入dll的路径,并且最后摧毁了自己的进程。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/8.png" alt="image-20210419103650288"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/6.png" alt="image-20210419094915222"></p>
-<h3 id="3-IDA分析"><a href="#3-IDA分析" class="headerlink" title="3.IDA分析"></a>3.IDA分析</h3><h4 id="3-1-main分析"><a href="#3-1-main分析" class="headerlink" title="3.1 main分析"></a>3.1 main分析</h4><p>​        观察main函数代码,  可以发现程序首先通过<code>GetModuleFileNameA</code>获取自身程序的全路径, 在调用<code>401080</code>后, 然后通过<code>_strrchr</code>截取<code>\</code>之前的内容,  与<code>\\msgina32.dll</code>进行字符串拼接  然后将拼接后的字符串作为参数传入堆栈调用<code>401000</code></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/7.png" alt="image-20210419095821170"></p>
-<p>​        接下来分析401080与401000</p>
-<h4 id="3-2-401080分析"><a href="#3-2-401080分析" class="headerlink" title="3.2 401080分析"></a>3.2 401080分析</h4><p>​        可以明显看到资源节数据的操作，然后通过 <code>VirtualAlloc </code>申请一段内存空间用于存放资源中的PE数据, 在将资源中的数据取出后,  通过一系列文件操作将PE数据保存到<code>xx\msgina32.dll</code>文件中,  xx的路径就是main函数中通过<code>GetModuleFileNameA</code>取出的当前程序的运行路径。这里有个函数为<code>401299</code>,  这个函数就是类似printf的打印输出函数，这里我们将这个函数重命名,  防止后面的分析中再次出现  ,  可以节省时间。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/9.png" alt="image-20210420110324830"></p>
-<p>​    到这里<code>401080</code>这个函数功能已经确定了,  取资源节数据并写入文件 ,  文件名为<code>msgina32.dll</code>,  路径为程序同路径。</p>
-<h4 id="3-3-401000分析"><a href="#3-3-401000分析" class="headerlink" title="3.3 401000分析"></a>3.3 401000分析</h4><p>​    该函数的参数是释放出的dll文件的全路径，可以看到一系列注册表操作,   函数功能是将dll全路径写入注册表路径为<code>SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon</code>, 名为<code>GinaDLL</code>的注册表项。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/10.png" alt="image-20210421092749755"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/11.png" alt="image-20210421092844415"></p>
-<h4 id="3-4-exe总结"><a href="#3-4-exe总结" class="headerlink" title="3.4 exe总结"></a>3.4 exe总结</h4><p>​    整个exe的功能就是为了持久化安装dll文件：将自身资源中的PE数据写入与自身路径相同,  文件名为<code>msgina32.dll</code>的dll文件；将dll文件写入注册表；程序结束。</p>
-<p>​    所以说重要功能应该在dll里面，exe文件只是为了dll文件服务。  </p>
-<h3 id="4-IDA分析dll"><a href="#4-IDA分析dll" class="headerlink" title="4.IDA分析dll"></a>4.IDA分析dll</h3><h4 id="4-1-dllmain分析"><a href="#4-1-dllmain分析" class="headerlink" title="4.1 dllmain分析"></a>4.1 dllmain分析</h4><p>​    将<code>dll</code>文件拖入IDA，<code>查看dllmain</code>函数，首先是<code>DisableThreadLibraryCalls</code>禁用指定的DLL的<code>DLL_THREAD_ATTACH</code>和<code>DLL_THREAD_DETACH</code>通知，这样可以减小某些程序的工作集大小。</p>
-<p>​    通过<code>GetSystemDirectoryW</code>获取系统目录,  与<code>\MSGina</code>拼接后获取正常的GinaDll ,  然后通过<code>LoadLibraryW</code>加载获取dll句柄, 存入全局变量<code>hLibModule</code>,  然后dllmain函数执行结束</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/12.png" alt="image-20210421094451437"></p>
-<p>根据前面exe的注册表操作可以知道，这是为了替换正常的GinalDll,</p>
-<h4 id="4-2-dll导出函数"><a href="#4-2-dll导出函数" class="headerlink" title="4.2 dll导出函数"></a>4.2 dll导出函数</h4><p>查看dll导出函数,依次查看导出函数代码,  发现绝大多数导出函数都调用了<code>10001000</code>函数,  这个函数很明显用于导出函数的转发。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/13.png" alt="image-20210421095103186"></p>
-<p><code>DllRegister</code>与<code>DllUnregister</code>也是很简单的函数,  对于注册表值的安装/卸载操作，通过查询百度相关文档信息,  我们知道<code>WlxLoggedOutSAS</code>是在windows注销时会调用的函数,接下来看看它想在注销时做什么。</p>
-<h4 id="4-3-WlxLoggedOutSAS分析"><a href="#4-3-WlxLoggedOutSAS分析" class="headerlink" title="4.3 WlxLoggedOutSAS分析"></a>4.3 WlxLoggedOutSAS分析</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/14.png" alt="image-20210421100642564"></p>
-<p>观察代码, 样本首先调用10001000进行正常功能的转发,  然后调用edi,  通过回溯寄存器(<strong>如何？</strong>),  我们知道了edi是正常的<code>WlxLoggedOutSAS</code>,  然后样本执行了10001570函数,  观察参数发现一个有趣的字符串<code>UN %s DM %s PW %s OLD %s</code>,  这种携带占位符的字符串常用于输出, 替换, 拼接等,  接下来我们就需要看看10001570处的函数</p>
-<h4 id="4-4-10001570分析"><a href="#4-4-10001570分析" class="headerlink" title="4.4 10001570分析"></a>4.4 10001570分析</h4><p>首先将传入的参数通过<code>_vsnwprintf</code>进行格式化, 然后打开文件<code>msutil32.sys</code>,  接着格式化时间,  然后调用<code>fwprintf</code>将数据写入流中,  通过寄存器回溯, 我们可以找到esi来源就是wfopen的返回值, 也就是代表文件<code>msutil32.sys</code></p>
-<p>然后调用<code>FormatMessageW</code>转化一些数据, 观察参数大致能猜出来是系统调用时传递的数据. 最后关闭文件,结束程序。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample2/15.png" alt="image-20210421100908023"></p>
-<h4 id="4-5-总结"><a href="#4-5-总结" class="headerlink" title="4.5 总结"></a>4.5 总结</h4><p>​    根据分析,  整个dll的作用就是劫持WlxLoggedOutSAS函数,  获取到函数参数后加入一些例如时间戳信息后写入文件<code>msutil32.sys</code>,  这也说明这个sys文件并不像它表现出的是个驱动文件,  而是一个简单的日志文件。</p>
-<p>​    由于GinaDll在新系统中已经不再使用, 因此想要复现需要XP或者更旧的系统,  这样在点击注销后, 样本会记录用户的账户密码,  也就是个最简单的间谍木马</p>
-</li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/04/12/sample/RainbowCat/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/04/12/sample/RainbowCat/" class="post-title-link" itemprop="url">彩虹猫样本分析</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-04-12 00:00:00" itemprop="dateCreated datePublished" datetime="2021-04-12T00:00:00+08:00">2021-04-12</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-24 15:31:49" itemprop="dateModified" datetime="2021-12-24T15:31:49+08:00">2021-12-24</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%A0%B7%E6%9C%AC%E5%88%86%E6%9E%90/" itemprop="url" rel="index"><span itemprop="name">样本分析</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>6.4k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>6 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <blockquote>
-<p>样本名称：彩虹猫    </p>
-<p>MD5：19DBEC50735B5F2A72D4199C4E184960      </p>
-<p>SHA1：6FED7732F7CB6F59743795B2AB154A3676F4C822</p>
-<p>实验平台：Windows10</p>
-<p>分析工具：PEiD v0.95、StudyPE x64 v1.11、IDA x32 v7.0、VMWare WorkStation v16.2</p>
-</blockquote>
-<hr>
-<h2 id="一、运行观察以及信息收集"><a href="#一、运行观察以及信息收集" class="headerlink" title="一、运行观察以及信息收集"></a>一、运行观察以及信息收集</h2><p>​        双击病毒样本后接连弹出两个警告弹窗（告知用户危险）。点击确定后，桌面会慢慢出现一些诡异的现象，比如：</p>
-<ul>
-<li><p>自动弹出多个浏览器搜索窗口</p>
-</li>
-<li><p>鼠标晃动异常</p>
-</li>
-<li><p>窗口颜色怪异</p>
-</li>
-<li><p>反复出现系统提示音</p>
-</li>
-<li><p>出现六个病毒进程</p>
-</li>
-</ul>
-<p>​        尝试关闭任意一个，或者手动关闭计算机，都会遭至大量弹窗随后蓝屏，接着Windows无法正常启动，只会循环播放一只彩虹猫附带欢快的背景音乐，无论重启多少次都是如此。运行观察结束，用基本的可执行文件信息查看工具分析。</p>
-<h3 id="1-PEiD"><a href="#1-PEiD" class="headerlink" title="1.PEiD"></a>1.PEiD</h3><p>​        <img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/1.png" alt="image1"></p>
-<p>​        监测到该样本可能使用了ASProtect v1.32进行加壳或加密</p>
-<h3 id="2-StudyPE"><a href="#2-StudyPE" class="headerlink" title="2.StudyPE+"></a>2.StudyPE+</h3><p>​        查看样本导入表，可以看到很多对样本分析有用的函数，我们将函数与之前观察到的样本运行行为相关联。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/2.png" alt="image2"></p>
-<ul>
-<li><p>自动弹出多个浏览器搜索窗口———————-ShellExecute</p>
-</li>
-<li><p>鼠标异常晃动————————————–SetCursorPos、GetCursorPos</p>
-</li>
-<li><p>桌面出现奇怪图标———————————DrawIcon</p>
-</li>
-<li><p>窗口颜色怪异————————————–BitBlt、StretchBlt</p>
-</li>
-<li><p>反复出现系统提示音——————————-PlaySoundA</p>
-</li>
-<li><p>出现6个病毒进程——————————–ShellExecute</p>
-</li>
-</ul>
-<p><strong>其他函数：</strong></p>
-<p>​        OpenProcessToken、AdjustTokenPrivilege、LookUpPrivilegeValue  给进程提权  </p>
-<p>​        GetMessage、TranslateMessage、DispatchMessage              建立消息循环  </p>
-<p>​        CreateToolhelp32Snapshot、Process32First、Process32Next       遍历进程</p>
-<p>​        SetWindowHookEx、UnhookWindowHookEx、CallNextHookEx     给窗口下钩子</p>
-<p>​        LoadLibrary、GetProcAddress                                加载库并导入函数  </p>
-<h2 id="二、入口部分"><a href="#二、入口部分" class="headerlink" title="二、入口部分"></a>二、入口部分</h2><p>​        使用IDA载入样本，定位到入口函数Start并按下F5获得伪代码，但是这些伪代码只是IDA根据现有信息猜测出来的，<u>并不能保证100%准确</u>，有的时候甚至会对分析工作产生误导，一会就能看到。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/3.png" alt="image-20210412162508459"></p>
-<p>​        在start函数的起始部分调用GetCommandLineW、CommandLineToArgvW获取进程参数，之后整个Start函数就根据进程参数分成了几大块，整理后其结构大致可分为如下</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/4.png" alt="4"></p>
-<p>​        我们第一次双击样本的时候是不带参数的，所以先看无参数也就是else部分     </p>
-<h2 id="三、无参数部分"><a href="#三、无参数部分" class="headerlink" title="三、无参数部分"></a>三、无参数部分</h2><p>​        此处先是用<strong>MessagexBox</strong>依次弹出两个警告信息提示框，正是我们运行病毒时所看到的警告。若两个弹窗都被用户确认，使用<strong>GetModuleFileNameW</strong>获取当前进程的路径并保存，当然所保存的空间由<strong>LocalAlloc</strong>提前申请。接着用<strong>do  while</strong>执行5次循环，每次循环都调用一次<strong>ShellExecuteW</strong>，参数正是刚才得到的样本进程路径，以及字符串**”/watchdog”<strong>，即以</strong>“/watchdog”**为参数，生成5个病毒exe进程。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/5.png" alt="image-20210412163127104"></p>
-<p>​        在最后调用了<strong>ShellExecuteExW</strong>以<strong>“/main”</strong>为参数生成了一个MEMZ.exe进程，<u>一般带Ex后缀是加强版函数</u>，表示在普通版函数基础上进行了功能的扩展，这里特意用了一个功能更强的函数一定有特别的目的。该函数接收一个<strong>SHELLEXECUTEINFOA</strong>结构体，结构体中设定了进程路径和执行参数,关键之处在于紧接着调用了<strong>SetPriorityClass</strong>，当中对<strong>hProcess</strong>成员复制为<strong>0x80</strong>，查看MSDN得知该值意味着<u>的进程将拥有最高的响应优先级</u>，最后调用<strong>ExitProcess</strong>使当前进程结束。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/6.png" alt="image-20210412163340505"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/7.png" alt="image-20210412164320031"></p>
-<p>​        现在知道在观察阶段看到的6个exe进程是怎么来的了：最开始双击生成了一个原始进程，原始进程生成了5个watchdog进程和1个/main进程，然后原始进程迅速结束了自己，等打开任务管理器查看时，还存在6个exe进程。</p>
-<h2 id="四、“watchdog”部分"><a href="#四、“watchdog”部分" class="headerlink" title="四、“watchdog”部分"></a>四、“watchdog”部分</h2><h3 id="1-主体部分"><a href="#1-主体部分" class="headerlink" title="1.主体部分"></a>1.主体部分</h3><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/8.png" alt="image-20210412164339025"></p>
-<p>​        首先是<strong>CreateThread</strong>创建一个线程，IDA给自动命名为sub_40114A。<u>以watchdog为参数运行的MEMZ.exe进程是有5个的，也就是说这里看到的创建一个线程是“某个进程“的行为，5个进程一共应该创建了5个线程</u>。进入sub_40114A看看这个线程干了些什么事。</p>
-<h3 id="2-子函数sub-40114A"><a href="#2-子函数sub-40114A" class="headerlink" title="2.子函数sub_40114A"></a>2.子函数sub_40114A</h3><p>​        前三个函数用来获取当前进程路径（这种多个函数配合起来做事的情况有很多，常常是最后一个函数完成关键功能，前面几个都是为它提供必要的参数），比如<strong>LocalAlloc</strong>申请空间用来存路径字符串，<strong>GetCurrentProcess</strong>获取当前进程句柄，这都是第三个函数要用到的。</p>
-<p>​        接着一个大的<strong>while</strong>循环把后面的代码都包了进去，该<strong>while</strong>循环的条件永远为真，说明是个死循环。在循环内部使用<strong>CreateToolhelp32Snapshot</strong>给进程拍快照，再用<strong>Process32FirstW</strong>和<strong>Process32NextW</strong>进行遍历，我们在观察阶段查看导入表时也发现了这三个函数，这里就用上了。</p>
-<p>​        每当遍历到一个进程时都要获取它的路径，并和之前获取的路径对比，如果相同就让计数器加1，很明显这就是在看当前有多少个exe的进程。当遍历完所有进程后，就统计出了exe的进程个数。然后由于Sleep函数的存在，死循环每隔一段时间就能统计出当前exe进程的个数并存放在v4变量中，然后先判断v4和v7的大小，再让v7保存v4的值。</p>
-<p>​        如此就形成了一个监测机制，v7永远只保存v4最大的值，一旦v4的值小于了v7就会被<strong>if</strong>语句监测到，并进入<strong>sub_401021</strong>子函数。这正好和我们观察阶段的发现一致。只要exe进程数量减少，系统就会蓝屏重启，这就是它的监测原理。<strong>反过来我们可以推测sub_401021就是完成系统蓝屏重启功能的。</strong></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/9.png" alt="image-20210412165606391"></p>
-<h3 id="3-子函数sub-401021"><a href="#3-子函数sub-401021" class="headerlink" title="3.子函数sub_401021"></a>3.子函数sub_401021</h3><p>​        在这个子函数的开头是一个<strong>do while</strong>循环，循环次数为20次，用<strong>CreateThread</strong>创建线程，这没什么特别的，像往常一样我们双击<strong>StartAddress</strong>准备去看这个线程做了什么事，但是双击过后却没有任何反应，这其实是IDA的代码识别出现错误。（后续补充</p>
-<p>​        在这里为了不影响我们的分析主线，直接键盘按G输入地址<strong>4010FE</strong>就可以跳到<strong>StartAddress</strong>的代码。该处的<strong>MessageBoxA</strong>用于弹出消息，有26条消息保存在<strong>lpText</strong>所指向的地址中。使用<strong>sub_401A55</strong>获取随机数保存在v3，v3对<strong>0x1A</strong>取余以实现在26条消息中随机选取一条并显示。</p>
-<p>​        而<strong>SetWindowsHookEx</strong>和<strong>UnhookWindowsHookEx</strong>用于给窗口下钩子，干了什么事要到回调函数fn里去看。code==3表明目标窗口即将被创建，此时lParam表示该窗口的基本信息（坐标、大小等），修改这些信息可以在窗口真正创建之前生效，下方正是在随机修改窗口的位置。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/11.png" alt="11"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/12.png" alt="12"></p>
-<p>​        <strong>sub_401021</strong>的后半部分是两种关机的方式：先主动诱发蓝屏关机，如果不成功则主动退出Windows。</p>
-<p>​        前一种方式使用<strong>LoadLibrary</strong>加载ntdll库，再连续两次调用<strong>GetProcAddress</strong>获取两个函数地址，这两个函数是未公开的Windows  API，只能用这种方式来隐式调用。随后依次调用这两个函数，主动引发蓝屏。很多恶意程序在隐式调用时会对函数名字符串先加密，要用的时候再解密，或者干脆不使用函数名而用函数编号，显然我们分析的样本没有做这种“隐蔽处理”。</p>
-<p>​        后一种方式先用一系列函数给当前进程提权，然后调用<strong>ExitWindowsEx</strong>主动关闭<strong>Windows</strong>。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/10.png" alt="image-20210412165900085"></p>
-<p>​        总结一下，我们确认了之前的猜想，sub_401021确实是一个强制关机的函数，先创建线程用于弹出大量位置和内容都随机的窗口，再使用蓝屏或退出Windows的方式强制关闭计算机.</p>
-<h3 id="4-注册并创建窗口"><a href="#4-注册并创建窗口" class="headerlink" title="4.注册并创建窗口"></a>4.注册并创建窗口</h3><p>​        我们依次分析了函数开头-&gt;sub_40114A-&gt;sub_401021，是时候回到watchdog的主体部分。这张图之前出现过。在创建<strong>sub_40114A</strong>后，调用<strong>RegisterClassExA</strong>注册了一个名为<strong>“hax”</strong>的用户自定义窗口类型，并用<strong>CreateWindowExA</strong>将其创建。此处有个小问题，传递给<strong>RegisterClassExA</strong>函数的结构体变量<strong>pExecInfo</strong>定义为了<strong>SHELLEXECUTEINFOW</strong>类型，而不是该函数所需要的<strong>WNDCLASSEXA</strong>类型，这是IDA的识别出现了错误。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/13.png" alt="13"></p>
-<h3 id="5-回调函数sub-401000"><a href="#5-回调函数sub-401000" class="headerlink" title="5.回调函数sub_401000"></a>5.回调函数sub_401000</h3><p>​        创建的窗口有一个回调函数<strong>sub_401000</strong>。经查询MSDN，常量值16和22分别对应窗口消息<strong>WM_CLOSE</strong>和<strong>WM_ENDSESSION</strong>，那么整体含义就很明了了：该窗口回调函数会对窗口消息进行过滤，若消息为<strong>WM_CLOSE</strong>或者<strong>WM_ENDSESSION</strong>，则调用<strong>sub_401021</strong>强制关机（这个函数前面刚分析过）。而<strong>WM_CLOSE</strong>或<strong>WM_ENDSESSION</strong>消息是在系统关机时，由操作系统发送给各个窗口。</p>
-<p>​        若是其他消息，则并不做任何处理，丢给系统默认处理函数<strong>DefWindowProcW</strong>。</p>
-<p>​        如此一来，<strong>sub_401021</strong>这个强制关机函数在两处被调用。第一个是监测<strong>watchdog</strong>进程数量，如有减少就调用。第二个是监测用户是否主动关机，如有也调用。这和我们观察阶段看到的完全一致。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/14.png" alt="image-20210412170948933"></p>
-<h3 id="6-消息循环"><a href="#6-消息循环" class="headerlink" title="6.消息循环"></a>6.消息循环</h3><p>​        紧接着的代码GetMessage、TranslateMessage、DispatchMessage被包进一个大的while循环，这是常见的操作，叫做“消息循环”。由于在前面创建了窗口，并且还对发送给窗口的消息进行了过滤，意味着我们必须自己写消息循环完成收取消息和派发消息的工作，否则创建的窗口是收不到消息的。Windows并不会自动帮我们完成消息循环。</p>
-<h2 id="五、“-main”部分"><a href="#五、“-main”部分" class="headerlink" title="五、“/main”部分"></a>五、“/main”部分</h2><h3 id="1-主体"><a href="#1-主体" class="headerlink" title="1.主体"></a>1.主体</h3><p>​        由于开头部分代码和MBR有极强的联系，索性把它划到MBR章节了，到时候再一块说。这里有一个<strong>do while <strong>循环，</strong>/main</strong>部分的分析就从这儿开始。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/15.png" alt="15"></p>
-<p>​    此处的<strong>do while</strong>循环以v8为计数器，内部用<strong>CreateThread</strong>创建线程，循环跑10次（v8 &lt;  0xA），一共创建10个线程。这不由地让人好奇，创建这么多线程是要做什么？先别慌跳进去看，它还附带一个参数v9，并被赋予初始值<strong>off_405130</strong>，每次循环自增2。以off开头表明是某个静态地址，我们双击过去看看。</p>
-<p>​        <strong>off_405130</strong>地址所指向的是一块数据区，并且这里的数据还有非常强的规律性。每组都由1个dd类型的数据加4个db类型的数据组成，一共有10组。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/16.png" alt="image-20210412171849504"></p>
-<blockquote>
-<p>db: data byte 1字节数据</p>
-<p>dw: data word  2字节数据</p>
-<p>dd: data dword  4字节数据</p>
-<p>dq: data qword  8字节数据</p>
-</blockquote>
-<p>​        再回过头来看看前面的<strong>do while</strong>，v9被赋值为<strong>off_405130</strong>并作为参数传入。<strong>Sleep</strong>函数里也用到了v9，它将v9看作了数组首地址，并每次取数组的第1项（数组项数从0开始）。每次循环v9都会自增2，由于v9的数据类型是<strong>DWORD</strong> <em>，</em>每次自增2就是自增两个<strong>DWORD</strong>的大小，即8个字节。</p>
-<p>​        v9的值指向的都是不同的静态地址，如果挨个双击跳过去看，会发现它们其实都是函数地址。而v9[1]是Sleep函数的参数，所指向的肯定是时间量（毫秒）。v9是4个字节的DWORD *  类型，那它指向的当然就是4字节的DWORD类型，所以这些时间量都是4字节的DWORD类型。我们在IDA中右键单击地址就可以选择其解析长度，我们用4字节来解析它。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/17.png" alt="17"></p>
-<p>​        看到这样的结构，很容易让人想到病毒作者写代码时应该用了结构体数组，结构体的构成如下：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">tagFuncWithDelay</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">  DWORD  pFunction;</span><br><span class="line">  DWORD  dwTimeDelay;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>​        10个这样的结构体在一个数组中,现在我们明白了，创建了10个进程，并且每次创建都会有延迟时间，这个延迟时间和进程的函数地址是放在一起的，一共有10组，都在一个大数组<strong>off_405130</strong>里。</p>
-<h3 id="2-子函数sub-401A2B"><a href="#2-子函数sub-401A2B" class="headerlink" title="2.子函数sub_401A2B"></a>2.子函数sub_401A2B</h3><p>​        这个子函数的代码很短：用大数组中的函数地址依次创建线程。由于是函数指针，要用它调用函数当然得声明其参数、返回值、调用方式之类的。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/18.png" alt="18"></p>
-<p>​        这10个函数做的事很简单，我以<strong>sub_40156D</strong>为例。它调用<strong>GetCursorPos</strong>获取鼠标指针坐标，然后用各种方式修改这个坐标的值，比如这里调用<strong>sub_401A55</strong>生成随机数并返回，用这些随机数与鼠标指针坐标做运算，最后调用<strong>SetCursorPos</strong>来设置鼠标指针坐标，用户就会发现鼠标指针随机晃动了。所有这10个函数都干的类似的事，这里不再依次分析。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/19.png" alt="19"></p>
-<p>​        这里还有一个小细节，10个函数每个的返回值部分都有不同，有的是返回一个随机值，有的是返回一个固定值。返回值被保存在v1，每次循环都会在if语句中判断!v1–是否为真，也即v1自减1后是否为0，控制v1的值就能决定循环的次数，再配合后面的Sleep函数就能决定这10个函数的激活时间。这10个函数中，有的需要一个固定的激活时间，有的需要一个随机的激活时间，只需要控制返回值即v1就可以了。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/20.png" alt="20"></p>
-<h2 id="六、MBR部分"><a href="#六、MBR部分" class="headerlink" title="六、MBR部分"></a>六、MBR部分</h2><h3 id="1-主体-1"><a href="#1-主体-1" class="headerlink" title="1.主体"></a>1.主体</h3><p>​        <strong>MBR</strong>全称主引导记录（<strong>Master Boot  Record</strong>），整个硬盘最开头的512字节就是它。计算机启动后会先运行<strong>MBR</strong>里的代码进行各种状态的检查和初始化的工作，然后再把控制权转交给操作系统（简单地讲就是一个<strong>JMP</strong>指令跳到操作系统的起始代码），Windows就加载启动了。</p>
-<p>​        这个病毒干了一件很可恶的事，它直接把整个<strong>MBR</strong>覆盖掉了，变成了它自己的代码，那么它想干什么都行了，只要它不主动交出代码执行流程，Windows绝没有启动的机会。</p>
-<p>​        <strong>MBR</strong>里既有代码也有数据，开头的0-446字节是代码，紧接着就是数据，数据部分记录着硬盘的分区信息，结尾以固定的<strong>0x55 0xAA</strong>作为结束符（PE文件结构）。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/21.png" alt="21"></p>
-<p>​        对<strong>MBR</strong>有个初步了解后，回头来看代码。现在先回到/main未分析的部分，我们前面提到过，它和<strong>MBR</strong>有紧密关联。</p>
-<p>​        首先使用<strong>CreateFileA</strong>以文件形式打开了主硬盘，也即<strong>PhysicalDrive0</strong>，这样方便后续的覆盖操作。紧接着用<strong>LocalAlloc</strong>分配一段以0为初始值的内存空间，并拷贝两段神秘数据到分配的内存空间。这两段数据中第一段<strong>byte_402118</strong>大小304字节，第二段<strong>byte_402248</strong>大小1952字节，拷贝时中间跳过了206字节。最后将内存空间的数据覆盖到主硬盘（<strong>PhysicalDrive0</strong>）的开头部位，原始MBR遭到破坏。</p>
-<p>​        第一段正好就覆盖了<strong>MBR</strong>的代码区域，所以几乎可以肯定这304字节是代码。第二段数据已经不属于MBR的范围，而且高达1952字节，很可能是用于显示动画的图像数据和音频数据。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/22.png" alt="image22"></p>
-<p>​        一旦将<strong>MBR</strong>覆盖，侵入也即宣告成功，病毒作者赶紧写了一堆话想要好好炫耀一番，这段话被写入<strong>note.txt</strong>文件中，并用Windows自带的记事本打开。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/23.png" alt="image23"></p>
-<p>遗留问题：IDA伪代码的问题以及MBR调试的问题（MBR运行在16位环境直接和硬件打交道，此阶段Windows根本没加载，OllyDbg或者WinDebug这种常用的调试器当然用不了。这时该用–Bochs（发音同“box”））</p>
-<p>参考链接：<a target="_blank" rel="noopener" href="https://bbs.pediy.com/thread-262873.htm">看雪论坛彩虹猫样本分析</a></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/5/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><span class="page-number current">6</span>
+    <a class="extend prev" rel="prev" href="/page/5/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><span class="page-number current">6</span><a class="page-number" href="/page/7/">7</a><a class="extend next" rel="next" href="/page/7/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1231,7 +1418,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">58</span>
+          <span class="site-state-item-count">63</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1244,7 +1431,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-count">61</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1291,12 +1478,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">149k</span>
+    <span title="站点总字数">152k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">2:16</span>
+    <span title="站点阅读时长">2:18</span>
 </div>
 
         
