@@ -20,7 +20,7 @@
 
   <meta name="description" content="栈溢出攻击基础知识​        栈溢出指的是程序向栈中某个变量中写入的字节数超过了这个变量本身所申请的字节数，因而导致与其相邻的栈中的变量的值被改变。关于栈溢出攻击，可以看一下下面的图。   ​        缓冲区可以理解为一段可读写的内存区域。代码段存放的是程序的机器码和只读数据。数据段存储的是静态数据和用户的全局变量。堆存储程序运行时分配的变量，大小不固定，由内存地址低向高增长。栈存放函">
 <meta property="og:type" content="article">
-<meta property="og:title" content="栈溢出攻击">
+<meta property="og:title" content="栈溢出攻击以及基本ROP">
 <meta property="og:url" content="https://erkeai.github.io/2022/04/01/pwn/%E6%A0%88%E6%BA%A2%E5%87%BA%E6%94%BB%E5%87%BB/index.html">
 <meta property="og:site_name" content="hazel&#39;blog">
 <meta property="og:description" content="栈溢出攻击基础知识​        栈溢出指的是程序向栈中某个变量中写入的字节数超过了这个变量本身所申请的字节数，因而导致与其相邻的栈中的变量的值被改变。关于栈溢出攻击，可以看一下下面的图。   ​        缓冲区可以理解为一段可读写的内存区域。代码段存放的是程序的机器码和只读数据。数据段存储的是静态数据和用户的全局变量。堆存储程序运行时分配的变量，大小不固定，由内存地址低向高增长。栈存放函">
@@ -36,11 +36,45 @@
 <meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402094553917.png">
 <meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402101815404.png">
 <meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402103300478.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402193552695.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402193819764.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402193948368.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402194512179.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402200053543.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402200631556.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402202232199.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402202212510.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404125137686.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404125637358.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404134647641.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404142901925.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404142942346.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404141904456.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404142841848.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405155936033.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406155849976.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406155917813.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405151835554.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405152932134.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405153116989.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405153323375.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405163142087.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405163611287.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406104719572.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406104605394.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406104929107.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406112911760.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406140129118.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406142427454.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406152131967.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406155128449.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406155326463.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406105537868.png">
 <meta property="article:published_time" content="2022-03-31T16:00:00.000Z">
-<meta property="article:modified_time" content="2022-04-02T08:25:10.579Z">
+<meta property="article:modified_time" content="2022-04-06T08:00:41.672Z">
 <meta property="article:author" content="ZouFeIYu">
 <meta property="article:tag" content="栈溢出">
-<meta property="article:tag" content="ROP">
+<meta property="article:tag" content="基本ROP">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401142938542.png">
 
@@ -57,7 +91,7 @@
   };
 </script>
 
-  <title>栈溢出攻击 | hazel'blog</title>
+  <title>栈溢出攻击以及基本ROP | hazel'blog</title>
   
 
 
@@ -146,7 +180,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">67</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">70</span></a>
 
   </li>
   </ul>
@@ -190,7 +224,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          栈溢出攻击
+          栈溢出攻击以及基本ROP
         </h1>
 
         <div class="post-meta">
@@ -207,7 +241,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-04-02 16:25:10" itemprop="dateModified" datetime="2022-04-02T16:25:10+08:00">2022-04-02</time>
+                <time title="修改时间：2022-04-06 16:00:41" itemprop="dateModified" datetime="2022-04-06T16:00:41+08:00">2022-04-06</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -225,14 +259,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>1.2k</span>
+              <span>7.5k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
+              <span>7 分钟</span>
             </span>
 
         </div>
@@ -244,35 +278,172 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h3 id="栈溢出攻击基础知识"><a href="#栈溢出攻击基础知识" class="headerlink" title="栈溢出攻击基础知识"></a>栈溢出攻击基础知识</h3><p>​        栈溢出指的是程序向栈中某个变量中写入的字节数超过了这个变量本身所申请的字节数，因而导致与其相邻的栈中的变量的值被改变。关于栈溢出攻击，可以看一下下面的图。  </p>
+        <h2 id="栈溢出攻击基础知识"><a href="#栈溢出攻击基础知识" class="headerlink" title="栈溢出攻击基础知识"></a>栈溢出攻击基础知识</h2><p>​        栈溢出指的是程序向栈中某个变量中写入的字节数超过了这个变量本身所申请的字节数，因而导致与其相邻的栈中的变量的值被改变。关于栈溢出攻击，可以看一下下面的图。  </p>
 <p>​        缓冲区可以理解为一段可读写的内存区域。代码段存放的是程序的机器码和只读数据。数据段存储的是静态数据和用户的全局变量。堆存储程序运行时分配的变量，大小不固定，由内存地址低向高增长。栈存放函数调用时的临时信息结构，由内存地址高向低增长。入栈（PUSH）时，栈顶变小。出栈（POP）时，栈顶变大。</p>
 <p>​        除了代码段和数据区域，其他的内存区域都能作为缓冲区，因此缓冲区溢出的位置可能在数据段、也可能在堆栈段。</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401142938542.png" alt="image-20220401142938542"></p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401143120042.png" alt="image-20220401143120042"></p>
-<h3 id="基本ROP"><a href="#基本ROP" class="headerlink" title="基本ROP"></a>基本ROP</h3><p>​        直接向栈或者堆上直接注入代码的方式已经难以发挥效果，提出的主要的绕过保护的方法就是ROP（面向返回的编程），主要思想是在<strong>栈缓冲区溢出的基础上，利用程序中已有的小片段 (gadgets) 来改变某些寄存器或者变量的值，从而控制程序的执行流程。</strong>所谓 gadgets 就是以 ret 结尾的指令序列，通过这些指令序列，我们可以修改某些地址的内容，方便控制程序的执行流程。</p>
+<h2 id="基本ROP"><a href="#基本ROP" class="headerlink" title="基本ROP"></a>基本ROP</h2><p>​        直接向栈或者堆上直接注入代码的方式已经难以发挥效果，提出的主要的绕过保护的方法就是ROP（面向返回的编程），主要思想是在<strong>栈缓冲区溢出的基础上，利用程序中已有的小片段 (gadgets) 来改变某些寄存器或者变量的值，从而控制程序的执行流程。</strong>所谓 gadgets 就是以 ret 结尾的指令序列，通过这些指令序列，我们可以修改某些地址的内容，方便控制程序的执行流程。</p>
 <p>利用条件如下：</p>
 <pre><code>        * 程序存在溢出，并且可以控制返回地址。
         * 可以找到满足条件的gadgets以及其地址。
 </code></pre>
-<h4 id="ret2text"><a href="#ret2text" class="headerlink" title="ret2text"></a>ret2text</h4><p>ret2text 即控制程序执行程序本身已有的的代码 (.text)。我们控制执行程序已有的代码的时候也可以控制程序执行好几段不相邻的程序已有的代码 (也就是 gadgets)。</p>
+<h3 id="ret2text"><a href="#ret2text" class="headerlink" title="ret2text"></a>ret2text</h3><p>ret2text 即控制程序执行程序本身已有的的代码 (.text)。我们控制执行程序已有的代码的时候也可以控制程序执行好几段不相邻的程序已有的代码 (也就是 gadgets)。</p>
 <p>1.先查看一下该elf文件，可以看到是32位elf文件见，并且是动态连接的。</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401155738902.png" alt="image-20220401155738902"></p>
 <p>查看一下程序的保护机制，可以看到是32位的程序且仅仅开启了栈不可执行保护NX</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401202249910.png" alt="image-20220401202249910"></p>
-<h5 id="IDA分析"><a href="#IDA分析" class="headerlink" title="IDA分析"></a>IDA分析</h5><p>IDA看一下，可以看到主函数使用了<code>gets</code>函数，显然这个是可以利用的栈溢出漏洞。</p>
+<h4 id="IDA分析"><a href="#IDA分析" class="headerlink" title="IDA分析"></a>IDA分析</h4><p>IDA看一下，可以看到主函数使用了<code>gets</code>函数，显然这个是可以利用的栈溢出漏洞。</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401165554355.png" alt="image-20220401165554355"></p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401203317416.png" alt="image-20220401203317416"></p>
 <p>查看字符串，双击进去看到是<code>secure</code>函数调用，这也就是gadgets，即反弹shell地址：0x0804863A</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401165837291.png" alt="image-20220401165837291"></p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401174052664.png" alt="image-20220401174052664"></p>
-<h5 id="构造payload"><a href="#构造payload" class="headerlink" title="构造payload"></a>构造payload</h5><p>​        构造之前，需要计算能够控制得内存起始地址距离main()函数返回地址得字节数。在<code>gets</code>函数那个图中的call前面两行，说明了参数的地址是esp+0x1c，通过动态调试，我们也可以发现这一点。<strong>note:使用gdb调试时,要将源文件,可执行文件一同复制过去</strong></p>
+<h4 id="构造payload"><a href="#构造payload" class="headerlink" title="构造payload"></a>构造payload</h4><p>​        构造之前，需要计算能够控制得内存起始地址距离main()函数返回地址得字节数。在<code>gets</code>函数那个图中的call前面两行，说明了参数的地址是esp+0x1c，通过动态调试，我们也可以发现这一点。</p>
 <p>​        在0x080486AE处下断点调试</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402094553917.png" alt="image-20220402094553917"></p>
 <p>​        ESP为<code>ffffd130</code>，其中存放的内容为<code>ffffd14c</code>，即输入的内容s的地址为<code>ESP+1c= ffffd14c</code>，而EBP为<code>ffffd1b8</code>，则s到EBP的偏移为<code>|ffffd1b8- ffffd14c|=6c</code>，所以s相对与返回地址的偏移为0x6c+4=0x70。</p>
-<p>​        我们的目标就是控制这个ret，由前面分析知，可以利用.text代码段区域中的<code>system(“/bin/sh”)</code>代码，该代码段即为可被ROP利用的Gadget，地址为<code>0x0804863a</code>，将其覆盖到函数返回地址处，前面再padding 70h个字节码即可。（图中应该是sendline，懒得重新截图了）</p>
+<h4 id="payload"><a href="#payload" class="headerlink" title="payload"></a>payload</h4><p>​        我们的目标就是控制这个ret，由前面分析知，可以利用.text代码段区域中的<code>system(“/bin/sh”)</code>代码，该代码段即为可被ROP利用的Gadget，地址为<code>0x0804863a</code>，将其覆盖到函数返回地址处，前面再padding 70h个字节码即可。（图中应该是sendline，懒得重新截图了）</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402101815404.png" alt="image-20220402101815404"></p>
 <p>成功getshell：</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402103300478.png" alt="image-20220402103300478"></p>
+<h3 id="ret2shellcode"><a href="#ret2shellcode" class="headerlink" title="ret2shellcode"></a>ret2shellcode</h3><p>​        ret2shellcode也就是控制程序执行shellcode(<strong>修改函数返回地址，让其指向溢出数据中的一段指令</strong>)。要想执行 shellcode，需要shellcode所在的区域具有可执行权限。该方法关键点：</p>
+<ul>
+<li>溢出点附近有可执行权限，以便让填充的shellcode能够被执行；</li>
+<li>有类似于jmp esp这样的gadget，使得程序能够跳转到shellcode中。</li>
+</ul>
+<p>​        前提条件：该技术的前提是需要操作系统关闭内存布局随机化以及需要程序调用栈有可执行权限。</p>
+<h4 id="静态分析"><a href="#静态分析" class="headerlink" title="静态分析"></a>静态分析</h4><p>​    可以看到是动态链接的32位程序，没有开启任何保护，并且具有可读、可写、可执行段。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402193552695.png" alt="image-20220402193552695"></p>
+<p>​        IDA打开查看，依然是基本的栈溢出漏洞，不过这次将对应字符串复制到了buf2处</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402193819764.png" alt="image-20220402193819764"></p>
+<p>​        buf2处于bss段（这次查看字符串，并没有之前所利用的system(“/bin/sh”)了）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402193948368.png" alt="image-20220402193948368"></p>
+<p>​        先输入命令<code>b main</code>和<code>r</code>，然后输入vmmap查看映射状况，可以看到第三行，buf2所在的bss段具有可读可写可执行权限</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402194512179.png" alt="image-20220402194512179"></p>
+<h4 id="调试分析"><a href="#调试分析" class="headerlink" title="调试分析"></a>调试分析</h4><p>​        可以和ret2text一样利用gdb下断点来计算偏移地址，也可以用GDB pattern字符串计算偏移量，先用<code>pattern_create</code>创建计算溢出偏移量的字符串，在输入的时候输入就可以了。（<strong>EIP指向CPU即将要执行的指令，SIGSEGV是当一个进程执行了一个无效的内存引用，或发生段错误时发送给它的信号</strong>）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402200053543.png" alt="image-20220402200053543"></p>
+<p>​        <code>pattern_offset</code>计算出偏移量。也就是0x70</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402200631556.png" alt="image-20220402200631556"></p>
+<h4 id="payload-1"><a href="#payload-1" class="headerlink" title="payload"></a>payload</h4><p>​        <code>asm()</code>接收一个字符串作为参数，得到汇编码的机器代码。shellcraft模块是shellcode的模块，包含一些生成shellcode的函数。其中的子模块声明架构，比如<code>shellcraft.arm</code> 是ARM架构的，<code>shellcraft.amd64</code>是AMD64架构，<code>shellcraft.i386</code>是Intel 80386架构的，以及有一个<code>shellcraft.common</code>是所有架构通用的。</p>
+<p>​        而这里的<code>shellcraft.sh()</code>则是执行/bin/sh的shellcode了。<code>shellcode.ljust()</code>这段代码就是要讲shellcode不足112长度的地方用a来填充。<strong>注意红框部分，圈起来的地方需要<code>b&#39;A&#39;</code>，不然会报错。</strong><br><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402202232199.png" alt="image-20220402202232199"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402202212510.png" alt="image-20220402202212510"></p>
+<h3 id="ret2syscall"><a href="#ret2syscall" class="headerlink" title="ret2syscall"></a>ret2syscall</h3><p>​        ret2syscall即控制程序执行系统调用，获取shell。需要满足两个条件：</p>
+<pre><code>    程序中有分别用于控制eax，ebx，ecx，edx的gadgets；
+    程序中有int 0x80指令，用于触发系统调用。
+</code></pre>
+<p>​        一般利用如下系统调用来获取shell：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">execve(<span class="string">&quot;/bin/sh&quot;</span>,NULL,NULL)</span><br></pre></td></tr></table></figure>
+
+<p>​        当遇到32位程序时，需要使得：</p>
+<ul>
+<li>系统调用号，即 eax 应该为 0xb（0xb 为 execve 对应的系统调用号）</li>
+<li>第一个参数，即 ebx 应该指向 /bin/sh 的地址，其实执行 sh 的地址也可以。</li>
+<li>第二个参数，即 ecx 应该为 0</li>
+<li>第三个参数，即 edx 应该为 0</li>
+</ul>
+<h4 id="Linux系统调用的实现"><a href="#Linux系统调用的实现" class="headerlink" title="Linux系统调用的实现"></a>Linux系统调用的实现</h4><p>Linux 的系统调用通过 int 80h 实现，用系统调用号来区分入口函数。在 Linux 中，<code>0x80</code>中断处理程序是内核，用于其他程序对内核进行系统调用。操作系统实现系统调用的基本过程是：</p>
+<ul>
+<li>应用程序调用库函数（API）；</li>
+<li>API 将系统调用号存入 EAX，然后通过中断调用使系统进入内核态；</li>
+<li>内核中的中断处理函数根据系统调用号，调用对应的内核函数（系统调用）；</li>
+<li>系统调用完成相应功能，将返回值存入 EAX，返回到中断处理函数；</li>
+<li>中断处理函数返回到 API 中；</li>
+<li>API 将 EAX 返回给应用程序。</li>
+</ul>
+<p>应用程序的调用过程是：</p>
+<ul>
+<li>把系统调用的编号存入 EAX；</li>
+<li>把函数参数存入其它通用寄存器；</li>
+<li>触发 0x80 号中断（int 0x80）。</li>
+</ul>
+<h4 id="静态分析-1"><a href="#静态分析-1" class="headerlink" title="静态分析"></a>静态分析</h4><p>​        发现文件是32位的静态链接文件，并且只打开了NX保护</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404125137686.png" alt="image-20220404125137686"></p>
+<p>​        IDA打开看到，<code>gets</code>函数存在栈溢出风险，</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404125637358.png" alt="image-20220404125637358"></p>
+<p>​        如何控制寄存器的值呢？这里就需要使用 gadgets。比如说，现在栈顶是 10，那么如果此时执行了 pop eax，那么现在 eax 的值就为 10。但是我们并不能期待有一段连续的代码可以同时控制对应的寄存器，所以我们需要一段一段控制，这也是我们在 gadgets 最后使用 ret 来再次控制程序执行流程的原因。具体寻找 gadgets 的方法，我们可以使用 ropgadgets 这个工具。</p>
+<p>​        寻找pop eax~edx+ret寄存器的指令，记下符合条件的地址分别为0x080bb196和0x0806eb90：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404134647641.png" alt="image-20220404134647641"></p>
+<p>​        类似于之前的做法，我们可以获得 v4 相对于 ebp 的偏移为 108。所以我们需要覆盖的返回地址相对于 v4 的偏移为 112。此次，由于我们不能直接利用程序中的某一段代码或者自己填写代码来获得 shell，所以我们利用程序中的 gadgets 来获得 shell，而对应的 shell 获取则是利用系统调用。</p>
+<p>​        我们还需要获得 /bin/sh 字符串对应的地址，还有 int 0x80 的地址。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404142901925.png" alt="image-20220404142901925"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404142942346.png" alt="image-20220404142942346"></p>
+<h4 id="payload-2"><a href="#payload-2" class="headerlink" title="payload"></a>payload</h4><p>payload构造如下，要在将返回地址指向int 0x80,在返回之前要将四个寄存器赋值完成，所以最终payload构成是</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">payload = padding+pop_eax+”0xb”+pop_edx_ecx_ebx+0+0+”/bin/sh”+int 0x80</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404141904456.png" alt="image-20220404141904456"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404142841848.png" alt="image-20220404142841848"></p>
+<h3 id="ret2libc"><a href="#ret2libc" class="headerlink" title="ret2libc"></a>ret2libc</h3><p>​        libc是Standard C library的简称，它是符合ANSI C标准的一个函数库。libc库提供C语言中所使用的宏，类型定义，字符串操作函数，数学计算函数以及输入输出函数等。简而言之，每个使用了标准库函数的Linux程序，都会加载libc，以便能够真正调用这些库函数。在Ubuntu中，libc的实现是libc.so.6（32位）或libc-2.xx.so（64位），不同的Ubuntu系统，xx是不一样的，例如Ubuntu 16.04的64位libc实现是libc-2.23.so。</p>
+<p>​        这种攻击方式主要是针对 <strong>动态链接(Dynamic linking)</strong> 编译的程序，因为正常情况下是无法在程序中找到像 <strong>system() 、execve()</strong> 这种系统级函数(<u>如果程序中直接包含了这种函数就可以直接控制返回地址指向他们，而不用通过这种麻烦的方式</u>,，比如<strong>ret2text</strong>)。因为程序是动态链接生成的，所以在程序运行时会调用 <strong>libc.so (程序被装载时，动态链接器会将程序所有所需的动态链接库加载至进程空间，libc.so 就是其中最基本的一个)<strong>，</strong>libc.so</strong> 是 linux 下 C 语言库中的运行库<strong>glibc</strong> 的动态链接版，并且 <strong>libc</strong>.<strong>so</strong> 中包含了大量的可以利用的函数，包括 <strong>system() 、execve()</strong> 等系统级函数，我们可以通过找到这些函数在内存中的地址覆盖掉返回地址来获得当前进程的控制权。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405155936033.png" alt="image-20220405155936033"></p>
+<p>​        就像Windows里面对DLL的调用一样，如果一个Linux程序想要隐式调用libc库函数，就需要在程序的“导入表”中填写该函数的相关信息，包括函数名。当然，Linux是没有“导入表”这个概念的，取而代之的是.plt表和.got表，对比Windows，它们就像INT表和IAT表。前者是编译后就已经写好的，里面并不包含真正的目标函数地址；后者是在运行时确定的，包含真正的目标函数地址。</p>
+<p>​        <strong>为什么要多用一个PLT表？</strong>原因是为了程序的运行效率，GOT表的初始值都指向PLT对应的某个片段中，而对应的PLT片段中包含能够解析函数地址的函数。（提高效率的原因就在这里）</p>
+<p>​        外部函数的内存地址存储在 GOT 而非 PLT 表内，PLT 存储的入口点又指向 GOT 的对应条目，那么程序为什么选择 PLT 而非 GOT 作为调用的入口点呢？GOT 表的初始值都指向 PLT 表对应条目中的某个片段，这个片段的作用是调用一个<strong>函数地址解析函数</strong>。当程序需要调用某个外部函数时，首先到 PLT 表内寻找对应的入口点，跳转到 GOT 表中。如果这是第一次调用这个函数，程序会通过 GOT 表再次跳转回 PLT 表，运行地址解析程序来确定函数的确切地址，并用其覆盖掉 GOT 表的初始值，之后再执行函数调用。当再次调用这个函数时，程序仍然首先通过 PLT 表跳转到 GOT 表，此时 GOT 表已经存有获取函数的内存地址，所以会直接跳转到函数所在地址执行函数。整个过程如下面两张图所示。</p>
+<p>​        <img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406155849976.png" alt="image-20220406155849976"></p>
+<p>再次调用的时候如下：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406155917813.png" alt="image-20220406155917813"></p>
+<p>​        ret2libc，即控制执行 libc 中的函数，通常是返回至某个函数的 plt 处或者函数的具体位置 (即函数对应的 got 表项的内容)。一般情况下，我们会选择执行 system(“/bin/sh”)，故而此时我们需要知道 system 函数的地址。</p>
+<h4 id="静态分析-2"><a href="#静态分析-2" class="headerlink" title="静态分析"></a>静态分析</h4><p>​        首先看一下程序基本情况，发现是动态链接的并且只开启了NX保护</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405151835554.png" alt="image-20220405151835554"></p>
+<p>​        IDA查看</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405152932134.png" alt="image-20220405152932134"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405153116989.png" alt="image-20220405153116989"></p>
+<p>​        可知“/bin/sh”字符串所在地址为0x08048720。</p>
+<p>​        因为要从libc中寻找利用函数，则可以在ida直接查看plt中是否有<code>system()</code>函数，发现是存在有的且地址为<code>0x08048460</code>,其内容只是一条jmp指令，跳转到.got表的地址中去。</p>
+<p>​        而.got表又是程序运行起来之后动态填充的，因此，我们在进行pwn时，只需返回到.plt表中的对应函数地址处，就能够让系统“帮忙”调用目标函数了。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405153323375.png" alt="image-20220405153323375"></p>
+<p>​        至于用户输入的变量v4距函数返回地址的偏移地址的计算如之前所示，结果是一样的为0x70。</p>
+<h4 id="payload-3"><a href="#payload-3" class="headerlink" title="payload"></a>payload</h4><p>​        这里我们需要注意函数调用栈的结构，如果是正常调用 system 函数，我们调用的时候会有一个对应的返回地址，这里以’bbbb’ 作为虚假的地址，其后参数对应的参数内容。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405163142087.png" alt="image-20220405163142087"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405163611287.png" alt="image-20220405163611287"></p>
+<h4 id="只有system-无‘bin-sh’"><a href="#只有system-无‘bin-sh’" class="headerlink" title="只有system(),无‘bin/sh’"></a>只有system(),无‘bin/sh’</h4><p>​        此次需要我们自己来读取字符串，所以我们需要两个 gadgets，第一个控制程序读取字符串，第二个控制程序执行 system(“/bin/sh”)。</p>
+<p>​        可以在plt中看到有gets()函数，即可以将该gets()函数地址用来踩掉原本程序函数的返回地址，然后通过输入的方式将“/bin/sh”输入进去。换句话说，整个过程分成了两部分，第一部分是将“/bin/sh”读入到内存中；第二部分是执行system()获取shell。</p>
+<p>​        可知get()函数地址为08048460。查看gets()函数，其需要一个可读可写的指针参数，且会返回值</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406104719572.png" alt="image-20220406104719572"></p>
+<p>​        寻找一块可读可写的buffer区，通常会寻找.bss段，使用IDA查看可看到存在buf2[100]数组，并且调用命令<code>vmmap</code>可以看到该.bss段可读可写。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406104605394.png" alt="image-20220406104605394"></p>
+<p>​        因为在<code>gets()</code>函数完成后需要调用<code>system()</code>函数需要保持堆栈平衡，所以在调用完gets()函数后提升堆栈，这就需要<code>add esp, 4</code>这样的指令但是程序中并没有这样的指令。更换思路，通过使用<code>pop xxx</code>指令也可以完成同样的功能，在程序中找到了<code>pop ebx，ret</code>指令。通过ROPgadget工具查看，发现存在一条符合条件的指令，地址为<code>0x0804841d</code></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406104929107.png" alt="image-20220406104929107"></p>
+<p>payload构造如下</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406112911760.png" alt="image-20220406112911760"></p>
+<h4 id="无system-无‘bin-sh’"><a href="#无system-无‘bin-sh’" class="headerlink" title="无system(),无‘bin/sh’"></a>无system(),无‘bin/sh’</h4><p>​        通常情况下，并没有这么好的条件让我们能够直接调用system。我们需要想办法通过已知函数地址，去推测system函数的地址。</p>
+<p>​        由于一个ELF文件在生成完成后，它的不同函数之间的偏移地址是不会改变的，或者说，<strong>每一个函数与文件起始地址之间的偏移是不会改变的</strong>。所以我们可以通过<strong>泄露libc中某个被调用过的函数的地址来获取libc版本，获取libc中各个偏移地址值</strong>，然后通过某个函数的真实地址计算出system()和/bin/bash的真实地址。</p>
+<p>​        对于system()函数，其属于libc，在libc.so动态链接库中的函数之间相对偏移是固定的。我们由泄露的某个函数的GOT表地址可以计算出偏移地址<strong>（A真实地址-A的偏移地址 = B真实地址-B的偏移地址 = 基地址）</strong>，从而可以得到system()函数的真实地址（当然也可以直接调用pwntools的libc.address得到libc的真实地址，然后再直接查找即可找到真实的system()函数地址）。        </p>
+<h5 id="利用过程"><a href="#利用过程" class="headerlink" title="利用过程"></a>利用过程</h5><p>​        红色箭头为第一次溢出调用，通过gets()栈溢出至函数返回地址处将其覆盖为puts的plt地址，将puts的GOT表地址泄露输出出来，再返回到_start()函数重新执行程序；蓝色箭头为程序第二次执行时的溢出调用，重新通过gets()输入内容栈溢出至函数返回地址处，覆盖该地址为libc中找到的system()地址（libc地址由泄露的puts函数地址计算得出），从而getshell：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406140129118.png" alt="image-20220406140129118"></p>
+<ul>
+<li>将puts()的plt地址覆盖到函数返回地址处，通过puts()泄露某个已执行过的函数的GOT地址，并且返回地址设置为_start()或main()，以便于重新执行一遍程序</li>
+<li>通过recv(4)接收puts()输出泄露的某个已执行过的函数的GOT地址，再以此来计算libc中地址与真实地址的偏移量；或者通过泄露的某个已执行过的函数的GOT地址，直接使用pwntools的<code>libc.address=func_got-libc.symbols[‘func’]</code>的形式直接获取libc的真实地址，从而直接通过<code>system_addr=libc.symbols[‘system’]</code>的方式直接获取该函数真实地址</li>
+<li>程序再次执行时填充padding，在函数返回地址处覆盖为libc中system()函数的真实地址，其中参数为libc中”/bin/sh”字符串的真实地址。</li>
+</ul>
+<p>​        上面提到的泄漏方式，则是读取got表中的值。而反推libc版本的工作，已经有大佬通过编写<a target="_blank" rel="noopener" href="https://github.com/lieanu/LibcSearcher">LibcSearcher</a>帮忙完成了。</p>
+<p>​        整个利用过程总体而言分为三步：</p>
+<p>​            （1）  第一次ROP，打印出某个已知函数got表的值；</p>
+<p>​            （2）  读取打印的这个值，并解析成地址，然后利用这个地址通过LibcSearcher去反推libc版本，进而利用已知偏移获取到libc基址；</p>
+<p>​            （3）  解析ELF文件，获取目标函数（包括system）的偏移，加上基址就是目标函数实际地址，将获取到的地址填入溢出点完成exploit。</p>
+<h4 id="payload-4"><a href="#payload-4" class="headerlink" title="payload"></a>payload</h4><p>​        在第一次栈溢出puts()的plt地址覆盖函数返回地址时，puts()的返回地址可以设置为_start()或main()函数地址。</p>
+<p><strong>_start()和main()的区别</strong></p>
+<p>​        简单地说，main()函数是用户代码的入口，是对用户而言的；而<code>_start()</code>函数是系统代码的入口，是程序真正的入口.我们可以看下本题的<code>_start()</code>函数内容，其包含<code>main()</code>和<code>__libc_start_main()</code>函数的调用，也就是说，它才是程序真正的入口：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406142427454.png" alt="image-20220406142427454"></p>
+<p><strong>返回地址为_start()函数</strong></p>
+<p>这里的示例只展示了两个可利用的函数puts()和__libc_start_main()。</p>
+<p><strong>泄露puts()函数地址</strong></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406152131967.png" alt="image-20220406152131967"></p>
+<p><strong>泄露__libc_start_main 地址</strong></p>
+<ul>
+<li>泄露 __libc_start_main 地址（<strong>这个地址就是libc文件的基址</strong>）</li>
+<li>获取 libc 版本</li>
+<li>获取 system 地址与 /bin/sh 的地址</li>
+<li>再次执行源程序</li>
+<li>触发栈溢出执行 system(‘/bin/sh’)</li>
+</ul>
+<p>注意返回地址为start()</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406155128449.png" alt="image-20220406155128449"></p>
+<p>看了别人的博客发现，当将先将_start()换成main()，payload2的B字符的偏移量不变，运行脚本会报错，添加GDB调试交互发现溢出多了8个B</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406155326463.png" alt="image-20220406155326463"></p>
+<h3 id="tips"><a href="#tips" class="headerlink" title="tips"></a>tips</h3><p>为了更好理解，在网上找到了这个图，栈溢出利用的时候按照1234的顺序来写payload，先构造main()函数，造成溢出，然后构造puts()函数。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406105537868.png" alt="image-20220406105537868"></p>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2019/03/03/%E6%A0%88%E6%BA%A2%E5%87%BA%E4%B9%8Bret2shellcode/">栈溢出之ret系列</a>、<a target="_blank" rel="noopener" href="https://ctf-wiki.org/pwn/linux/user-mode/stackoverflow/x86/basic-rop/">CTF-Wiki</a></p>
 
     </div>
 
@@ -288,7 +459,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="https://erkeai.github.io/2022/04/01/pwn/%E6%A0%88%E6%BA%A2%E5%87%BA%E6%94%BB%E5%87%BB/" title="栈溢出攻击">https://erkeai.github.io/2022/04/01/pwn/栈溢出攻击/</a>
+    <a href="https://erkeai.github.io/2022/04/01/pwn/%E6%A0%88%E6%BA%A2%E5%87%BA%E6%94%BB%E5%87%BB/" title="栈溢出攻击以及基本ROP">https://erkeai.github.io/2022/04/01/pwn/栈溢出攻击/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -300,7 +471,7 @@
       <footer class="post-footer">
           <div class="post-tags">
               <a href="/tags/%E6%A0%88%E6%BA%A2%E5%87%BA/" rel="tag"># 栈溢出</a>
-              <a href="/tags/ROP/" rel="tag"># ROP</a>
+              <a href="/tags/%E5%9F%BA%E6%9C%ACROP/" rel="tag"># 基本ROP</a>
           </div>
 
         
@@ -374,7 +545,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%88%E6%BA%A2%E5%87%BA%E6%94%BB%E5%87%BB%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86"><span class="nav-number">1.</span> <span class="nav-text">栈溢出攻击基础知识</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E6%9C%ACROP"><span class="nav-number">2.</span> <span class="nav-text">基本ROP</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#ret2text"><span class="nav-number">2.1.</span> <span class="nav-text">ret2text</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#IDA%E5%88%86%E6%9E%90"><span class="nav-number">2.1.1.</span> <span class="nav-text">IDA分析</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%9E%84%E9%80%A0payload"><span class="nav-number">2.1.2.</span> <span class="nav-text">构造payload</span></a></li></ol></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%88%E6%BA%A2%E5%87%BA%E6%94%BB%E5%87%BB%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86"><span class="nav-number">1.</span> <span class="nav-text">栈溢出攻击基础知识</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%ACROP"><span class="nav-number">2.</span> <span class="nav-text">基本ROP</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ret2text"><span class="nav-number">2.1.</span> <span class="nav-text">ret2text</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#IDA%E5%88%86%E6%9E%90"><span class="nav-number">2.1.1.</span> <span class="nav-text">IDA分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9E%84%E9%80%A0payload"><span class="nav-number">2.1.2.</span> <span class="nav-text">构造payload</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#payload"><span class="nav-number">2.1.3.</span> <span class="nav-text">payload</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ret2shellcode"><span class="nav-number">2.2.</span> <span class="nav-text">ret2shellcode</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9D%99%E6%80%81%E5%88%86%E6%9E%90"><span class="nav-number">2.2.1.</span> <span class="nav-text">静态分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%B0%83%E8%AF%95%E5%88%86%E6%9E%90"><span class="nav-number">2.2.2.</span> <span class="nav-text">调试分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#payload-1"><span class="nav-number">2.2.3.</span> <span class="nav-text">payload</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ret2syscall"><span class="nav-number">2.3.</span> <span class="nav-text">ret2syscall</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Linux%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-number">2.3.1.</span> <span class="nav-text">Linux系统调用的实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9D%99%E6%80%81%E5%88%86%E6%9E%90-1"><span class="nav-number">2.3.2.</span> <span class="nav-text">静态分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#payload-2"><span class="nav-number">2.3.3.</span> <span class="nav-text">payload</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ret2libc"><span class="nav-number">2.4.</span> <span class="nav-text">ret2libc</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9D%99%E6%80%81%E5%88%86%E6%9E%90-2"><span class="nav-number">2.4.1.</span> <span class="nav-text">静态分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#payload-3"><span class="nav-number">2.4.2.</span> <span class="nav-text">payload</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%AA%E6%9C%89system-%E6%97%A0%E2%80%98bin-sh%E2%80%99"><span class="nav-number">2.4.3.</span> <span class="nav-text">只有system(),无‘bin&#x2F;sh’</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%97%A0system-%E6%97%A0%E2%80%98bin-sh%E2%80%99"><span class="nav-number">2.4.4.</span> <span class="nav-text">无system(),无‘bin&#x2F;sh’</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%88%A9%E7%94%A8%E8%BF%87%E7%A8%8B"><span class="nav-number">2.4.4.1.</span> <span class="nav-text">利用过程</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#payload-4"><span class="nav-number">2.4.5.</span> <span class="nav-text">payload</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tips"><span class="nav-number">2.5.</span> <span class="nav-text">tips</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -390,7 +561,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">67</span>
+          <span class="site-state-item-count">70</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -450,12 +621,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">163k</span>
+    <span title="站点总字数">173k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">2:28</span>
+    <span title="站点阅读时长">2:38</span>
 </div>
 
         
