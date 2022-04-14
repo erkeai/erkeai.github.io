@@ -71,10 +71,14 @@
 <meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406155326463.png">
 <meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406105537868.png">
 <meta property="article:published_time" content="2022-03-31T16:00:00.000Z">
-<meta property="article:modified_time" content="2022-04-06T08:00:41.672Z">
+<meta property="article:modified_time" content="2022-04-11T11:50:46.785Z">
 <meta property="article:author" content="ZouFeIYu">
 <meta property="article:tag" content="栈溢出">
 <meta property="article:tag" content="基本ROP">
+<meta property="article:tag" content="ret2text">
+<meta property="article:tag" content="ret2shellcode">
+<meta property="article:tag" content="ret2syscall">
+<meta property="article:tag" content="ret2libc">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401142938542.png">
 
@@ -170,17 +174,17 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">67</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">81</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
 
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">9</span></a>
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">10</span></a>
 
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">70</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">80</span></a>
 
   </li>
   </ul>
@@ -241,7 +245,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-04-06 16:00:41" itemprop="dateModified" datetime="2022-04-06T16:00:41+08:00">2022-04-06</time>
+                <time title="修改时间：2022-04-11 19:50:46" itemprop="dateModified" datetime="2022-04-11T19:50:46+08:00">2022-04-11</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -259,7 +263,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>7.5k</span>
+              <span>7.7k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -283,6 +287,12 @@
 <p>​        除了代码段和数据区域，其他的内存区域都能作为缓冲区，因此缓冲区溢出的位置可能在数据段、也可能在堆栈段。</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401142938542.png" alt="image-20220401142938542"></p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401143120042.png" alt="image-20220401143120042"></p>
+<h3 id="linux安全机制"><a href="#linux安全机制" class="headerlink" title="linux安全机制"></a>linux安全机制</h3><ul>
+<li>canary(GS)：在栈靠近栈底某个位置设置初值，当函数结束时会检查这个栈上的值是否和存进去的值一致，防止栈溢出的一种保护</li>
+<li>relro：主要用来保护重定位表段对应数据区域，默认可写。分为两种，Partial RELRO：got表不可写，got.plt可写。Full RELRO：got表，got.plt不可写</li>
+<li>PIE(ALSR)：程序开启了PIE保护的话，在每次加载程序时都改变加载的基地址，不会影响指令间的相对地址</li>
+<li>NX(DEP)：数据执行保护，指不允许数据页(默认的堆页、各种堆栈页以及内存池页)执行代码</li>
+</ul>
 <h2 id="基本ROP"><a href="#基本ROP" class="headerlink" title="基本ROP"></a>基本ROP</h2><p>​        直接向栈或者堆上直接注入代码的方式已经难以发挥效果，提出的主要的绕过保护的方法就是ROP（面向返回的编程），主要思想是在<strong>栈缓冲区溢出的基础上，利用程序中已有的小片段 (gadgets) 来改变某些寄存器或者变量的值，从而控制程序的执行流程。</strong>所谓 gadgets 就是以 ret 结尾的指令序列，通过这些指令序列，我们可以修改某些地址的内容，方便控制程序的执行流程。</p>
 <p>利用条件如下：</p>
 <pre><code>        * 程序存在溢出，并且可以控制返回地址。
@@ -472,6 +482,10 @@
           <div class="post-tags">
               <a href="/tags/%E6%A0%88%E6%BA%A2%E5%87%BA/" rel="tag"># 栈溢出</a>
               <a href="/tags/%E5%9F%BA%E6%9C%ACROP/" rel="tag"># 基本ROP</a>
+              <a href="/tags/ret2text/" rel="tag"># ret2text</a>
+              <a href="/tags/ret2shellcode/" rel="tag"># ret2shellcode</a>
+              <a href="/tags/ret2syscall/" rel="tag"># ret2syscall</a>
+              <a href="/tags/ret2libc/" rel="tag"># ret2libc</a>
           </div>
 
         
@@ -545,7 +559,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%88%E6%BA%A2%E5%87%BA%E6%94%BB%E5%87%BB%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86"><span class="nav-number">1.</span> <span class="nav-text">栈溢出攻击基础知识</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%ACROP"><span class="nav-number">2.</span> <span class="nav-text">基本ROP</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ret2text"><span class="nav-number">2.1.</span> <span class="nav-text">ret2text</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#IDA%E5%88%86%E6%9E%90"><span class="nav-number">2.1.1.</span> <span class="nav-text">IDA分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9E%84%E9%80%A0payload"><span class="nav-number">2.1.2.</span> <span class="nav-text">构造payload</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#payload"><span class="nav-number">2.1.3.</span> <span class="nav-text">payload</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ret2shellcode"><span class="nav-number">2.2.</span> <span class="nav-text">ret2shellcode</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9D%99%E6%80%81%E5%88%86%E6%9E%90"><span class="nav-number">2.2.1.</span> <span class="nav-text">静态分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%B0%83%E8%AF%95%E5%88%86%E6%9E%90"><span class="nav-number">2.2.2.</span> <span class="nav-text">调试分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#payload-1"><span class="nav-number">2.2.3.</span> <span class="nav-text">payload</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ret2syscall"><span class="nav-number">2.3.</span> <span class="nav-text">ret2syscall</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Linux%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-number">2.3.1.</span> <span class="nav-text">Linux系统调用的实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9D%99%E6%80%81%E5%88%86%E6%9E%90-1"><span class="nav-number">2.3.2.</span> <span class="nav-text">静态分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#payload-2"><span class="nav-number">2.3.3.</span> <span class="nav-text">payload</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ret2libc"><span class="nav-number">2.4.</span> <span class="nav-text">ret2libc</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9D%99%E6%80%81%E5%88%86%E6%9E%90-2"><span class="nav-number">2.4.1.</span> <span class="nav-text">静态分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#payload-3"><span class="nav-number">2.4.2.</span> <span class="nav-text">payload</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%AA%E6%9C%89system-%E6%97%A0%E2%80%98bin-sh%E2%80%99"><span class="nav-number">2.4.3.</span> <span class="nav-text">只有system(),无‘bin&#x2F;sh’</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%97%A0system-%E6%97%A0%E2%80%98bin-sh%E2%80%99"><span class="nav-number">2.4.4.</span> <span class="nav-text">无system(),无‘bin&#x2F;sh’</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%88%A9%E7%94%A8%E8%BF%87%E7%A8%8B"><span class="nav-number">2.4.4.1.</span> <span class="nav-text">利用过程</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#payload-4"><span class="nav-number">2.4.5.</span> <span class="nav-text">payload</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tips"><span class="nav-number">2.5.</span> <span class="nav-text">tips</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%88%E6%BA%A2%E5%87%BA%E6%94%BB%E5%87%BB%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86"><span class="nav-number">1.</span> <span class="nav-text">栈溢出攻击基础知识</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#linux%E5%AE%89%E5%85%A8%E6%9C%BA%E5%88%B6"><span class="nav-number">1.1.</span> <span class="nav-text">linux安全机制</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%ACROP"><span class="nav-number">2.</span> <span class="nav-text">基本ROP</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ret2text"><span class="nav-number">2.1.</span> <span class="nav-text">ret2text</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#IDA%E5%88%86%E6%9E%90"><span class="nav-number">2.1.1.</span> <span class="nav-text">IDA分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9E%84%E9%80%A0payload"><span class="nav-number">2.1.2.</span> <span class="nav-text">构造payload</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#payload"><span class="nav-number">2.1.3.</span> <span class="nav-text">payload</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ret2shellcode"><span class="nav-number">2.2.</span> <span class="nav-text">ret2shellcode</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9D%99%E6%80%81%E5%88%86%E6%9E%90"><span class="nav-number">2.2.1.</span> <span class="nav-text">静态分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%B0%83%E8%AF%95%E5%88%86%E6%9E%90"><span class="nav-number">2.2.2.</span> <span class="nav-text">调试分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#payload-1"><span class="nav-number">2.2.3.</span> <span class="nav-text">payload</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ret2syscall"><span class="nav-number">2.3.</span> <span class="nav-text">ret2syscall</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Linux%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-number">2.3.1.</span> <span class="nav-text">Linux系统调用的实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9D%99%E6%80%81%E5%88%86%E6%9E%90-1"><span class="nav-number">2.3.2.</span> <span class="nav-text">静态分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#payload-2"><span class="nav-number">2.3.3.</span> <span class="nav-text">payload</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ret2libc"><span class="nav-number">2.4.</span> <span class="nav-text">ret2libc</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9D%99%E6%80%81%E5%88%86%E6%9E%90-2"><span class="nav-number">2.4.1.</span> <span class="nav-text">静态分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#payload-3"><span class="nav-number">2.4.2.</span> <span class="nav-text">payload</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%AA%E6%9C%89system-%E6%97%A0%E2%80%98bin-sh%E2%80%99"><span class="nav-number">2.4.3.</span> <span class="nav-text">只有system(),无‘bin&#x2F;sh’</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%97%A0system-%E6%97%A0%E2%80%98bin-sh%E2%80%99"><span class="nav-number">2.4.4.</span> <span class="nav-text">无system(),无‘bin&#x2F;sh’</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%88%A9%E7%94%A8%E8%BF%87%E7%A8%8B"><span class="nav-number">2.4.4.1.</span> <span class="nav-text">利用过程</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#payload-4"><span class="nav-number">2.4.5.</span> <span class="nav-text">payload</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tips"><span class="nav-number">2.5.</span> <span class="nav-text">tips</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -561,20 +575,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-count">80</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-count">10</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">67</span>
+        <span class="site-state-item-count">81</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -621,12 +635,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">173k</span>
+    <span title="站点总字数">188k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">2:38</span>
+    <span title="站点阅读时长">2:51</span>
 </div>
 
         

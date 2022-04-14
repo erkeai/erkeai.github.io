@@ -25,7 +25,15 @@
 <meta property="og:site_name" content="hazel&#39;blog">
 <meta property="og:description" content="1.加载一个rootkit  2.与rootkit通信  3.采用合法的网络通信  4.作者写的一个示例rootkit以及其背后的设计选择  5.执行来自内核的命令  6.掩盖你的rootkit的文件系统踪迹的技巧  Rootkit是一种特殊的恶意软件，它的功能是在安装目标上隐藏自身及指定的文件、进程和网络连接等信息，比较多见到的是Rootkit一般都和木马、后门等其他恶意程序结合使用。Rootk">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414112600750.png">
 <meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D3A.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414112713704.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414112803340.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414113235946.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414114728584.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414114639854.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414141558734.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414143143109.png">
 <meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D4A.tmp.jpg">
 <meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D4B.tmp.jpg">
 <meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D4C.tmp.jpg">
@@ -34,14 +42,30 @@
 <meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D4F.tmp.jpg">
 <meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D50.tmp.jpg">
 <meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D51.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414150937355.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414151108045.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414151134723.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414152129288.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414151508016.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414152501417.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414151937052.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414152615260.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414153415044.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414153531952.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414154142166.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414154856315.png">
 <meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D52.tmp.jpg">
 <meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D53.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414164650059.png">
 <meta property="article:published_time" content="2021-10-10T16:00:00.000Z">
-<meta property="article:modified_time" content="2021-12-22T07:57:00.198Z">
+<meta property="article:modified_time" content="2022-04-14T09:11:52.028Z">
 <meta property="article:author" content="ZouFeIYu">
-<meta property="article:tag" content="windows令牌">
+<meta property="article:tag" content="动态获取系统调用号">
+<meta property="article:tag" content="rootkit">
+<meta property="article:tag" content="hook">
+<meta property="article:tag" content="驱动">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D3A.tmp.jpg">
+<meta name="twitter:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414112600750.png">
 
 <link rel="canonical" href="https://erkeai.github.io/2021/10/11/paper/2020%E9%BB%91%E5%B8%BDDemystifying%20Modern%20Windows%20Rootkits%E5%AD%A6%E4%B9%A0/">
 
@@ -135,17 +159,17 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">67</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">81</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
 
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">9</span></a>
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">10</span></a>
 
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">70</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">80</span></a>
 
   </li>
   </ul>
@@ -206,7 +230,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-22 15:57:00" itemprop="dateModified" datetime="2021-12-22T15:57:00+08:00">2021-12-22</time>
+                <time title="修改时间：2022-04-14 17:11:52" itemprop="dateModified" datetime="2022-04-14T17:11:52+08:00">2022-04-14</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -224,14 +248,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>4.5k</span>
+              <span>5.2k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>4 分钟</span>
+              <span>5 分钟</span>
             </span>
 
         </div>
@@ -265,30 +289,39 @@
 <p>3.应用程序Hooking技术。更高级的恶意软件可能会选择hook一个特定的应用程序的通信作为一个通信通道。这样就很难被检测，特别是如果用的是合法的协议，但是这样不是特别灵活，机器可能没有暴露出该服务。</p>
 <p>我们想要的是有限的检测向量，各种环境下的灵活性，假设受害主机会有一些已经揭露出来的服务，入站和出站访问可能被监控。那么第三种方法非常符合我们的需求，除了灵活性。现在要考虑的是如何不依赖一个应用程序。</p>
 <p>如果不直接hook一个应用程序，那么我们hook像wireshark这样的工具的网络通信；在恶意数据包中放置一个特殊的指示器（一个”magic”常数）；将这些恶意数据包发送到受害者机器上的合法端口；搜索这个常数的数据包，以将数据传递给我们的恶意软件.</p>
-<h3 id="Hooking-the-User-Mode-Network-Stack"><a href="#Hooking-the-User-Mode-Network-Stack" class="headerlink" title="Hooking the User-Mode Network Stack"></a>Hooking the User-Mode Network Stack</h3><h4 id="hook-Windows-Winsock-driver"><a href="#hook-Windows-Winsock-driver" class="headerlink" title="hook Windows Winsock driver"></a>hook Windows Winsock driver</h4><p>在用户模式下windows上的许多服务都可以被发现，但是如何全面地获取这些流量是一个问题。与winsock相关的网络是由Afd.sys处理的，mswsock.dll用NtDeviceIoControlFiles实现与Afd.sys驱动的通信。逆向分析在mswsock.dll中的一些函数显示大量的通信是由IOCTLs完成的，如果我们可以拦截到这些请求，我们可以窥探所收到的数据。</p>
-<p>\1. 在拦截之前要知道Irps是怎么走的，当对一个设备调用文件句柄上的NtDeviceIoControlFile函数时，内核如何确定要调用什么函数？</p>
-<p>首先通过IoGetRelatedDeviceObject检索与Afd驱动程序相关联的设备(检索FILE_OBJECT结构中的DeviceObject成员)，然后判断驱动是否支持FastIo（在进行基于IRP 为基础的接口调用前, IO MANAGER 会尝试使用FAST IO 接口来加速各种IO 操作），如果支持那么就调用DriverObject-&gt;FastIoDispatch，如果不支持，那么就分配并填写Irp，然后调用IoCallDriver来发送Irp，对于IoCallDriver，内核将通过在DRIVER_OBJECT结构的MajorFunction数组中查找Irp内部指定的“Major function Code”来确定调用哪个函数</p>
-<p>\2. 这里有拦截Irps的两种常见方法。替换掉驱动对象中你想hook的主函数；直接对调度处理程序执行代码hook。</p>
-<p>\3. 要选择hooking最好的方法，要考虑的问题（可能有的检测向量有多少种，方法如何可用，检测这种方法昂贵吗）</p>
+<h3 id="Hooking-the-User-Mode-Network-Stack"><a href="#Hooking-the-User-Mode-Network-Stack" class="headerlink" title="Hooking the User-Mode Network Stack"></a>Hooking the User-Mode Network Stack</h3><h4 id="hook-Windows-Winsock-driver"><a href="#hook-Windows-Winsock-driver" class="headerlink" title="hook Windows Winsock driver"></a>hook Windows Winsock driver</h4><p>在用户模式下windows上的许多服务都可以被发现，但是如何全面地获取这些流量是一个问题。与winsock相关的网络是由Afd.sys（<strong>该驱动负责将PC连接到网络服务，特别是TCP/IP协议</strong>）处理的，mswsock.dll用<code>NtDeviceIoControlFiles</code>实现与Afd.sys驱动的通信。逆向分析在mswsock.dll中的一些函数显示大量的通信是由IOCTLs完成的，如果我们可以拦截到这些请求，我们可以窥探所收到的数据。</p>
+<ol>
+<li><strong>在拦截之前要知道IRPs是怎么走的，当对一个设备调用文件句柄上的<code>NtDeviceIoControlFile</code>函数时，内核如何确定要调用什么函数？</strong></li>
+</ol>
+<p>首先通过<code>IoGetRelatedDeviceObject</code>检索与Afd驱动程序相关联的设备(检索FILE_OBJECT结构中的DeviceObject成员)，然后判断驱动是否支持FastIo（在进行基于IRP 为基础的接口调用前, IO MANAGER 会尝试使用FAST IO 接口来加速各种IO 操作），如果支持那么就调用<code>DriverObject-&gt;FastIoDispatch</code>，如果不支持，那么就分配并填写IRP，然后调用<code>IoCallDriver</code>来发送IRP，对于<code>IoCallDriver</code>，内核将通过在DRIVER_OBJECT结构的MajorFunction数组中查找IRP内部指定的“Major function Code”来确定调用哪个函数</p>
+<ol start="2">
+<li><p>拦截IRPs的两种常见方法。替换掉驱动对象中你想hook的主函数；直接对调度处理程序执行代码hook。</p>
+</li>
+<li><p>要选择hooking最好的方法，要考虑的问题（可能有的检测向量有多少种，方法如何可用，检测这种方法昂贵吗）</p>
+</li>
+</ol>
 <p><strong>Hook驱动对象</strong>：memory artifacts；对于稳定性，通过用互锁交换替换单个函数，这种方法应该是稳定的。对于兼容性，驱动程序对象有很好的文档记录，并且易于找到；但是检测起很便宜，所有的防病毒软件都需要枚举已加载的驱动程序，并检查主要功能是否在驱动程序的范围内。</p>
 <p><strong>Hook驱动程序的调度函数</strong>：memory artifacts；除非函数被导出，否则需要自己找到函数，由于补丁保护程序，并不是所有的驱动程序都与此方法兼容，HVCI不兼容的；检测也比较便宜。</p>
 <p><strong>Hook文件对象：</strong>没有被文档化；稳定；检测成本相对昂贵，反病毒软件必须复制我们的连接过程，并枚举文件对象，以确定设备/驱动程序对象是否被交换。。</p>
 <p><strong>Hook文件对象</strong></p>
-<pre><code>1.创建我们自己的设备对象和驱动程序对象。 
-
-2.修补驱动程序对象的副本。 
-
-3.用我们自己的设备替换我们文件对象的DeviceObject指针
-</code></pre>
-<p><strong>首先</strong>我们需要获得Afd设备的文件对象，我们可以通过<a target="_blank" rel="noopener" href="https://docs.microsoft.com/en-us/windows/win32/sysinfo/zwquerysysteminformation">ZwQuerySystemInformation</a>函数，特别是使用SystemHandleInformation信息类来查询系统上的每个打开句柄。此信息类将为每个句柄返回以下结构：</p>
+<p>1.创建我们自己的设备对象和驱动程序对象。<br>2.修补驱动程序对象的副本。<br>3.用我们自己的设备替换我们文件对象的DeviceObject指针</p>
+<p><strong>首先</strong>我们需要获得Afd设备的文件对象，我们可以通过<code>ZwQuerySystemInformation</code>函数，特别是使用SystemHandleInformation信息类来查询系统上的每个打开句柄。此信息类将为每个句柄返回以下结构：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414112600750.png" alt="image-20220414112600750"></p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D3A.tmp.jpg" alt="img"> </p>
-<p>有了这些信息我们需要判断句柄是否是Afd设备的。首先通过比较ObjectTypeNumber成员与已知的文件对象类型索引来判断该句柄是否是一个文件对象的，然后我们再将FILE_OBJECT结构的DeviceObject成员与一致的Afd设备比较。</p>
-<p><strong>然后</strong>我们需要创建我们自己的假的驱动或者设备对象。Windows内核使用ObCreateObject函数来创建对象，内核大概是为了允许其他Windows驱动创建他们自己的对象，导出了该函数。</p>
-<p>最后我们需要hook我们的假的驱动对象，可以用前面提到过的方法，将DRIVER_OBJECT结构中的MajorFunctions数组部分替换为我们的hook函数，（要注意我们要hook的是我们自己创建的驱动对象，而不是真正的驱动对象），</p>
+<p>有了这些信息我们需要判断句柄是否是Afd设备的。首先通过比较<code>ObjectTypeNumber</code>成员与已知的文件对象类型索引来判断该句柄是否是一个文件对象的，然后我们再将FILE_OBJECT结构的DeviceObject成员与一致的Afd设备比较。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414112713704.png" alt="image-20220414112713704"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414112803340.png" alt="image-20220414112803340"></p>
+<p><strong>然后</strong>我们需要创建我们自己的假的驱动或者设备对象。创建之前先判断是否已经hook过了，Windows内核使用<code>ObCreateObject</code>函数来创建对象，内核大概是为了允许其他Windows驱动创建他们自己的对象，导出了该函数。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414113235946.png" alt="image-20220414113235946"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414114728584.png" alt="image-20220414114728584"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414114639854.png" alt="image-20220414114639854"></p>
+<p><strong>最后</strong>我们需要hook我们的假的驱动对象，可以用前面提到过的方法，将DRIVER_OBJECT结构中的MajorFunctions数组部分替换为我们的hook函数，（<strong>要注意我们要hook的是我们自己创建的驱动对象，而不是真正的驱动对象</strong>）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414141558734.png" alt="image-20220414141558734"></p>
 <p>最后一步就是将FILE_OBJECT的DeviceObject成员替换成我们自己的设备。</p>
-<p>现在文件对象被Hook了，对IoGetRelatedDeviceObject的任何调用都将返回我们的假设备，IoCallDriver将使用该设备调用我们的补丁MajorFunctions数组。</p>
-<p>剩下的工作：检查我们是都正在hook被调用的MajorFunction，如果是，则调用为该主函数传递原始设备对象和原始调度函数的hook函数；确保当MajorFunction是IRP_MJ_CLEANUP时保存了原始的DeviceObject。</p>
-<h3 id="How-the-Spectre-Rootkit-Abuses-the-User-Mode-Network-Stack"><a href="#How-the-Spectre-Rootkit-Abuses-the-User-Mode-Network-Stack" class="headerlink" title="How the Spectre Rootkit Abuses the User-Mode Network Stack"></a>How the Spectre Rootkit Abuses the User-Mode Network Stack</h3><h4 id="Abusing-the-Network"><a href="#Abusing-the-Network" class="headerlink" title="Abusing the Network"></a>Abusing the Network</h4><p>有了前一步的hook，现在我们已经可以拦截Afd驱动的Irps了。并且我们可以拦截所有用户模式的网络流量，通过任何套接字发送和接收我们自己的数据。</p>
+<p>现在文件对象被Hook了，对<code>IoGetRelatedDeviceObject</code>的任何调用都将返回我们的假设备，<code>IoCallDriver</code>将使用该设备调用我们的修补过的MajorFunctions数组。</p>
+<p>剩下的工作：检查我们是否正在hook被调用的MajorFunction，如果是，则调用为该主函数传递原始设备对象和原始调度函数的hook函数；确保当MajorFunction是IRP_MJ_CLEANUP时保存了原始的DeviceObject。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414143143109.png" alt="image-20220414143143109"></p>
+<h3 id="How-the-Spectre-Rootkit-Abuses-the-User-Mode-Network-Stack"><a href="#How-the-Spectre-Rootkit-Abuses-the-User-Mode-Network-Stack" class="headerlink" title="How the Spectre Rootkit Abuses the User-Mode Network Stack"></a>How the Spectre Rootkit Abuses the User-Mode Network Stack</h3><h4 id="Abusing-the-Network"><a href="#Abusing-the-Network" class="headerlink" title="Abusing the Network"></a>Abusing the Network</h4><p>有了前一步的hook，现在我们已经可以拦截Afd驱动的IRPs了。并且我们可以拦截所有用户模式的网络流量，通过任何套接字发送和接收我们自己的数据。</p>
 <h4 id="Packet-Structure"><a href="#Packet-Structure" class="headerlink" title="Packet Structure"></a>Packet Structure</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D4A.tmp.jpg" alt="img"> </p>
 <h4 id="Processing"><a href="#Processing" class="headerlink" title="Processing"></a>Processing</h4><p>收到数据包后先对数据包的magic constant部分进行判断。</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D4B.tmp.jpg" alt="img"> </p>
@@ -306,16 +339,39 @@
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D50.tmp.jpg" alt="img"> </p>
 <p>关于内核模式，让我们从创建获取输出所需的管道开始，下面是创建管道在后台所做的事情。</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D51.tmp.jpg" alt="img"> </p>
-<p>现在我们有了管道，我们需要创建实际的流程。我们将使用ZwCreateUserProcess，因为这是kernelbase.dll使用自己来创建进程的方法。</p>
-<p>我们需要从从进程的属性列表开始，我们必须设置的最重要的属性是PsAttributeImageName。这将指定新进程的映像文件名。</p>
-<p>接下来我们需要为进程填充RTL_USER_PROCESS_PARAMETERS结构，主要填充参数有窗口标志和输出到我们的管道的句柄，当前目录、命令行参数、进程映像路径和默认的桌面名称。</p>
-<p>然后我们就可以用ZwCreateUserProcess开启进程了，一旦进程退出，类似于我们在用户模式下所做的事情，我们可以调用ZwReadFile来从未命名的管道中读取输出。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414150937355.png" alt="image-20220414150937355"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414151108045.png" alt="image-20220414151108045"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414151134723.png" alt="image-20220414151134723"></p>
+<p>现在我们有了管道，我们需要创建实际的流程。我们将使用<code>ZwCreateUserProcess</code>，因为这是kernelbase.dll使用自己来创建进程的方法。（这一部分在后面详细说）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414152129288.png" alt="image-20220414152129288"></p>
+<p>我们需要从从进程的属性列表开始，我们必须设置的最重要的属性是<code>PsAttributeImageName</code>。这将指定新进程的映像文件名。</p>
+<p>接下来我们需要为进程填充<code>RTL_USER_PROCESS_PARAMETERS</code>结构，主要填充参数有窗口标志和输出到我们的管道的句柄，当前目录、命令行参数、进程映像路径和默认的桌面名称。这些都封装在函数<code>StartProcess</code>中。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414151508016.png" alt="image-20220414151508016"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414152501417.png" alt="image-20220414152501417"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414151937052.png" alt="image-20220414151937052"></p>
+<p>然后我们就可以用<code>ZwCreateUserProcess</code>开启进程了，一旦进程退出，类似于我们在用户模式下所做的事情，我们可以调用<code>ZwReadFile</code>来从未命名的管道中读取输出。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414152615260.png" alt="image-20220414152615260"></p>
+<h3 id="Finding-Unexported-ZwXx-Functions-Reliably"><a href="#Finding-Unexported-ZwXx-Functions-Reliably" class="headerlink" title="Finding Unexported ZwXx Functions Reliably"></a>Finding Unexported ZwXx Functions Reliably</h3><p>如<code> ZwCreateUserProcess</code>这样的函数，不能被 Windows 内核可靠导出。需要有一种稳定性的方法去寻找到这养的函数。<code> ZwCreateUserProcess</code>函数设置的系统调用号与<code>Ntxx</code>（用户模式下）中的相同，因此可以用后者的系统调用号寻找<code>Zwxx</code>。几乎所有的<code>NtXx</code>实现都惊人的一致，在参数传入后，把系统调用号(在内核寻找真正的处理函数使用)保存至eax内，之后判断cpu是否支持快速调用，<strong>如果支持使用syscall进入内核，反之使用中断门进入内核</strong>，这两种方式除了使用不同的堆栈切换方式和效率外并未有其他本质区别。（还可以看一下这篇<a target="_blank" rel="noopener" href="https://idiotc4t.com/defense-evasion/dynamic-get-syscallid">动态获取系统调用</a>）</p>
+<p>系统调用号在不同的 Windows 版本之间会发生变化; 硬编码系统调用不是一个好的方法。相反，可以选择自己解析 ntll.dll 来提取系统调用号。</p>
+<p>1.rootkit先加载ntdll.dll</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414153415044.png" alt="image-20220414153415044"></p>
+<p>2.我们通过枚举 ntdll.dll 模块的导出地址表(EAT)来找到 NtCreateUserProcess 函数。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414153531952.png" alt="image-20220414153531952"></p>
+<p>3.因为<code>Ntxx</code>函数都是按照以<code>mov r10, rcx``mov eax,[system call number]</code>这样的汇编代码开始的，所以我们很容易提取其系统调用号。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414154142166.png" alt="image-20220414154142166"></p>
+<p><code>Zwxx</code>函数采用的是下列的格式：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">push rax</span><br><span class="line">mov eax, [system call number]</span><br><span class="line">jmp KiServiceInternal</span><br></pre></td></tr></table></figure>
+
+<p>要找到<code>ZwXx</code>函数，我们需要在<code>ntoskrnl.exe</code>的可执行节中搜索上述格式</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414154856315.png" alt="image-20220414154856315"></p>
 <h3 id="Hiding-a-Rootkit"><a href="#Hiding-a-Rootkit" class="headerlink" title="Hiding a Rootkit"></a>Hiding a Rootkit</h3><h4 id="MiniFilter"><a href="#MiniFilter" class="headerlink" title="MiniFilter"></a>MiniFilter</h4><p>微过滤驱动通过过滤管理驱动进行注册来实现拦截特定文件I/O.</p>
 <p>Minifilter可以用于掩盖我们的根工具包在文件系统上的存在。它可以将某一文件的所有文件访问权限定向到另一个文件。我们可以使用此功能将对驱动程序文件的访问重定向到另一个合法的驱动程序。</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D52.tmp.jpg" alt="img"> </p>
-<p>利用MiniFilter最简单的方法就是自己成为一个MiniFilter,这个方法的检测向量主要是注册表和内存痕迹，不用担心稳定性和实用性，但是检测比较便宜，除了注册表工件之外，注册为MiniFillter的驱动程序也可以通过FltEnumerateFilters等API轻松枚举。</p>
-<p>第二个方法是Hook一个MIniFilter，有三种方式，第一种是代码Hook现有的过滤器的回调；第二种是在受害驱动程序使用FLT_REFISTRATION结构体获得你自己的回调之前重写该结构；第三种是DKOM（直接<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/%E5%86%85%E6%A0%B8%E5%AF%B9%E8%B1%A1">内核对象</a>操作技术）一个现有的过滤器实例，并用您的替换原始回调。第一种方式虽然简单，但是有很多缺点。对于第三种方式，这是一种半文档化的方法，可以通过FltEnumerateFilters和FltEnumerateInstances这两个API枚举过滤器和实例，为某个操作调用的函数在FLT_INSTANCE结构中的CallBackNodes数组中指定。这种方式会有内存痕迹，对于稳定性来说，虽然获得一个FLT_INSTANCE结构是文档化的，但是FLT_INSTANCE结构它自己不是文档化的，并且检测并不昂贵，反病毒软件需要偶尔枚举注册的过滤器在CallBackNodes数组中的钩子及其实例。</p>
+<p>利用MiniFilter最简单的方法就是自己成为一个MiniFilter,这个方法的检测向量主要是注册表和内存痕迹，不用担心稳定性和实用性，但是检测比较便宜，除了注册表工件之外，注册为MiniFillter的驱动程序也可以通过<code>FltEnumerateFilters</code>等API轻松枚举。</p>
+<p>第二个方法是Hook一个MiniFilter，有三种方式，第一种是代码Hook现有的过滤器的回调；第二种是在受害驱动程序使用FLT_REFISTRATION结构体获得你自己的回调之前重写该结构；第三种是DKOM（直接<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/%E5%86%85%E6%A0%B8%E5%AF%B9%E8%B1%A1">内核对象</a>操作技术）一个现有的过滤器实例，并用您的替换原始回调。第一种方式虽然简单，但是有很多缺点。对于第三种方式，这是一种半文档化的方法，可以通过<code>FltEnumerateFilters</code>和<code>FltEnumerateInstances</code>这两个API枚举过滤器和实例，为某个操作调用的函数在<code>FLT_INSTANCE</code>结构中的<code>CallBackNodes</code>数组中指定。这种方式会有内存痕迹，对于稳定性来说，虽然获得一个FLT_INSTANCE结构是文档化的，但是FLT_INSTANCE结构它自己不是文档化的，并且检测并不昂贵，反病毒软件需要偶尔枚举注册的过滤器在<code>CallBackNodes</code>数组中的钩子及其实例。</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D53.tmp.jpg" alt="img"> </p>
+<p>在代码中没有找到利用通过微过滤驱动的部分，只看到inf文件中有以下内容，猜测采用的是第一种方法们也就是自己成为一个MiniFilter.</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414164650059.png" alt="image-20220414164650059"></p>
 
     </div>
 
@@ -342,7 +398,10 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/windows%E4%BB%A4%E7%89%8C/" rel="tag"># windows令牌</a>
+              <a href="/tags/%E5%8A%A8%E6%80%81%E8%8E%B7%E5%8F%96%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E5%8F%B7/" rel="tag"># 动态获取系统调用号</a>
+              <a href="/tags/rootkit/" rel="tag"># rootkit</a>
+              <a href="/tags/hook/" rel="tag"># hook</a>
+              <a href="/tags/%E9%A9%B1%E5%8A%A8/" rel="tag"># 驱动</a>
           </div>
 
         
@@ -416,7 +475,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Loading-a-Rootkit"><span class="nav-number">1.</span> <span class="nav-text">Loading a Rootkit</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Communicating-with-a-Rootkit"><span class="nav-number">2.</span> <span class="nav-text">Communicating with a Rootkit</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Hooking-the-User-Mode-Network-Stack"><span class="nav-number">3.</span> <span class="nav-text">Hooking the User-Mode Network Stack</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#hook-Windows-Winsock-driver"><span class="nav-number">3.1.</span> <span class="nav-text">hook Windows Winsock driver</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-the-Spectre-Rootkit-Abuses-the-User-Mode-Network-Stack"><span class="nav-number">4.</span> <span class="nav-text">How the Spectre Rootkit Abuses the User-Mode Network Stack</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Abusing-the-Network"><span class="nav-number">4.1.</span> <span class="nav-text">Abusing the Network</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Packet-Structure"><span class="nav-number">4.2.</span> <span class="nav-text">Packet Structure</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Processing"><span class="nav-number">4.3.</span> <span class="nav-text">Processing</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Packet-Handlers"><span class="nav-number">4.4.</span> <span class="nav-text">Packet Handlers</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Executing-the-Commands"><span class="nav-number">4.5.</span> <span class="nav-text">Executing the Commands</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Hiding-a-Rootkit"><span class="nav-number">5.</span> <span class="nav-text">Hiding a Rootkit</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#MiniFilter"><span class="nav-number">5.1.</span> <span class="nav-text">MiniFilter</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Loading-a-Rootkit"><span class="nav-number">1.</span> <span class="nav-text">Loading a Rootkit</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Communicating-with-a-Rootkit"><span class="nav-number">2.</span> <span class="nav-text">Communicating with a Rootkit</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Hooking-the-User-Mode-Network-Stack"><span class="nav-number">3.</span> <span class="nav-text">Hooking the User-Mode Network Stack</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#hook-Windows-Winsock-driver"><span class="nav-number">3.1.</span> <span class="nav-text">hook Windows Winsock driver</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#How-the-Spectre-Rootkit-Abuses-the-User-Mode-Network-Stack"><span class="nav-number">4.</span> <span class="nav-text">How the Spectre Rootkit Abuses the User-Mode Network Stack</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Abusing-the-Network"><span class="nav-number">4.1.</span> <span class="nav-text">Abusing the Network</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Packet-Structure"><span class="nav-number">4.2.</span> <span class="nav-text">Packet Structure</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Processing"><span class="nav-number">4.3.</span> <span class="nav-text">Processing</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Packet-Handlers"><span class="nav-number">4.4.</span> <span class="nav-text">Packet Handlers</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Executing-the-Commands"><span class="nav-number">4.5.</span> <span class="nav-text">Executing the Commands</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Finding-Unexported-ZwXx-Functions-Reliably"><span class="nav-number">5.</span> <span class="nav-text">Finding Unexported ZwXx Functions Reliably</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Hiding-a-Rootkit"><span class="nav-number">6.</span> <span class="nav-text">Hiding a Rootkit</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#MiniFilter"><span class="nav-number">6.1.</span> <span class="nav-text">MiniFilter</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -432,20 +491,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-count">80</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-count">10</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">67</span>
+        <span class="site-state-item-count">81</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -492,12 +551,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">173k</span>
+    <span title="站点总字数">188k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">2:38</span>
+    <span title="站点阅读时长">2:51</span>
 </div>
 
         

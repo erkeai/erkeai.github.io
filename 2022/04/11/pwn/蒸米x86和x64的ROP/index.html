@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.ico">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"erkeai.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Linux x86和x64区别  首先是内存地址的范围由32位变成了64位。但是可以使用的内存地址不能大于0x00007fffffffffff，否则就会抛出异常。  其次是函数参数的传递方式发生了改变，x86中参数都是保存在栈上，但在x64中的前六个参数依次保存在RDI, RSI, RDX, RCX, R8和R9中，如果还有更多的参数的话才会保存在栈上。    X86level1 - 栈上执行s">
+<meta property="og:type" content="article">
+<meta property="og:title" content="蒸米ROP">
+<meta property="og:url" content="https://erkeai.github.io/2022/04/11/pwn/%E8%92%B8%E7%B1%B3x86%E5%92%8Cx64%E7%9A%84ROP/index.html">
+<meta property="og:site_name" content="hazel&#39;blog">
+<meta property="og:description" content="Linux x86和x64区别  首先是内存地址的范围由32位变成了64位。但是可以使用的内存地址不能大于0x00007fffffffffff，否则就会抛出异常。  其次是函数参数的传递方式发生了改变，x86中参数都是保存在栈上，但在x64中的前六个参数依次保存在RDI, RSI, RDX, RCX, R8和R9中，如果还有更多的参数的话才会保存在栈上。    X86level1 - 栈上执行s">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411111305626.png">
+<meta property="og:image" content="c:/Users/16434/AppData/Roaming/Typora/typora-user-images/image-20220411112803443.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411140147029.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411141134398.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411143033923.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411144041530.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411144025934.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411145234664.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411153012363.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411153059184.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411153110496.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411153712277.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411154528160.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411155713622.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411161110720.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411161127819.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411161439026.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411161818642.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411162311187.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411165400556.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411165337387.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411172320166.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411173204893.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411194023196.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411193850745.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411195114336.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411195303008.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411195704764.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411200245589.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411201005408.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411201337087.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411202231371.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411202305530.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220412103155409.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220412105037820.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220412113304210.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220412153739968.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220412153831586.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220412153857551.png">
+<meta property="article:published_time" content="2022-04-10T16:00:00.000Z">
+<meta property="article:modified_time" content="2022-04-12T07:41:06.168Z">
+<meta property="article:author" content="ZouFeIYu">
+<meta property="article:tag" content="栈溢出">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411111305626.png">
+
+<link rel="canonical" href="https://erkeai.github.io/2022/04/11/pwn/%E8%92%B8%E7%B1%B3x86%E5%92%8Cx64%E7%9A%84ROP/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>蒸米ROP | hazel'blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">hazel'blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">81</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">10</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">80</span></a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/04/11/pwn/%E8%92%B8%E7%B1%B3x86%E5%92%8Cx64%E7%9A%84ROP/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          蒸米ROP
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-04-11 00:00:00" itemprop="dateCreated datePublished" datetime="2022-04-11T00:00:00+08:00">2022-04-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-04-12 15:41:06" itemprop="dateModified" datetime="2022-04-12T15:41:06+08:00">2022-04-12</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/pwn/" itemprop="url" rel="index"><span itemprop="name">pwn</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>7.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>Linux x86和x64区别</p>
+<ol>
+<li><p>首先是内存地址的范围由32位变成了64位。但是可以使用的内存地址不能大于<code>0x00007fffffffffff</code>，否则就会抛出异常。</p>
+</li>
+<li><p>其次是函数参数的传递方式发生了改变，x86中参数都是保存在栈上，但在x64中的前六个参数依次保存在RDI, RSI, RDX, RCX, R8和R9中，如果还有更多的参数的话才会保存在栈上。</p>
+</li>
+</ol>
+</blockquote>
+<h2 id="X86"><a href="#X86" class="headerlink" title="X86"></a>X86</h2><h3 id="level1-栈上执行shellcode"><a href="#level1-栈上执行shellcode" class="headerlink" title="level1 - 栈上执行shellcode"></a>level1 - 栈上执行shellcode</h3><p>level1主要演示32位程序中最基本的栈溢出利用，可直接在栈上写shellcode并执行。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411111305626.png" alt="image-20220411111305626"></p>
+<p>用下面命令编译，<code>-m32</code>参数指定编译为32位程序；<code>-fno-stack-protector</code>参数指定不开启堆栈溢出保护，即不生成 canary；<code>-z execstack</code>参数指定允许栈执行，即不开启NX。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -m32 -fno-stack-protector -z execstack -o level1 level1.c</span><br></pre></td></tr></table></figure>
+
+<p>关闭ALSR，先进root权限，然后执行命令</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo 0 &gt; /proc/sys/kernel/randomize_va_space</span><br></pre></td></tr></table></figure>
+
+<p>查看是否关闭成功，以及程序情况，发现已经关闭了，但是还是显示PIE打开，后续看看能不能溢出再说。</p>
+<p><img src="C:\Users\16434\AppData\Roaming\Typora\typora-user-images\image-20220411112803443.png" alt="image-20220411112803443"></p>
+<p>采用<code>pattern_offset</code>获取偏移量，现在知道了偏移量，剩下的就是构造shellcode以及控制PC跳转到shellcode地址上。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411140147029.png" alt="image-20220411140147029"></p>
+<p>shellcode构造直接用，pwntools的asm(shellcraft.sh())来获得。</p>
+<p>下面获取写入的shellcode地址。由于ASLR等都关掉，因此现在获取的地址就不会变了。采用gdb查看内存的方式<code>x/10s $esp-144</code>(144是140加上四字节的ret)</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411141134398.png" alt="image-20220411141134398"></p>
+<p>但是如果这样利用该地址其实运行会出错。查网上的博客发现：</p>
+<blockquote>
+<p>对初学者来说这个shellcode地址的位置其实是一个坑。因为正常的思维是使用gdb调试目标程序，然后查看内存来确定shellcode的位置。但当你真的执行exp的时候你会发现shellcode压根就不在这个地址上！这是为什么呢？原因是gdb的调试环境会影响buf在内存中的位置，虽然我们关闭了ASLR，但这只能保证buf的地址在gdb的调试环境中不变，但当我们直接执行./level1的时候，buf的位置会固定在别的地址上。怎么解决这个问题呢？</p>
+</blockquote>
+<p>最简单的方法就是开启core dump这个功能。当程序运行的过程中异常终止或崩溃，操作系统会将程序当时的内存状态记录下来，保存在一个文件中，这种行为就叫做Core Dump。可以认为是内存快照，除了内存信息外，还有一些寄存器信息，内存管理信息，其他处理器和操作系统状态和信息被保存下来。用下面这两条命令开启该功能：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ulimit -c unlimited</span><br><span class="line">sudo sh -c &#x27;echo &quot;/tmp/core.%t&quot; &gt; /proc/sys/kernel/core_pattern&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>开启之后，当出现内存错误的时候，系统会生成一个core dump文件在tmp目录下。然后我们再用gdb查看这个core文件就可以获取到buf真正的地址了。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411143033923.png" alt="image-20220411143033923"></p>
+<p>得到shellcode真正地址是<code>0xffffd150</code></p>
+<h4 id="payload"><a href="#payload" class="headerlink" title="payload"></a>payload</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411144041530.png" alt="image-20220411144041530"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411144025934.png" alt="image-20220411144025934"></p>
+<p>果然出错了，还是之前查看程序的时候发现PIE和relro保护都有,把作者在github上的程序重新跑一下前面的步骤发现可行了</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411145234664.png" alt="image-20220411145234664"></p>
+<h4 id="远程部署"><a href="#远程部署" class="headerlink" title="远程部署"></a>远程部署</h4><p>除了本地调试，还有远程部署的方式，如下，将题目绑定到指定端口上：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">socat tcp-l:10001,fork exec:./level1</span><br></pre></td></tr></table></figure>
+
+<p>payload除了将p = process(“./level1”)改为p = remote(“127.0.0.1”, 10001)外，ret的地址还会发生改变。解决方法还是采用生成core dump的方案，然后用gdb调试core文件获取返回地址</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411153012363.png" alt="image-20220411153012363"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411153059184.png" alt="image-20220411153059184"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411153110496.png" alt="image-20220411153110496"></p>
+<h3 id="level2-ret2libc绕过NX"><a href="#level2-ret2libc绕过NX" class="headerlink" title="level2 - ret2libc绕过NX"></a>level2 - ret2libc绕过NX</h3><p>还是首先看一下这个程序情况，发现只开了NX保护</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411153712277.png" alt="image-20220411153712277"></p>
+<p>这样就不能和前面一样将shellcode写到栈上去，我们可以看一下,level1的stack是rwx的，但是level2的stack却是rw的</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /proc/[pid]/maps</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411154528160.png" alt="image-20220411154528160"></p>
+<p>既然开启了NX，那一般是利用ROP绕过，这里用的是ret2libc，因为程序level2调用了libc.so，并且libc.so里保存了大量可利用的函数如system()和/bin/sh，我们如果可以让程序执行system(“/bin/sh”)的话，也可以获取到shell。</p>
+<p>所以现在重要的是获取system和/bin/sh的地址。因为关掉了ALSR，所以system函数在内存中地址不会变化，并且libc.so中也包含”/bin/sh”这个字符串，并且这个字符串的地址也是固定的。</p>
+<p>在main下断点然后运行，system地址和bin/sh地址都全出来了，溢出偏移量和之前一样140</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411155713622.png" alt="image-20220411155713622"></p>
+<h4 id="payload-1"><a href="#payload-1" class="headerlink" title="payload"></a>payload</h4><p>这里就不写了，很简单，和之前ret2libc差不多</p>
+<h3 id="level2-OP绕过NX和ASLR"><a href="#level2-OP绕过NX和ASLR" class="headerlink" title="level2 - OP绕过NX和ASLR"></a>level2 - OP绕过NX和ASLR</h3><p>就在上一题的基础上，不过需要打开ALSR,如果你通过sudo cat /proc/[pid]/maps或者ldd查看，你会发现level2的libc.so地址每次都是变化的：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411161110720.png" alt="image-20220411161110720"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411161127819.png" alt="image-20220411161127819"></p>
+<p>所以这次如何利用呢？——思路是：先泄漏出libc.so某些函数在内存中的地址，再利用泄漏出的函数地址根据偏移量计算出system()函数和/bin/sh字符串在内存中的地址，最后执行我们的ret2libc的shellcode。既然栈、libc、堆的地址都是随机的，我们怎么才能泄露出libc.so的地址呢？方法还是有的，因为程序本身在内存中的地址并不是随机的，如图所示，Linux内存随机化分布图：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411161439026.png" alt="image-20220411161439026"></p>
+<p>所以我们只要把返回值设置到程序本身就可执行我们期望的指令了。</p>
+<p>首先我们利用objdump来查看可以利用的plt函数和函数对应的got表：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411161818642.png" alt="image-20220411161818642"></p>
+<p>我们可以通过<code>write@plt ()</code>函数把<code>write()</code>函数在内存中的地址也就是<code>write.got</code>给打印出来。</p>
+<p><strong>既然<code>write()</code>函数实现是在<code>libc.so</code>当中，那我们调用的<code>write@plt()</code>函数为什么也能实现<code>write()</code>功能呢?</strong> 这是因为linux采用了<strong>延时绑定技术</strong>，当我们调用<code>write@plit()</code>的时候，系统会将真正的<code>write()</code>函数地址link到got表的<code>write.got</code>中，然后<code>write@plit()</code>会根据<code>write.got</code> 跳转到真正的<code>write()</code>函数上去。</p>
+<p>因为<code>system()</code>函数和<code>write()</code>在<code>libc.so</code>中的相对地址是不变的，<strong>所以如果我们得到了write()的地址并且拥有目标服务器上的<code>libc.so</code>就可以计算出<code>system()</code>在内存中的地址了。</strong></p>
+<p>然后我们再将pc指针return回<code>vulnerable_function()</code>函数，就可以进行ret2libc溢出攻击，并且这一次我们知道了<code>system()</code>在内存中的地址，就可以调用<code>system()</code>函数来获取我们的shell了。</p>
+<p>使用ldd命令可以查看目标程序调用的so库。随后我们把<code>libc.so</code>拷贝到当前目录，因为我们的exp需要这个so文件来计算相对地址：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411162311187.png" alt="image-20220411162311187"></p>
+<p>除了用ldd命令查看libc.so库，还可以直接用pwntools库的elf.libc来获取libc.so库：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">elf = ELF(<span class="string">&quot;./level2&quot;</span>)</span><br><span class="line">libc = elf.libc</span><br></pre></td></tr></table></figure>
+
+<h4 id="payload-2"><a href="#payload-2" class="headerlink" title="payload"></a>payload</h4><p>说一下write函数原型</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">ssize_t</span> <span class="title">write</span><span class="params">(<span class="keyword">int</span> fd,<span class="keyword">const</span> <span class="keyword">void</span>*buf,<span class="keyword">size_t</span> count)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>所以首先填充<code>‘a’</code>造成溢出，覆盖到返回地址，返回地址填上write函数的plt地址来调用write函数，之后跟上vulnerable_function函数地址（其实设置成main也行，我们要将程序程序重新执行一遍，再次利用输入点来进构造rop）<br><code>p32(1)+p32(write_addr)+p32(4)</code>是在设置write函数的参数，对应函数原型看一下，32位程序是4位，所以这边写的4，对应的64位程序是8位</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411165400556.png" alt="image-20220411165400556"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411165337387.png" alt="image-20220411165337387"></p>
+<h3 id="level2-在不获取目标libc-so的情况下进行ROP攻击"><a href="#level2-在不获取目标libc-so的情况下进行ROP攻击" class="headerlink" title="level2 - 在不获取目标libc.so的情况下进行ROP攻击"></a>level2 - 在不获取目标libc.so的情况下进行ROP攻击</h3><p>如果我们在获取不到目标机器上的libc.so情况下，应该如何做呢？这时候就需要通过memory leak(内存泄露)来搜索内存找到system()的地址。</p>
+<blockquote>
+<p>这里采用pwntools提供的<strong>DynELF</strong>模块来进行内存搜索。首先我们需要实现一个leak(address)函数，通过这个函数可以获取到某个地址上最少1 byte的数据。拿上一篇中的level2程序举例。leak函数应该是这样实现的：</p>
+</blockquote>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">leak</span>(<span class="params">address</span>):</span></span><br><span class="line">    payload1 = <span class="string">&#x27;a&#x27;</span>*<span class="number">140</span> + p32(plt_write) + p32(vulfun_addr) + p32(<span class="number">1</span>) +p32(address) + p32(<span class="number">4</span>)</span><br><span class="line">    p.send(payload1)</span><br><span class="line">    data = p.recv(<span class="number">4</span>)</span><br><span class="line">    <span class="built_in">print</span> <span class="string">&quot;%#x =&gt; %s&quot;</span> % (address, (data <span class="keyword">or</span> <span class="string">&#x27;&#x27;</span>).encode(<span class="string">&#x27;hex&#x27;</span>))</span><br><span class="line">	<span class="keyword">return</span> data</span><br></pre></td></tr></table></figure>
+
+<p>随后将这个函数作为参数再调用<code>d = DynELF(leak, elf=ELF(‘./level2’))</code>就可以对DynELF模块进行初始化了。然后可以通过调用<code>system_addr = d.lookup(‘system’, ‘libc’)</code>来得到libc.so中system()在内存中的地址。</p>
+<p>要注意的是，通过DynELF模块只能获取到system()在内存中的地址，但无法获取字符串“/bin/sh”在内存中的地址。所以我们在payload中需要调用read()将“/bin/sh”这字符串写入到程序的.bss段中。.bss段是用来保存全局变量的值的，地址固定，并且可以读可写。通过<code>readelf -S level2</code>这个命令就可以获取到bss段的地址了,或者IDA中直接ctrl+s就可以获取了。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411172320166.png" alt="image-20220411172320166"></p>
+<p>当然，可以在pwntools中直接调用elf.bss()获取.bss段地址：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">elf = ELF(&quot;./level2&quot;)</span><br><span class="line">bss_base = elf.bss()</span><br></pre></td></tr></table></figure>
+
+<p>因为我们在执行完read()之后要接着调用system(“/bin/sh”)，并且read()这个函数的参数有三个，所以我们需要一个pop pop pop ret的gadget用来保证栈平衡。这里我们用ROPgadget来寻找：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411173204893.png" alt="image-20220411173204893"></p>
+<p>注意用python3会出现对DynELF模块不兼容的问题, python3和python2的最大区别(pwn中), 是bytes和str类型不共通了, 所以原本python2能跑的脚本, 在python3得考虑类型转换问题, DynELF中报错也是因为这个</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">sudo gedit /usr/local/lib/python3.8/dist-packages/pwnlib/dynelf.py</span><br><span class="line"><span class="meta">#</span><span class="bash">把下面这一行改了</span></span><br><span class="line">result = e.symbols[symb]</span><br><span class="line"><span class="meta">#</span><span class="bash">改成这个</span></span><br><span class="line">result = e.symbols[symb.decode()]</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411194023196.png" alt="image-20220411194023196"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411193850745.png" alt="image-20220411193850745"></p>
+<h2 id="x64"><a href="#x64" class="headerlink" title="x64"></a>x64</h2><h3 id="level-3-通过-ROP-绕过-DEP-和-ASLR-防护"><a href="#level-3-通过-ROP-绕过-DEP-和-ASLR-防护" class="headerlink" title="level 3 - 通过 ROP 绕过 DEP 和 ASLR 防护"></a>level 3 - 通过 ROP 绕过 DEP 和 ASLR 防护</h3><p>程序代码如下：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411195114336.png" alt="image-20220411195114336"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411195303008.png" alt="image-20220411195303008"></p>
+<p>查看文件基本情况，发现是64位动态链接的文件，之开启了NX保护</p>
+<p>我们用GDB调试一下，输入大量字符串，程序终止在vulnerable_function()函数处</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411195704764.png" alt="image-20220411195704764"></p>
+<blockquote>
+<p>奇怪的事情发生了，PC指针并没有指向类似于0x41414141那样地址，而是停在了vulnerable_function()函数中。这是为什么呢？原因就是我们之前提到过的程序使用的内存地址不能大于0x00007fffffffffff，否则会抛出异常。但是，虽然PC不能跳转到那个地址，我们依然可以通过栈来计算出溢出点。因为ret相当于“pop rip”指令，所以我们只要看一下栈顶的数值就能知道PC跳转的地址了。</p>
+</blockquote>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411200245589.png" alt="image-20220411195850173"></p>
+<h4 id="payload-3"><a href="#payload-3" class="headerlink" title="payload"></a>payload</h4><p>其实payload也很简单，和之前一样，因程序中本来就存在一个callsystem()函数，其会直接调用system(“/bin/sh”)，那就简单多了。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">payload = <span class="string">&quot;A&quot;</span> * <span class="number">136</span> + p64(callsystem_addr)</span><br></pre></td></tr></table></figure>
+
+<h3 id="level-4-使用ROPgadget寻找gadget"><a href="#level-4-使用ROPgadget寻找gadget" class="headerlink" title="level 4 - 使用ROPgadget寻找gadget"></a>level 4 - 使用ROPgadget寻找gadget</h3><blockquote>
+<p>x64中前六个参数依次保存在RDI，RSI，RDX，RCX，R8和 R9寄存器里，如果还有更多的参数的话才会保存在栈上。所以我们需要寻找一些类似于pop rdi; ret的这种gadget。如果是简单的gadgets，我们可以通过objdump来查找。但当我们打算寻找一些复杂的gadgets的时候，还是借助于一些查找gadgets的工具比较方便。比较有名的工具有：</p>
+<p><strong>ROPEME</strong>: <a target="_blank" rel="noopener" href="https://github.com/packz/ropeme">https://github.com/packz/ropeme</a></p>
+<p><strong>Ropper</strong>: <a target="_blank" rel="noopener" href="https://github.com/sashs/Ropper">https://github.com/sashs/Ropper</a></p>
+<p><strong>ROPgadget</strong>: <a target="_blank" rel="noopener" href="https://github.com/JonathanSalwan/ROPgadget/tree/master">https://github.com/JonathanSa…</a></p>
+<p><strong>rp++</strong>: <a target="_blank" rel="noopener" href="https://github.com/0vercl0k/rp">https://github.com/0vercl0k/rp</a></p>
+</blockquote>
+<p>程序代码如下，看到程序在一开始运行时调用systemaddr()函数，该函数会从本程序用到的libc.so.6中获取其中的system()函数地址并打印出来：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411201005408.png" alt="image-20220411201005408"></p>
+<p>程序文件情况如下，只开了NX保护</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411201337087.png" alt="image-20220411201337087"></p>
+<p>因为我们知道了溢出偏移量和system()函数的地址，剩下的就是通过寄存器给system()函数传参了，而在64位中传参的前六个参数是通过寄存器来实现的，而且system()只接受一个参数，因此我们需要找到一条pop rdi;ret的Gadget来帮助我们实现，这里我们用的是ROPgadget工具帮我们查找：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411202231371.png" alt="image-20220411202231371"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411202305530.png" alt="image-20220411202305530"></p>
+<h4 id="payload-4"><a href="#payload-4" class="headerlink" title="payload"></a>payload</h4><p>先填充栈空间，到达 rip 上一个内存空间。覆写为gadget地址，再接着是<code>/bin/sh</code>内存地址，这样就可以将<code>/bin/sh</code>存入到 rdi 寄存器。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220412103155409.png" alt="image-20220412103155409"></p>
+<h3 id="level5-通用gadgets"><a href="#level5-通用gadgets" class="headerlink" title="level5 - 通用gadgets"></a>level5 - 通用gadgets</h3><blockquote>
+<p>因为程序在编译过程中会加入一些通用函数用来进行初始化操作（比如加载libc.so的初始化函数），所以虽然很多程序的源码不同，但是初始化的过程是相同的，因此针对这些初始化函数，我们可以提取一些通用的gadgets加以使用，从而达到我们想要达到的效果。</p>
+</blockquote>
+<p>level5.c代码如下，相比于level3和level4，去掉了提供system()或其地址的辅助函数：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220412105037820.png" alt="image-20220412105037820"></p>
+<p>这道题思路和level2-ROP绕过NX和ALSR一样，但问题在于write()的参数应该如何传递，因为x64下前6个参数不是保存在栈中，而是通过寄存器传值。我们使用ROPgadget并没有找到类似于pop rdi, ret,pop rsi, ret这样的gadgets。那应该怎么办呢？其实在x64下有一些万能的gadgets可以利用。比如说我们用<code>objdump -d ./level5</code>观察一下__libc_csu_init()这个函数。一般来说，只要程序调用了libc.so，程序都会有这个函数用来对libc进行初始化操作。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220412113304210.png" alt="image-20220412113304210"></p>
+<p>这个函数里先执行400606再执行4005f0有以下赋值过程</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">RDI，RSI，RDX</span><br><span class="line">[RSP+0X8]-&gt;RBX  </span><br><span class="line">[RSP+0X10]-&gt;RBP</span><br><span class="line">[RSP+0X18]-&gt;R12</span><br><span class="line">[RSP+0X20]-&gt;R13;R13D-&gt;EDI</span><br><span class="line">[RSP+0X28]-&gt;R14-&gt;RSI</span><br><span class="line">[RSP+0X30]-&gt;R15-&gt;RDX</span><br><span class="line">CALL [R12+RBX*8]</span><br></pre></td></tr></table></figure>
+
+<p>只要我们控制rbx的值为 0 ，精心构造栈上传入上述寄存器的值，就可以实现控制 pc ，调用我们想要的函数。</p>
+<blockquote>
+<p>为什么需要控制 rbx 的值为0？</p>
+<p>执行完 call qword ptr [r12+rbx*8] 之后，程序会对rbx+=1，然后对比 rbp 和 rbx 的值，如果相等就会继续向下执行并 ret 到我们想要继续执行的地址。所以为了让 rbp 和 rbx 的值相等，我们可以将 rbp 的值设置为1，因为之前已经将 rbx 的值设置为0了。</p>
+</blockquote>
+<p> 我们先构造一个payload1输出write在got表中的地址</p>
+<blockquote>
+<p>为什么使用的是 write.got 而不是 write.plt？</p>
+<p>write.plt 相当于 call write。执行了两个动作，将指针跳转到 write 真实地址；将返回地址压栈。</p>
+<p>write.got 仅将指针跳转到 write 真实地址。</p>
+</blockquote>
+<p>整个流程如下:</p>
+<ul>
+<li><p>由于利用到泄露函数地址和向.bss段写内容的功能，需要先获取write()和read()函数的GOT地址；</p>
+</li>
+<li><p>payload1先填充溢出偏移量的字符、然后根据gadget1来设置对应寄存器的值、再调用gadget2、然后填充字符至gadget1的ret指令处、最后调用输入的返回地址即main处让程序继续执行下去；这里注意两个偏移量，第一个136是程序本身溢出到ret的偏移量，而第二个56则是gadget2跑完之后还要继续往下跑到gadget1的ret中去，这中间需要填充56个字节；</p>
+</li>
+<li><p>当我们exp在收到write()在内存中的地址后，就可以计算出system()在内存中的地址了。接着构造payload2，利用read()将system()或execve()的地址以及“/bin/sh”读入到.bss段内存中；</p>
+</li>
+<li><p>最后我们构造payload3,调用system()函数执行“/bin/sh”。注意，system()的地址保存在了.bss段首地址上，“/bin/sh”的地址保存在了.bss段首地址+8字节上。</p>
+</li>
+</ul>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220412153739968.png" alt="image-20220412153739968"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220412153831586.png" alt="image-20220412153831586"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220412153857551.png" alt="image-20220412153857551"></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>ZouFeIYu
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://erkeai.github.io/2022/04/11/pwn/%E8%92%B8%E7%B1%B3x86%E5%92%8Cx64%E7%9A%84ROP/" title="蒸米ROP">https://erkeai.github.io/2022/04/11/pwn/蒸米x86和x64的ROP/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%A0%88%E6%BA%A2%E5%87%BA/" rel="tag"># 栈溢出</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/04/08/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%BA%8C%E5%8D%81%E4%B8%89%E5%A4%A9/" rel="prev" title="代码随想录第二十三天">
+      <i class="fa fa-chevron-left"></i> 代码随想录第二十三天
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/04/11/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%BA%8C%E5%8D%81%E5%9B%9B%E5%A4%A9/" rel="next" title="代码随想录第二十四天">
+      代码随想录第二十四天 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#X86"><span class="nav-number">1.</span> <span class="nav-text">X86</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#level1-%E6%A0%88%E4%B8%8A%E6%89%A7%E8%A1%8Cshellcode"><span class="nav-number">1.1.</span> <span class="nav-text">level1 - 栈上执行shellcode</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#payload"><span class="nav-number">1.1.1.</span> <span class="nav-text">payload</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%9C%E7%A8%8B%E9%83%A8%E7%BD%B2"><span class="nav-number">1.1.2.</span> <span class="nav-text">远程部署</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#level2-ret2libc%E7%BB%95%E8%BF%87NX"><span class="nav-number">1.2.</span> <span class="nav-text">level2 - ret2libc绕过NX</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#payload-1"><span class="nav-number">1.2.1.</span> <span class="nav-text">payload</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#level2-OP%E7%BB%95%E8%BF%87NX%E5%92%8CASLR"><span class="nav-number">1.3.</span> <span class="nav-text">level2 - OP绕过NX和ASLR</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#payload-2"><span class="nav-number">1.3.1.</span> <span class="nav-text">payload</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#level2-%E5%9C%A8%E4%B8%8D%E8%8E%B7%E5%8F%96%E7%9B%AE%E6%A0%87libc-so%E7%9A%84%E6%83%85%E5%86%B5%E4%B8%8B%E8%BF%9B%E8%A1%8CROP%E6%94%BB%E5%87%BB"><span class="nav-number">1.4.</span> <span class="nav-text">level2 - 在不获取目标libc.so的情况下进行ROP攻击</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#x64"><span class="nav-number">2.</span> <span class="nav-text">x64</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#level-3-%E9%80%9A%E8%BF%87-ROP-%E7%BB%95%E8%BF%87-DEP-%E5%92%8C-ASLR-%E9%98%B2%E6%8A%A4"><span class="nav-number">2.1.</span> <span class="nav-text">level 3 - 通过 ROP 绕过 DEP 和 ASLR 防护</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#payload-3"><span class="nav-number">2.1.1.</span> <span class="nav-text">payload</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#level-4-%E4%BD%BF%E7%94%A8ROPgadget%E5%AF%BB%E6%89%BEgadget"><span class="nav-number">2.2.</span> <span class="nav-text">level 4 - 使用ROPgadget寻找gadget</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#payload-4"><span class="nav-number">2.2.1.</span> <span class="nav-text">payload</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#level5-%E9%80%9A%E7%94%A8gadgets"><span class="nav-number">2.3.</span> <span class="nav-text">level5 - 通用gadgets</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ZouFeIYu"
+      src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+  <p class="site-author-name" itemprop="name">ZouFeIYu</p>
+  <div class="site-description" itemprop="description">reading, coding, travelling</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">80</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">81</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/erkeai" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;erkeai" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:563783592@qq.com" title="E-Mail → mailto:563783592@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-feather"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ZouFeIYu</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">188k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:51</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
