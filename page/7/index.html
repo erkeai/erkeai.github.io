@@ -120,7 +120,7 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">81</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">82</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -130,7 +130,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">80</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">81</span></a>
 
   </li>
   </ul>
@@ -156,6 +156,144 @@
 
           <div class="content index posts-expand">
             
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/10/14/paper/2020%E9%BB%91%E5%B8%BDDetecting%20Access%20Token%20Manipulate%E5%AD%A6%E4%B9%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/10/14/paper/2020%E9%BB%91%E5%B8%BDDetecting%20Access%20Token%20Manipulate%E5%AD%A6%E4%B9%A0/" class="post-title-link" itemprop="url">2020黑帽Detecting Access Token Manipulate学习</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-10-14 00:00:00" itemprop="dateCreated datePublished" datetime="2021-10-14T00:00:00+08:00">2021-10-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 15:49:57" itemprop="dateModified" datetime="2021-12-22T15:49:57+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper-reading/" itemprop="url" rel="index"><span itemprop="name">paper reading</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>这篇文章主要目的是帮助安全从业人员理解：Windows下访问令牌是怎么工作的；攻击者是如何利用合法的Windows功能来横向移动并损害整个ActiveDirectory域信；他们检测和响应其环境中的访问令牌操作的能力。</p>
+<h3 id="Windows-Security-Internals"><a href="#Windows-Security-Internals" class="headerlink" title="Windows Security Internals"></a>Windows Security Internals</h3><h4 id="Logon-Sessions-and-Access-Tokens"><a href="#Logon-Sessions-and-Access-Tokens" class="headerlink" title="Logon Sessions and Access Tokens"></a>Logon Sessions and Access Tokens</h4><p>简单的说，用户登陆到windows系统之后，不管该用户是本地登陆的，还是远程登陆，系统都会为这个用户分配一个新的**会话ID(SID)**。也就是说会话与用户的登录是相关连的，没有用户登录就不存在会话。因此，会话的含义是指用户登录之后的一种运行的环境。会话管理器(\Windows\System32\Smss.exe)是系统中第一个创建的用户态模式进程，负责完成执行体和内核的初始化工作的内核模式系统线程在最后阶段创建了实际的Smss进程。</p>
+<p>会话(session)是由进程和其他的系统对象(比如窗口站、桌面和窗口)构成的，它们代表了一个用户的工作站登录会话。会话具体是由如下几个部分组成的：</p>
+<p>   \1. 每个会话包含一个单独的win32k.sys</p>
+<p>   \2. 专门的换页池区域</p>
+<p>   \3. 私有windows子系统和登陆进程的拷贝</p>
+<p>   \4. 系统空间中被映射的空间,被称为会话空间的区域</p>
+<p>现在会话同进程做一个比较，发现他们之间有一些相似之处：</p>
+<p>   \1. 都提供一个执行的环境</p>
+<p>   \2. 都有一个私有空间</p>
+<p>   进程是为了内部的执行的线程提供一个空间和环境，而会话则是为内部所有的进程提供一个执行的空间和环境。当用户登陆到系统中之后，用户下所有的进程都属于这个会话空间，在每个进程的PEB当中就有SessionID。Windows创建的第一个会话被称为会话0，是系统用户SYSTEM的会话通常称为会话0，服务就是运行在此会话中。而令牌就像是一个标识符，标识该账号的一切应用和操作。</p>
+<p><a target="_blank" rel="noopener" href="https://docs.microsoft.com/zh-cn/windows/desktop/SecAuthZ/access-tokens"><strong>访问令牌</strong></a>是用来描述进程或线程安全上下文的对象，令牌所包含的信息是与该 user 账户相关的进程或线程的身份和权限信息。当 user 登录时，系统通过将 user 输入的密码与储存在安全数据库中的密码进行对比。若密码正确，系统此时会为 user 生成一个访问令牌。之后，该 user 执行的每个进程都会拥有一个该访问令牌的副本。每个线程默认直接继承进程的token，线程还可以通过模拟，改变自己的token，让自己拥有别的用户的token。</p>
+<p>令牌产生过程：使用凭据(用户密码)进行认证；</p>
+<p>登录Session创建；</p>
+<p>Windows返回用户sid和用户组sid；</p>
+<p>LSA(Local Security Authority)创建一个Token；</p>
+<p>依据该token创建进程、线程(如果CreaetProcess时自己指定了 Token, LSA会用该Token， 否则就继承父进程Token进行运行)</p>
+<p>首先了解下令牌的四个模拟级别，分别是：Anonymous，Identification，Impersonation，Delegation</p>
+<p>Anonymous：服务器无法模拟或识别客户端。</p>
+<p>Identification：服务器可以获取客户端的身份和特权，但不能模拟客户端。</p>
+<p>Impersonation：服务器可以在本地系统上模拟客户端的安全上下文。</p>
+<p>Delegation：服务器可以在远程系统上模拟客户端的安全上下文。</p>
+<p>所以当令牌具有Impersonation和Delegation级别的时候才可以进行模拟。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wpsD52E.tmp.jpg" alt="img"><br>    言而总之，只要我们有SeAssignPrimaryToken或者SeImpersonate权限，就可以通过模拟Primary令牌来提升权限，而Primary令牌可以通过DuplicateTokenEx调用一个Impersonation令牌来转换。</p>
+<p>所以一个模拟令牌的过程大概是：OpenProcess(获取目标进程上下文)-&gt;OpenProcessToken(获得进程访问令牌的句柄)–&gt;DuplicateTokenEx(创建一个主/模拟令牌)–&gt;CreateProcessWithTokenW(创建进程)</p>
+<h4 id="How-Attackers-Abuse-Access-Token"><a href="#How-Attackers-Abuse-Access-Token" class="headerlink" title="How Attackers Abuse Access Token"></a>How Attackers Abuse Access Token</h4><p>攻击者可以使用内置的Windows API函数从现有进程复制访问令牌，这就是所谓的令牌窃取。然后可以将这些令牌应用于现有进程（即Token Impersonation/Theft）或用于生成新进程（即Create Process with Token）。攻击者必须已经处于特权用户上下文（即管理员）中才能窃取令牌。然而，攻击者通常使用令牌窃取将其安全上下文从管理员级别提升到系统级别。然后，如果帐户在远程系统上具有适当的权限，则攻击者可以使用令牌向远程系统进行身份验证，作为该令牌的帐户。</p>
+<p>在ATT&amp;CK框架中，对于令牌操作有五种技术介绍：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wpsD53E.tmp.jpg" alt="img"> </p>
+<h4 id="Token-Impersonation-Theft"><a href="#Token-Impersonation-Theft" class="headerlink" title="Token Impersonation/Theft"></a>Token Impersonation/Theft</h4><p>攻击者可以使用DuplicateToken（Ex）创建一个新的访问令牌来复制现有令牌。然后，该令牌可与ImpersonalLoggedOnUser一起使用，以允许调用线程模拟登录用户的安全上下文，或与SetThreadToken一起将模拟令牌分配给线程。</p>
+<p><strong>检测：</strong></p>
+<p>如果攻击者使用标准命令行shell，分析人员可以通过审核命令行活动来检测令牌操纵。具体来说，分析人员应该寻找runas命令的使用。默认情况下，Windows中未启用详细的命令行日志记录。</p>
+<p>分析人员还可以监视Windows API（如DuplicateToken（Ex）、ImpersonalLoggeDonUser和SetThreadToken）的使用情况，并将活动与其他可疑行为关联起来，以减少由于用户和管理员正常的良性使用而导致的误报。 </p>
+<h4 id="Create-Process-with-Token"><a href="#Create-Process-with-Token" class="headerlink" title="Create Process with Token"></a>Create Process with Token</h4><p>攻击者可能会使用重复的令牌创建一个新进程，以升级权限并绕过访问控制。攻击者可以使用DuplicateToken（Ex）复制所需的访问令牌，并将其与CreateProcessWithTokenW一起使用，以创建在模拟用户的安全上下文下运行的新进程。这对于在不同用户的安全上下文下创建新进程非常有用。</p>
+<p><strong>检测：</strong></p>
+<p>如果攻击者使用标准命令行shell，同上。</p>
+<p>如果攻击者使用直接调用Windows令牌API的有效负载，分析人员只能通过仔细分析用户网络活动、检查正在运行的进程以及与其他端点和网络行为的关联来检测令牌操纵。 </p>
+<p>分析人员还可以监视Windows API，同上。</p>
+<h4 id="Make-and-Impersonate-Token"><a href="#Make-and-Impersonate-Token" class="headerlink" title="Make and Impersonate Token"></a>Make and Impersonate Token</h4><p> 攻击者可以制作和模拟令牌以提升权限并绕过访问控制。如果攻击者拥有用户名和密码，但用户未登录系统，则攻击者可以使用LogonUser功能为用户创建登录会话。该函数将返回新会话的访问令牌的副本，攻击者可以使用SetThreadToken将令牌分配给线程。</p>
+<p><strong>检测：</strong></p>
+<p>同上</p>
+<h4 id="Parent-PID-Spoofing"><a href="#Parent-PID-Spoofing" class="headerlink" title="Parent PID Spoofing"></a>Parent PID Spoofing</h4><p>攻击者可以欺骗新进程的父进程标识符（PPID），以逃避进程监视防御或提升权限。除非明确指定，否则新进程通常直接从其父进程或调用进程派生。显式分配新进程的PPID的一种方法是通过CreateProcess API调用，该调用支持定义要使用的PPID的参数。此功能由Windows功能（如用户帐户控制（UAC））使用，以便在系统生成请求的提升进程后正确设置PPID（通常通过svchost.exe或approve.exe）而不是当前用户上下文。</p>
+<p>攻击者可能会利用这些机制来逃避防御，例如阻止直接从Office文档生成的进程，以及针对异常/潜在恶意父子进程关系的分析，例如将PowerShell/Rundll32的PPID欺骗为explorer.exe，而不是将Office文档作为Spearphishing Attachment的一部分。此欺骗可以通过Visual Basic在恶意Office文档或任何可以执行本机API的代码中执行。</p>
+<p>显式分配PPID还可以启用提升的权限，赋予父进程适当的访问权限。例如，特权用户上下文（即管理员）中的攻击者可能会生成一个新进程，并将父进程分配为作为系统运行的进程（如lsass.exe），导致新进程通过继承的访问令牌提升。</p>
+<p><strong>检测：</strong></p>
+<p>查找存储PPID信息的各个字段之间的不一致性，例如通过Windows事件跟踪（ETW）收集的数据中的EventHeader ProcessId、Windows事件日志中的创建者进程ID/名称以及ProcessId和ParentProcessID（也由ETW和其他实用程序（如任务管理器和Process Explorer）生成）。ETW提供的EventHeader ProcessId标识实际的父进程。</p>
+<p>监视和分析对CreateProcess/CreateProcessA的API调用，特别是来自用户/潜在恶意进程的API调用，并使用显式分配PPID的参数（例如：进程创建标志0x8XXX，表示正在使用扩展启动信息创建进程）。恶意使用CreateProcess/CreateProcessA也可能通过调用UpdateProctThreadAttribute进行，这可能是更新进程创建属性所必需的。这可能会从正常UAC提升行为中产生误报，因此如果可能，请与系统基线/对正常系统活动的理解进行比较。</p>
+<h4 id="SID-History-Injection"><a href="#SID-History-Injection" class="headerlink" title="SID-History Injection"></a>SID-History Injection</h4><p>对手可以使用SID历史记录注入来升级权限和绕过访问控制。Windows安全标识符（SID）是标识用户或组帐户的唯一值。Windows security在安全描述符和访问令牌中都使用SID。帐户可以在SID-History Active Directory属性中保存其他SID，从而允许在域之间进行可互操作的帐户迁移（例如，SID-History中的所有值都包含在访问令牌中）。</p>
+<p>使用域管理员（或同等）权限，可以将获取的或已知的SID值插入到SID历史记录中，以启用对任意用户/组（如企业管理员）的模拟。此操作可能会导致通过横向移动技术（如远程服务、SMB/Windows管理员共享或Windows远程管理）提升对本地资源的访问和/或访问无法访问的域。</p>
+<p><strong>检测：</strong></p>
+<p>使用PowerShell Get-ADUser 命令行工具检查用户SID历史记录属性中的数据，尤其是具有来自同一域的SID历史记录值的用户。还可以监视域控制器上的帐户管理事件，以查看SID历史记录的成功更改和失败更改。</p>
+<p>监视对DsAddSidHistory函数的Windows API调用。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -1456,196 +1594,10 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/07/31/wkp/Chapter%204%20Driver%20from%20Start%20to%20Finish/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/07/31/wkp/Chapter%204%20Driver%20from%20Start%20to%20Finish/" class="post-title-link" itemprop="url">Chapter 4 Driver from Start to Finish</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-07-31 00:00:00" itemprop="dateCreated datePublished" datetime="2021-07-31T00:00:00+08:00">2021-07-31</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-22 12:50:28" itemprop="dateModified" datetime="2021-12-22T12:50:28+08:00">2021-12-22</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">驱动开发</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>4.8k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>4 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>​    在本章中，将使用我们在前几章中学到的许多概念，并构建一个简单但完整的驱动程序和客户机应用程序，同时填补一些缺失的细节。我们将部署驱动程序并使用它的功能——在内核模式下执行用户模式不可用的一些操作。</p>
-<h4 id="1-介绍"><a href="#1-介绍" class="headerlink" title="1.介绍"></a>1.介绍</h4><p>​    我们将要用一个简单的内核驱动来解决的问题是用Windows API设置线程优先级的不灵活性。在用户模式下，一个线程的优先级是由其进程PriorityClass与具有有限数量级别的每个线程基础上的偏移量的组合决定的。</p>
-<p>​    改变进程/优先级：SetPriorityClass,该函数设置的优先级是线程的默认优先级，也可以使用SetThreadPriority设置线程优先级（都是用偏移量设置），下面的表格展示了基于进程优先级类和线程的优先级偏移量的可用线程优先级。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps691D.tmp.jpg" alt="img"> </p>
-<p>​    实时优先级类并不意味着Windows是一个实时操作系统；此外，由于实时优先级非常高，并且与许多做重要工作的内核线程竞争，这样的进程必须使用管理员特权运行；否则，试图将优先级类设置为实时会将值设置为“高”。</p>
-<p>​    只有一小部分优先级可以直接设置。我们希望<strong>创建一个驱动程序，以规避这些限制，并允许将线程的优先级设置为任何数字，而不管其进程优先级类如何。</strong></p>
-<h4 id="2-驱动初始化"><a href="#2-驱动初始化" class="headerlink" title="2.驱动初始化"></a>2.驱动初始化</h4><p>​    创建一个新的项目命名为PriorityBooster并且删掉INF文件,新建一个cpp文件，大多数软件驱动程序需要在驱动器条目中执行以下操作：</p>
-<ul>
-<li><p>设置一个卸载例程；</p>
-</li>
-<li><p>设置驱动程序所支持的调度例程；</p>
-</li>
-<li><p>创建一个设备对象；</p>
-</li>
-<li><p>创建一个到设备对象的符号链接。</p>
-<p>一旦执行了所有这些操作，驱动程序就已经准备好接受请求了。第一步是添加一个卸载例程，并从驱动程序对象指向它。以下是新的具有卸载程序的DriverEntry，当然我们需要根据我们实际工作中的需要添加代码。</p>
-</li>
-</ul>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps691E.tmp.jpg" alt="img"> </p>
-<p>​    接下来我们需要设置我们要支持的调度例程，实际上，所有的驱动程序都必须支持IRP_MJ_CREATE和IRP_MJ_CLOSE，否则就无法为该驱动程序的任何设备打开手柄。所以我们将以下内容添加到DriverEntry中。</p>
- <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">DriverObject-&gt;MajorFunction[IRP_MJ_CREATE] = PriorityBoosterCreateClose;</span><br><span class="line"></span><br><span class="line">DriverObject-&gt;MajorFunction[IRP_MJ_CLOSE] = PriorityBoosterCreateClose;</span><br></pre></td></tr></table></figure>
-
-<p>​    所有的major function都有同样的类型（它们是函数指针数组的一部分），因此我们需要给函数PriorityBoosterCreateClose加一个类型NTSTATUS</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps691F.tmp.jpg" alt="img"> </p>
-<h5 id="传递信息给驱动"><a href="#传递信息给驱动" class="headerlink" title="传递信息给驱动"></a>传递信息给驱动</h5><p>​    我们的目的是为了设置现成的优先级，所以我们需要一种方式告诉驱动程序是哪个线程以及设置什么值。从我们的目的处罚，我们需要用到WriteFile或者 DeviceIoControl,一般的思维是使用前者，但是在这里，后者是一种向驱动程序传递数据的通用机制。由于更改线程的优先级不是纯粹的写操作，所以我们将使用<strong>DeviceIoControl</strong>。此函数具有以下原型（我们主要关注三个参数）：</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6920.tmp.jpg" alt="img"> </p>
-<p>​    操作的控制代码标识要执行的特定操作以及执行该操作的设备的类型。每个控制代码的文档都提供了lpInBuffer，nInBufferSize，lpOutBuffer和nOutBufferSize参数的使用细节。</p>
-<p>​    在驱动程序方面，DeviceIoControl对应于IRP_MJ_DEVICE_CONTROL的major function代码。我们将其添加到调度例程的初始化中：</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6931.tmp.jpg" alt="img"> </p>
-<h5 id="客户端-驱动程序通信协议"><a href="#客户端-驱动程序通信协议" class="headerlink" title="客户端/驱动程序通信协议"></a>客户端/驱动程序通信协议</h5><p>​    前面提到我们需要ControlCode以及Inputbuffer（包括线程id以及设置的优先级）这些信息片段必须可由驱动程序和客户端同时使用。客户端将提供数据，而驱动程序将对其采取行动。这意味着这些定义必须包含在驱动程序和客户端代码必须包含的单独文件中。</p>
-<p>​    基于此我需要创建一个头文件，这个头文件需要定义驱动程序期望从客户端获得的数据结构和用于更改线程优先级的控制代码。（请注意为什么不用DWORD，因为该类型只在用户模式下定义，ULONG在用户以及内核模式下都有定义）</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6932.tmp.jpg" alt="img"> </p>
-<p>​    ControlCode必须使用CTL_CODE宏构建，该宏接受组成最终ControlCode的四个参数。CTL_CODE的定义如下：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#define CTL_CODE( DeviceType, Function, Method, Access ) (</span><br><span class="line"></span><br><span class="line">((DeviceType) &lt;&lt; 16) | ((Access) &lt;&lt; 14) | ((Function) &lt;&lt; 2) | (Method))</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p><strong>DeviceType</strong>定义设备类型，可以是WDK头文件中的某个FILE_DEVICE_XXX常量，但是这个变量是针对于基于硬件的驱动程序。（我们的是基于软件的，尽管如此，微软的文档还是规定，第三方驱动程序应该从0x8000开始。</p>
-</li>
-<li><p><strong>Function</strong> 一个表示特定操作的升序数字。如果没有其他内容，那么这个数字在同一驱动程序的不同控制代码之间必须有所不同。同样，任何数字都可以，但官方文件显示，第三方驱动程序应该从0x800开始。</p>
-</li>
-<li><p><strong>Method</strong>  ControlCode中最重要的部分。它指示Client提供的输入和输出缓冲区如何传递给驱动程序。对于我们的驱动程序，我们将使用最简单的值METHOD_NEITHER。</p>
-</li>
-<li><p><strong>Access</strong> 指示此操作是来自FILE_WRITE_ACCESS、FILE_READ_ACCESS还是FILE_ANY_ACCESS。典型的驱动程序只使用FILE_ANY_ACCESS并处理IRP_MJ_DEVICE_CONTROL处理程序中的实际请求。</p>
-</li>
-</ul>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6933.tmp.jpg" alt="img"> </p>
-<h5 id="创建设备对象"><a href="#创建设备对象" class="headerlink" title="创建设备对象"></a>创建设备对象</h5><p>​    一个典型的软件驱动程序只需要一个设备对象，其中有一个符号链接指向它，这样用户模式客户端就可以获得句柄。用IoCreateDevice实现该功能。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6934.tmp.jpg" alt="img"> </p>
-<ul>
-<li><p><strong>DeviceExtensionSize</strong> 除了sizeof(DEVICE_OBJECT)之外，还将分配的额外字节。可用于将某些数据结构与设备相关联。它对于仅创建一个设备对象的软件驱动程序不那么有用，因为设备所需的状态可以简单地由全局变量来管理。</p>
-</li>
-<li><p><strong>Devicetype</strong> 与某些类型的基于硬件的驱动程序相关。对于软件驱动程序，应该使用值FILE_DEVICE_UNKNOWN。</p>
-</li>
-<li><p><strong>Exclusive</strong> 是否应该允许多个文件对象打开同一设备？大多数驱动程序应该指定false，但在某些情况下，TRUE更合适；它强制单个客户端到设备。</p>
-</li>
-<li><p><strong>DeviceObject</strong> 返回的指针，作为指针传递给一个指针。如果成功，Io创建device将从非页面池中分配结构，并将生成的指针存储在取消引用的参数中</p>
-</li>
-</ul>
-<p>​    在调用IoCreateDevice之前，我们必须创建一个UNICODE_STRING来保存内部设备的名称.</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6935.tmp.jpg" alt="img"> </p>
-<p>​    设备名称可以是任何东西，但是应该在设备对象管理器目录中。有两种方法可以用一个常量字符串来初始化一个UNICODE_STRING。第一个是使用<strong>RtlInitUnicodeString</strong>。但是RtlInitUnicode字符串必须计算字符串中的字符数，才能适当地初始化长度和最大长度。有一种更快的方法,使用<strong>RTL_CONSTANT_STRING宏</strong>，在编译时静态计算字符串的长度，这意味着它只能对常量字符串正确操作。</p>
-<p>​    如果一切顺利，我们现在有了一个指向设备对象的指针。下一步是通过提供一个符号链接，使用户模式调用者可以访问此设备对象。以下行创建符号链接并将其连接到我们的设备对象：</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6936.tmp.jpg" alt="img"> </p>
-<p>​    IoCreateSymbolicLink通过接受符号链接和链接的目标来完成工作。注意，如果创建失败，我们必须通过调用IoDeleteDevice来撤销到这里我们所做的所有操作（目前我们只是创建了对象，所以删除就好了）。如果驱动器条目返回任何故障状态，则不调用卸载例程。如果我们有更多的初始化步骤要做，我们将必须记住在那之前撤销所有内容，直到出现失败。（第五章有更好的处理方式）</p>
-<p>​    符号链接这一步成功后，DriverEntry就返回成功，驱动程序就可以接受请求了。</p>
-<p>​    卸载程序：在我们的例子中，有两件事（设备对象创建和符号链接创建）。我们将按相反的顺序撤销它们：</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6937.tmp.jpg" alt="img"> </p>
-<h5 id="客户端代码"><a href="#客户端代码" class="headerlink" title="客户端代码"></a>客户端代码</h5><p>​    客户端项目（控制台桌面项目）<strong>首先需要</strong>include由驱动端创建的头文件并且需要在主函数中接受命令行参数（线程ID和优先级），请求驱动程序将线程的优先级更改为给定的值。</p>
-<p>​    <strong>然后需要</strong>打开设备句柄（note:<strong>如果驱动程序此时没有加载，这意味着没有设备对象，也没有符号链接，我们将得到一个错误号2</strong>）</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6938.tmp.jpg" alt="img"> </p>
-<p>​    打开设备对象后将参数传给ThreadData结构体，<strong>然后</strong>开始DeviceIoControl</p>
-<p>​    该函数主要调用IRP_MJ_DEVICE_CONTROL主函数例程到达驱动程序。</p>
-<h5 id="创建和关闭派遣函数"><a href="#创建和关闭派遣函数" class="headerlink" title="创建和关闭派遣函数"></a>创建和关闭派遣函数</h5><p>所需要的只需以一个成功的状态完成请求。以下是完整的创建/关闭调度例行程序实现，IoCompleteRequest函数的第一个参数是将IRP返回给它的创建者（通常是I/O manager）,第二个参数是驱动程序可以向其客户端提供的临时优先级提升值。在大多数情况下，零的值是最好的(IO_NO_INCREMENT被定义为零)，因为请求同步完成，因此调用者不必获得优先级提升。详细可见第六章</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6939.tmp.jpg" alt="img"> </p>
-<h5 id="DeviceToControl派遣函数"><a href="#DeviceToControl派遣函数" class="headerlink" title="DeviceToControl派遣函数"></a>DeviceToControl派遣函数</h5><p>这一部分是项目的核心工作，<strong>首先需要</strong>IRP信息，关键是查看与当前设备层相关联的IO_STACK_LOCATION内部。调用IoGetCurrentIrpStackLocation将返回一个指向正确的IO_STACK_LOCATION的指针。IO_STACK_LOCATION的主要组成部分是一个名为Parameters的巨大联合成员，它包含一组结构，每种类型的IRP都一个。在IRP_MJ_DEVICE_CONTROL的情况下，要看的结构是DeviceIoControl。在该结构中，我们可以找到客户端所传递的信息，如控制代码、缓冲区及其长度。在我们的例子中，实际上只有一个IO_STACK_LOCATION.</p>
-<p><strong>其次需要</strong>检查控制代码是否是驱动程序支持的，如果没有，我们只将状态设置为成功以外的东西，我们需要的最后一段通用代码是在switch块之后完善IRP，无论它是否成功。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps693A.tmp.jpg" alt="img"> </p>
-<p><strong>然后第一步</strong>是检查我们收到的缓冲区是否大到足以包含一个线程数据对象。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps693B.tmp.jpg" alt="img"> </p>
-<p><strong>接下来</strong>让我们看看优先级是否在1到31的范围内，如果没有，则中止：</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps693C.tmp.jpg" alt="img"> </p>
-<p>设置优先级之前，<strong>我们需要</strong>获得内核空间中真是的线程对象的指针，用到PsLookupThreadByThreadId函数，通过线程Id获得（note:include ntfis.h）。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps693D.tmp.jpg" alt="img"> </p>
-<p>函数的第一个参数是一个句柄，这个ID它是一个作为句柄输入的ID。其原因与进程和线程id的生成方式有关。这些都是由全局私有内核句柄表生成的，所以句柄“值”是实际的id。ULongToHandle宏提供了必要的转换。（请记住，64位系统上的句柄是64位，但客户端提供的线程ID总是32位。）</p>
-<p>KeSetPriorityThread需要的参数是一个PKTHREAD，但是PETHREAD的第一个成员就是前者类型，所以两者可以相互转换</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps693E.tmp.jpg" alt="img"> </p>
-<h5 id="安装和测试"><a href="#安装和测试" class="headerlink" title="安装和测试"></a>安装和测试</h5><p><strong>1.管理员打开cmd</strong></p>
-<p>sc create booster type= kernel binPath= c:\PriorityBooster.sys</p>
-<p>booster是注册表键值，所以必须是独一无二的</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps693F.tmp.jpg" alt="img"> </p>
-<p><strong>2.加载驱动</strong></p>
-<p>sc start booster<strong>（note:生成文件后缀没有recipe只有sys）</strong></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6940.tmp.jpg" alt="img"> </p>
-<p>然后采用ProcessExplorer查看cmd.exe的一个线程，将其作为实践对象</p>
-<p><strong>3.使用线程ID和所需的优先级运行客户端：</strong></p>
-<p>booster 3384 25</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6951.tmp.jpg" alt="img"> </p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6952.tmp.jpg" alt="img"> </p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp4/wps6953.tmp.jpg" alt="img"> </p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/6/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/">8</a><a class="extend next" rel="next" href="/page/8/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/page/6/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/">8</a><a class="page-number" href="/page/9/">9</a><a class="extend next" rel="next" href="/page/8/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1713,7 +1665,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">80</span>
+          <span class="site-state-item-count">81</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1726,7 +1678,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">81</span>
+        <span class="site-state-item-count">82</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1773,12 +1725,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">188k</span>
+    <span title="站点总字数">195k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">2:51</span>
+    <span title="站点阅读时长">2:57</span>
 </div>
 
         

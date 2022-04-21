@@ -120,7 +120,7 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">81</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">82</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -130,7 +130,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">80</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">81</span></a>
 
   </li>
   </ul>
@@ -156,6 +156,118 @@
 
           <div class="content index posts-expand">
             
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/04/20/Cheese_point/%E7%BB%95%E8%BF%87%E7%94%A8%E6%88%B7%E6%80%81API%20hooking/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/04/20/Cheese_point/%E7%BB%95%E8%BF%87%E7%94%A8%E6%88%B7%E6%80%81API%20hooking/" class="post-title-link" itemprop="url">绕过用户态API hooking</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-04-20 00:00:00 / 修改时间：17:24:34" itemprop="dateCreated datePublished" datetime="2022-04-20T00:00:00+08:00">2022-04-20</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%98%B2%E5%BE%A1%E7%BB%95%E8%BF%87/" itemprop="url" rel="index"><span itemprop="name">防御绕过</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>参考文章：<a target="_blank" rel="noopener" href="https://perspectiverisk.com/a-practical-guide-to-bypassing-userland-api-hooking/">A practical guide to bypassing userland API Hooking</a></p>
+<p>​        这里主要是对这篇文章提到的绕过技术进行一个翻译总结。</p>
+<h3 id="shellcode-编码或加密"><a href="#shellcode-编码或加密" class="headerlink" title="shellcode 编码或加密"></a>shellcode 编码或加密</h3><p>​        Cobalt Strike shellcode 使用带有静态密钥的简单 XOR 编码进行编码足以绕过 EDR 静态分析。</p>
+<h3 id="检测API挂钩"><a href="#检测API挂钩" class="headerlink" title="检测API挂钩"></a>检测API挂钩</h3><p>​        API 挂钩是许多 EDR 或防病毒供应商使用的一种技术，用于实时监控进程或代码执行是否存在恶意行为。要检测 EDR 是否实现 API 挂钩，我们可以简单地查看可能被 EDR 挂钩的函数调用的前几条指令。这些被挂钩的函数通常是一些进程注入调用的函数，例如 NtOpenProcess、NtCreateThread 或 NtCreateUserProcess。</p>
+<p>​        为了识别所有潜在的挂钩函数调用，有一个<a target="_blank" rel="noopener" href="https://github.com/jthuraisamy/TelemetrySourcerer">开源工具</a>可以在执行期间将函数调用指令的前几个字节与系统 DLL 中相同函数调用的干净版本进行比较。</p>
+<h4 id="避免使用已被hook的API"><a href="#避免使用已被hook的API" class="headerlink" title="避免使用已被hook的API"></a>避免使用已被hook的API</h4><p>​        一旦我们确定了 EDR 可以拦截哪些函数调用，我们就可以使用代码执行或进程注入技术来避免这些函数调用。比如可以使用<strong>CreateThreadpoolWait</strong>函数实现shellcode执行技术。</p>
+<ul>
+<li>使用CreateEvent函数创建一个signaled的事件对象(否则无法触发回调)</li>
+<li>使用VirtualAlloc给shellcode分配内存空间</li>
+<li>使用RtlMoveMemory写入shellcode到当前进程指定内存空间中</li>
+<li>使用CreateThreadPoolWait函数创建一个线程池等待回调，其中回调函数指向我们的shellcode(在本文演示过程中，由于设置了事件状态为signaled，因此会立即触发回调并执行shellcode)</li>
+<li>使用SetThreadPoolWait设置线程池需要监听的事件，此时将监听步骤1创建的事件</li>
+<li>使用WaitForSingleObject对步骤1的事件进行等待(防止进程直接退出)</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">HANDLE event = <span class="built_in">CreateEvent</span>(<span class="literal">NULL</span>, FALSE, TRUE, <span class="literal">NULL</span>);</span><br><span class="line">LPVOID shellcodeAddress = <span class="built_in">VirtualAlloc</span>(<span class="literal">NULL</span>, <span class="built_in"><span class="keyword">sizeof</span></span>(shellcode), MEM_COMMIT, PAGE_EXECUTE_READWRITE);</span><br><span class="line"><span class="built_in">RtlMoveMemory</span>(shellcodeAddress, shellcode, <span class="built_in"><span class="keyword">sizeof</span></span>(shellcode));</span><br><span class="line"></span><br><span class="line">PTP_WAIT threadPoolWait = <span class="built_in">CreateThreadpoolWait</span>((PTP_WAIT_CALLBACK)shellcodeAddress, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line"><span class="built_in">SetThreadpoolWait</span>(threadPoolWait, event, <span class="literal">NULL</span>);</span><br><span class="line"><span class="built_in">WaitForSingleObject</span>(event, INFINITE);</span><br><span class="line">	</span><br></pre></td></tr></table></figure>
+
+<h4 id="修补被hook的API"><a href="#修补被hook的API" class="headerlink" title="修补被hook的API"></a>修补被hook的API</h4><p>​        通过修补已被 EDR 覆盖的指令的几个字节来恢复函数调用的原始指令。以文中提到的NtOpenProcess为例。</p>
+<p>​        下图分别为被挂钩的和未被挂钩的函数，用于 NtOpenProcess 函数调用 (7FFD749CD220) 的内存地址的前 16 个字节被 EDR 覆盖，以将函数的执行流程重定向到 EDR 的代码。如果我们可以使用与图中所示的原始指令相同的指令来修补这些内存地址，我们可以防止 EDR 将执行流程重定向到 EDR。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220420153331438.png" alt="image-20220420153331438"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220420153343628.png" alt="image-20220420153343628"></p>
+<p>​        修补代码如下</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220420153628939.png" alt="image-20220420153628939"></p>
+<h4 id="将整个DLL脱钩"><a href="#将整个DLL脱钩" class="headerlink" title="将整个DLL脱钩"></a>将整个DLL脱钩</h4><p>​        因为需要修补的函数可能不止一个，所以可以简单地使用该技术。</p>
+<p>这种技术本质上依赖于将驻留在内存中（并已被 EDR 篡改）的 ntdll 代码替换为存储在磁盘上的版本，其中包含原始指令。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220420154729825.png" alt="image-20220420154729825"></p>
+<p>代码如下：</p>
+<p><img src="C:\Users\16434\AppData\Roaming\Typora\typora-user-images\image-20220420155151799.png" alt="image-20220420155151799"></p>
+<h4 id="Cobalt-Strike-反射-DLL-注入"><a href="#Cobalt-Strike-反射-DLL-注入" class="headerlink" title="Cobalt Strike 反射 DLL 注入"></a>Cobalt Strike 反射 DLL 注入</h4><h4 id="net程序集–D-Invoke"><a href="#net程序集–D-Invoke" class="headerlink" title=".net程序集–D/Invoke"></a>.net程序集–D/Invoke</h4><p>​        动态调用（D/Invoke）是一种动态调用非托管代码而不使用P/Invoke逃避API hook的技术。P/Invoke 是一种从非托管代码中调用托管代码的技术，通常被恶意软件开发人员用NET 语言来执行shellcode。</p>
+<p>​        动态调用（DInvoke）在运行时加载 DLL 并使用指向其在内存中位置的指针调用函数，而不是使用 PInvoke 静态导入 API 调用。可以从内存中调用任意非托管代码（同时传递参数），从而以各种方式绕过 API 挂钩并反射性地执行利用后的有效负载。这也避免了通过 .NET 程序集的 PE 标头中的导入地址表查找可疑 API 调用的导入的检测。</p>
+<p>​        <a target="_blank" rel="noopener" href="https://thewover.github.io/Dynamic-Invoke/">DInvoke</a></p>
+<h4 id="net程序集–Execute-Assembly"><a href="#net程序集–Execute-Assembly" class="headerlink" title=".net程序集–Execute-Assembly"></a>.net程序集–Execute-Assembly</h4><p>​        关于这个可以看一下这一篇文章<a target="_blank" rel="noopener" href="https://idiotc4t.com/defense-evasion/cobaltstrike-executeassembly-realization">Excute-Assembly</a></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -548,7 +660,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-04-12 15:41:06" itemprop="dateModified" datetime="2022-04-12T15:41:06+08:00">2022-04-12</time>
+                <time title="修改时间：2022-04-18 10:06:57" itemprop="dateModified" datetime="2022-04-18T10:06:57+08:00">2022-04-18</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -641,7 +753,7 @@
 <p>在main下断点然后运行，system地址和bin/sh地址都全出来了，溢出偏移量和之前一样140</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411155713622.png" alt="image-20220411155713622"></p>
 <h4 id="payload-1"><a href="#payload-1" class="headerlink" title="payload"></a>payload</h4><p>这里就不写了，很简单，和之前ret2libc差不多</p>
-<h3 id="level2-OP绕过NX和ASLR"><a href="#level2-OP绕过NX和ASLR" class="headerlink" title="level2 - OP绕过NX和ASLR"></a>level2 - OP绕过NX和ASLR</h3><p>就在上一题的基础上，不过需要打开ALSR,如果你通过sudo cat /proc/[pid]/maps或者ldd查看，你会发现level2的libc.so地址每次都是变化的：</p>
+<h3 id="level2-ROP绕过NX和ASLR"><a href="#level2-ROP绕过NX和ASLR" class="headerlink" title="level2 - ROP绕过NX和ASLR"></a>level2 - ROP绕过NX和ASLR</h3><p>就在上一题的基础上，不过需要打开ALSR,如果你通过sudo cat /proc/[pid]/maps或者ldd查看，你会发现level2的libc.so地址每次都是变化的：</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411161110720.png" alt="image-20220411161110720"></p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411161127819.png" alt="image-20220411161127819"></p>
 <p>所以这次如何利用呢？——思路是：先泄漏出libc.so某些函数在内存中的地址，再利用泄漏出的函数地址根据偏移量计算出system()函数和/bin/sh字符串在内存中的地址，最后执行我们的ret2libc的shellcode。既然栈、libc、堆的地址都是随机的，我们怎么才能泄露出libc.so的地址呢？方法还是有的，因为程序本身在内存中的地址并不是随机的，如图所示，Linux内存随机化分布图：</p>
@@ -1128,146 +1240,10 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/04/07/pwn/tamuctf_pwn/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/04/07/pwn/tamuctf_pwn/" class="post-title-link" itemprop="url">tamuctf_pwn</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2022-04-07 00:00:00 / 修改时间：20:23:42" itemprop="dateCreated datePublished" datetime="2022-04-07T00:00:00+08:00">2022-04-07</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/pwn/" itemprop="url" rel="index"><span itemprop="name">pwn</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.6k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h3 id="pwn1"><a href="#pwn1" class="headerlink" title="pwn1"></a>pwn1</h3><p>​       看一下程序基本情况如下，动态链接的32位程序，只有canary保护没有打开。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407150427052.png" alt="image-20220407150427052"></p>
-<p>​        <img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407150257274.png" alt="image-20220407150257274"></p>
-<p>​        IDA看一下程序，可以看到明显<code>gets</code>函数处存在栈溢出，并且当v5等于某个值的时候，就执行<code>print_flag</code>函数输出flag。右键那个值-&gt;hexadecimal，可以看到该值十六进制为0xDEA110CB，也就是当v5为该值，就会输出flag，所以只需要栈溢出覆盖v5的值为0xDEA110CB，不需要自己找<code>system(&#39;/bin/sh&#39;)</code></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407151610311.png" alt="image-20220407151610311"></p>
-<p>​        计算一下偏移变量s到变量v5的偏移距离，由IDA得s=ebp-3Bh、v5=ebp-10h，两者偏移距离为2Bh</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407152707564.png" alt="image-20220407152707564"></p>
-<h4 id="payload"><a href="#payload" class="headerlink" title="payload"></a>payload</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407153452051.png" alt="image-20220407153452051"></p>
-<p>因为服务器啥的已经没开了，所以只能纸上谈兵hh，但是这道题确实也就比较简单。</p>
-<h3 id="pwn2"><a href="#pwn2" class="headerlink" title="pwn2"></a>pwn2</h3><p>​        先看一下该文件的详细信息，发现依旧只有canary没打开。是动态链接的32位程序。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407153944825.png" alt="image-20220407153944825"></p>
-<p>IDA看一下程序，可以看到<code>gets</code>函数存在明显的栈溢出漏洞，字符串和函数中都没有看到<code>system</code>和<code>bin/sh</code>的身影，并且下面有一个函数<code>select_func</code></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407155104364.png" alt="image-20220407155104364"></p>
-<p>看一下代码逻辑，发现拷贝了0x1F个字符到目标字符串，如果目标字符串等于<code>one</code>时候，将<code>one</code>赋值给v3,然后调用<code>v3()</code></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407155317532.png" alt="image-20220407155317532"></p>
-<p>看函数列表，存在<code>one()``two()</code>函数以及<code>print_flag()</code>，函数地址分别为0x00000754，0x000006AD，0x000006D8。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407160314057.png" alt="image-20220407160314057"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407162416467.png" alt="image-20220407162416467"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407162438986.png" alt="image-20220407162438986"></p>
-<p>我们现在需要做的就是跳转到<code>print_flag</code>函数，gets函数可以赋值31个字节给dest变量，dest与v3之间相差30个字节，可以溢出一个字节，v3初始值为two，two又与print_flag函数相差一个字节，所以溢出的一个字节就可以将v3的初始值修改为print_flag函数地址。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407163600996.png" alt="image-20220407163600996"></p>
-<h4 id="payload-1"><a href="#payload-1" class="headerlink" title="payload"></a>payload</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407164012235.png" alt="image-20220407164012235"></p>
-<h3 id="pwn3"><a href="#pwn3" class="headerlink" title="pwn3"></a>pwn3</h3><p>​        惯例看一下程序情况，发现只开了RELRO以及PIE，并且有RWX段。推测可能是自己写shellcode的题目。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407164138366.png" alt="image-20220407164138366"></p>
-<p>​        IDA打开看一下，主要点进<code>echo</code>函数看一下，发现存在<code>gets</code>函数栈溢出漏洞<strong>（注意题目本身就泄露出了s的地址）</strong></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407164648542.png" alt="image-20220407164648542"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407164725968.png" alt="image-20220407164725968"></p>
-<p>​        s的地址为ebp-12Ah，画个图看一下。s与EBP之间相差298个字节，s规定的数据为294字节大小，所以溢出够298+4个字节后将获取到的s地址覆盖掉函数返回地址、使程序跳转至s处执行shellcode。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407171136775.png" alt="image-20220407171136775"></p>
-<h4 id="payload-2"><a href="#payload-2" class="headerlink" title="payload"></a>payload</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407172044765.png" alt="image-20220407172044765"></p>
-<h3 id="pwn4"><a href="#pwn4" class="headerlink" title="pwn4"></a>pwn4</h3><p>​        发现只开启了NX保护</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407172747624.png" alt="image-20220407172747624"></p>
-<p>​    IDA查看字符串和函数，可以看到有‘/bin/sh’和<code>system</code>函数，/bin/sh字符串，地址为0x0804A034</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407190256774.png" alt="image-20220407190256774"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407190433644.png" alt="image-20220407190433644"></p>
-<p>​        主函数循环执行<code>laas</code>函数，该函数中可以看到gets函数存在明显栈溢出漏洞，如果在s字符串中没有找到ASCII码为47的字符<code>/</code>，那么就传入s参数执行<code>run_cmd</code>函数</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407190659867.png" alt="image-20220407190659867"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407190733634.png" alt="image-20220407190733634"></p>
-<p>​        在run_cmd()函数未进行任何过滤直接调用system()函数执行系统命令（虽然可以直接<code>sendline(&#39;/bin/cat flag.txt&#39;)</code>，但是这道题还是走一下常规pwn思路）：</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407190901388.png" alt="image-20220407190901388"></p>
-<p>看下call system()的地址，为0x080485AD，字符串s地址为ebp-21h：</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407191305838.png" alt="image-20220407191305838"></p>
-<h4 id="payload-3"><a href="#payload-3" class="headerlink" title="payload"></a>payload</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407193706392.png" alt="image-20220407193706392"></p>
-<p>还有一种写法，下面就是利用system的地址，而不是cal了system的地址</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407193829235.png" alt="image-20220407193829235"></p>
-<h3 id="pwn5"><a href="#pwn5" class="headerlink" title="pwn5"></a>pwn5</h3><p>​        查看程序基本情况，发现是静态链接的，那就和libc无关了，并且只开了NX</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407194026908.png" alt="image-20220407194026908"></p>
-<p>​        IDA发现其实逻辑啥的和pwn4一样，不过下图圈起来这里变成了7（这里也可以直接用<code>;$0</code>,还有一种利用vi命令及:shell的骚姿势，输入<code>;vi</code>再输入<code>:shell</code>即可执行shell）</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407194549935.png" alt="image-20220407194549935"></p>
-<p>​        也可以找到‘/bin/sh’字符串和<code>system</code>函数。地址分别为0x080BC140和0x0804EE30,s地址为ebp-0Dh</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407194754387.png" alt="image-20220407194754387"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407194825643.png" alt="image-20220407194825643"></p>
-<p>看到别人写的是有exit函数地址，但是感觉替换成其他四个字节的数据也可以（实践了一下确实可以）</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407201448443.png" alt="image-20220407201448443"></p>
-<p>参考链接：<a target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2019/03/08/TAMUctf-Pwn-writeup/">TAMUCTF-PWN</a> </p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/">9</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1335,7 +1311,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">80</span>
+          <span class="site-state-item-count">81</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1348,7 +1324,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">81</span>
+        <span class="site-state-item-count">82</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1395,12 +1371,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">188k</span>
+    <span title="站点总字数">195k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">2:51</span>
+    <span title="站点阅读时长">2:57</span>
 </div>
 
         

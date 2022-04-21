@@ -18,22 +18,34 @@
     var CONFIG = {"hostname":"erkeai.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="​        堆溢出是指程序向某个堆块中写入的字节数超过了堆块本身可使用的字节数，因而导致了数据溢出，并覆盖到物理相邻的高地址的下一个堆块。但是其与栈溢出所不同的是，堆上并不存在返回地址等可以让攻击者直接控制执行流程的数据，因此我们一般无法直接通过堆溢出来控制 EIP 。 堆基础知识​        先补充一下堆的基础知识，如下图。堆的结构是由“堆表”以及“堆块”构成这，其中“堆表”主要作用是">
+  <meta name="description" content="​        堆溢出是指程序向某个堆块中写入的字节数超过了堆块本身可使用的字节数，因而导致了数据溢出，并覆盖到物理相邻的高地址的下一个堆块。但是其与栈溢出所不同的是，堆上并不存在返回地址等可以让攻击者直接控制执行流程的数据，因此我们一般无法直接通过堆溢出来控制 EIP 。 Linux内存布局先提一下windows的内存布局   linux 64位下内存布局如下，这种内存布局方式沿用的32位模式">
 <meta property="og:type" content="article">
 <meta property="og:title" content="堆溢出攻击">
 <meta property="og:url" content="https://erkeai.github.io/2022/04/01/pwn/%E5%A0%86%E6%BA%A2%E5%87%BA%E6%94%BB%E5%87%BB/index.html">
 <meta property="og:site_name" content="hazel&#39;blog">
-<meta property="og:description" content="​        堆溢出是指程序向某个堆块中写入的字节数超过了堆块本身可使用的字节数，因而导致了数据溢出，并覆盖到物理相邻的高地址的下一个堆块。但是其与栈溢出所不同的是，堆上并不存在返回地址等可以让攻击者直接控制执行流程的数据，因此我们一般无法直接通过堆溢出来控制 EIP 。 堆基础知识​        先补充一下堆的基础知识，如下图。堆的结构是由“堆表”以及“堆块”构成这，其中“堆表”主要作用是">
+<meta property="og:description" content="​        堆溢出是指程序向某个堆块中写入的字节数超过了堆块本身可使用的字节数，因而导致了数据溢出，并覆盖到物理相邻的高地址的下一个堆块。但是其与栈溢出所不同的是，堆上并不存在返回地址等可以让攻击者直接控制执行流程的数据，因此我们一般无法直接通过堆溢出来控制 EIP 。 Linux内存布局先提一下windows的内存布局   linux 64位下内存布局如下，这种内存布局方式沿用的32位模式">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="c:/Users/16434/AppData/Roaming/Typora/typora-user-images/image-20220414195634518.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414195748633.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414201147203.png">
 <meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401143714225.png">
 <meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401144733642.png">
 <meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401145728125.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414205604264.png">
+<meta property="og:image" content="c:/Users/16434/AppData/Roaming/Typora/typora-user-images/image-20220414210612718.png">
+<meta property="og:image" content="c:/Users/16434/AppData/Roaming/Typora/typora-user-images/image-20220414210545187.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220415095330146.png">
+<meta property="og:image" content="c:/Users/16434/AppData/Roaming/Typora/typora-user-images/image-20220415095927924.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220415100832075.png">
+<meta property="og:image" content="c:/Users/16434/AppData/Roaming/Typora/typora-user-images/image-20220415144235424.png">
+<meta property="og:image" content="c:/Users/16434/AppData/Roaming/Typora/typora-user-images/image-20220415104726171.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220415111145345.png">
 <meta property="article:published_time" content="2022-03-31T16:00:00.000Z">
-<meta property="article:modified_time" content="2022-04-02T08:25:13.865Z">
+<meta property="article:modified_time" content="2022-04-15T09:21:11.238Z">
 <meta property="article:author" content="ZouFeIYu">
 <meta property="article:tag" content="堆溢出">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401143714225.png">
+<meta name="twitter:image" content="c:/Users/16434/AppData/Roaming/Typora/typora-user-images/image-20220414195634518.png">
 
 <link rel="canonical" href="https://erkeai.github.io/2022/04/01/pwn/%E5%A0%86%E6%BA%A2%E5%87%BA%E6%94%BB%E5%87%BB/">
 
@@ -127,7 +139,7 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">81</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">82</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -137,7 +149,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">80</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">81</span></a>
 
   </li>
   </ul>
@@ -198,7 +210,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-04-02 16:25:13" itemprop="dateModified" datetime="2022-04-02T16:25:13+08:00">2022-04-02</time>
+                <time title="修改时间：2022-04-15 17:21:11" itemprop="dateModified" datetime="2022-04-15T17:21:11+08:00">2022-04-15</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -216,14 +228,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>517</span>
+              <span>5.7k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
+              <span>5 分钟</span>
             </span>
 
         </div>
@@ -236,14 +248,112 @@
 
       
         <p>​        堆溢出是指程序向某个堆块中写入的字节数超过了堆块本身可使用的字节数，因而导致了数据溢出，并覆盖到<strong>物理相邻的高地址</strong>的下一个堆块。但是其与栈溢出所不同的是，堆上并不存在返回地址等可以让攻击者直接控制执行流程的数据，因此我们一般无法直接通过堆溢出来控制 EIP 。</p>
-<h4 id="堆基础知识"><a href="#堆基础知识" class="headerlink" title="堆基础知识"></a>堆基础知识</h4><p>​        先补充一下堆的基础知识，如下图。堆的结构是由“堆表”以及“堆块”构成这，其中“堆表”主要作用是用来索引堆块的位置。其中，堆表主要是有两种：空闲双向链表（Freelist）,快速单向链表（Lookaside）（注意：堆表仅仅是用来索引空闲态的堆块，即未被使用的堆块）“堆块”就是用来提供程序员申请堆空间的。</p>
+<h3 id="Linux内存布局"><a href="#Linux内存布局" class="headerlink" title="Linux内存布局"></a>Linux内存布局</h3><p>先提一下windows的内存布局</p>
+<img src="C:\Users\16434\AppData\Roaming\Typora\typora-user-images\image-20220414195634518.png" alt="image-20220414195634518" style="zoom:80%;" />
+
+<p>linux 64位下内存布局如下，这种内存布局方式沿用的32位模式下内存的经典布局，但是栈和mmap的映射区域不再是从一个固定的地方开始，每次启动时的值都不一样。这样一来，使得使用缓冲区溢出攻击变得更加困难。（32位中，程序能够访问的最后地址是0xbfffffff(3G)的位置，3G以上的位置是给内核使用的，应用程序不能直接访问。）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414195748633.png" alt="image-20220414195748633"></p>
+<h4 id="heap操作的相关函数"><a href="#heap操作的相关函数" class="headerlink" title="heap操作的相关函数"></a>heap操作的相关函数</h4><p>​        <code>brk()</code>是系统调用、<code>sbrk()</code>是库函数。c语言的动态内存分配基本函数是<code>malloc()</code>，在linux上的实现是：<code>malloc()</code>函数调用库函数<code>sbrk()</code>，<code>sbrk()</code>的实质是调用<code>brk()</code>函数。<code>brk()</code>是一个简单的系统调用，只是简单的改变<code>mm_struct</code>结构体的成员变量<code>brk</code>的值。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414201147203.png" alt="image-20220414201147203"></p>
+<h4 id="Mmap映射区域操作的相关函数"><a href="#Mmap映射区域操作的相关函数" class="headerlink" title="Mmap映射区域操作的相关函数"></a>Mmap映射区域操作的相关函数</h4><p>​        <code>malloc</code> 会使用<code>mmap</code>来创建独立的匿名映射段。匿名映射的目的主要是可以申请以 0 填充的内存，并且这块内存仅被调用进程所使用。<code>mmap()</code>函数将一个文件或者其他对象映射进内存。文件被映射到多个页上，如果文件大小不是所有页大小之和，最后一个页不被使用的空间将会清零。<code>munmap()</code>执行相反的操作，删除特定地址区域的对象映射。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> * <span class="title">mmap</span><span class="params">(<span class="keyword">void</span> * start,<span class="keyword">size_t</span> length,<span class="keyword">int</span> prot,<span class="keyword">int</span> flags,<span class="keyword">int</span> fd,<span class="keyword">off_t</span> offset)</span></span></span><br></pre></td></tr></table></figure>
+
+<p>​            start — 映射区的开始地址。</p>
+<p>​            length — 映射区的长度。</p>
+<p>​            prot — 期望的内存保护标志。</p>
+<p>​            flags — 指定映射对象的类型，映射选项和映射页是否可以共享。</p>
+<p>​            fd — 有效的文件描述符。</p>
+<p>​            offset — 被映射对象内容的起点。</p>
+<p>​        <code>mmap()</code>系统调用使得进程之间通过映射同一个普通文件实现共享内存。但是并不是完全为了用于共享内存而设计的。它本身提供了不同于一般对普通文件的访问方式，进程可以像读写内存一样对普通文件的操作。</p>
+<p>​        普通文件被映射到进程地址空间后，<strong>进程可以像访问普通内存一样对文件进行访问</strong>，不必再调用read()，write()等操作。mmap并不分配空间, 只是将文件映射到调用进程的地址空间里（但是会占掉你的 virutal memory）, 然后你就可以用memcpy等操作写文件, 而不用write()了。写完后，内存中的内容并不会立即更新到文件中，而是有一段时间的延迟，你可以调用<code>msync()</code>来显式同步一下, 这样你所写的内容就能立即保存到文件里了。不过通过<code>mmap</code>来写文件这种方式没办法增加文件的长度, 因为要映射的长度在调用<code>mmap()</code>的时候就决定了。</p>
+<h3 id="堆基础知识"><a href="#堆基础知识" class="headerlink" title="堆基础知识"></a>堆基础知识</h3><p>​        先补充一下堆的基础知识，如下图。堆的结构是由“堆表”以及“堆块”构成这，其中“堆表”主要作用是用来索引堆块的位置。其中，堆表主要是有两种：空闲双向链表（Freelist）,快速单向链表（Lookaside）（注意：堆表仅仅是用来索引空闲态的堆块，即未被使用的堆块）“堆块”就是用来提供程序员申请堆空间的。</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401143714225.png" alt="image-20220401143714225"></p>
 <p>​        未使用下的堆块与使用状态下的堆块差别在于，堆首部分添加了8字节的指针对，该指针就是用来链路堆表当中的。</p>
 <p>​        堆表中需要关注的是空表索引区，由128项指针数组组成，这对指针用来将空闲堆组织成双向链表。根据堆块大小的不同，存放的指针数组也不同。每项链接的堆块大小均比其前一项链接的堆块增大8字节。<strong>值得注意的是free[0]链接的是大于等于1024字节的堆块。</strong></p>
 <p>​    下图是空闲双向链表，当释放相邻内存堆块后会发生合并现象，该点区别于快速单向链表，快速单向链表每项只有四个节点</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401144733642.png" alt="image-20220401144733642"></p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401145728125.png" alt="image-20220401145728125"></p>
+<p>​        linux早期的堆分配，为了安全性，一个线程使用堆时，会进行加锁。然而，与此同时，加锁会导致其它线程无法使用堆，降低了内存分配和回收的高效性。同时，如果在多线程使用时，没能正确控制，也可能影响内存分配和回收的正确性。后来在此基础上进行改进使其可以支持多线程，这个堆分配器就是 ptmalloc 。目前 Linux 标准发行版中使用的堆分配器是 glibc 中的堆分配器：ptmalloc2。ptmalloc2 主要是通过 malloc/free 函数来分配和释放内存块。</p>
+<p>​        需要注意的是，在内存分配与使用的过程中，Linux 有这样的一个基本内存管理思想-<strong>-内存延迟分配，只有当真正访问一个地址的时候，系统才会建立虚拟页面与物理页面的映射关系</strong>。 所以虽然操作系统已经给程序分配了很大的一块内存，但是这块内存其实只是虚拟内存。只有当用户使用到相应的内存时，系统才会真正分配物理页面给用户使用。</p>
+<h3 id="内存分配与回收"><a href="#内存分配与回收" class="headerlink" title="内存分配与回收"></a>内存分配与回收</h3><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414205604264.png" alt="image-20220414205604264" style="zoom:67%;" />
 
+<p>先说上面面三个概念，三者概念的解释如下：</p>
+<ul>
+<li>arena：通过sbrk或mmap系统调用为线程分配的堆区，按线程的类型可以分为2类：<ul>
+<li>main arena：主线程建立的arena；</li>
+<li>thread arena：子线程建立的arena；</li>
+</ul>
+</li>
+<li>chunk：逻辑上划分的一小块内存，根据作用不同分为4类：<ul>
+<li>Allocated chunk：即分配给用户且未释放的内存块；</li>
+<li><strong>Free chunk</strong>：即用户已经释放的内存块；</li>
+<li>Top chunk：顶块, 位于所有块之后, 保存着未分配的所有内存；</li>
+<li>Last Remainder chunk</li>
+</ul>
+</li>
+<li>bin：一个用以保存Free chunk链表的表头信息的指针数组，按所悬挂链表的类型可以分为4类:<ul>
+<li>Fast bin：chunk 的指针数组 , 每个元素是一 条单向链表的头部 , 且同一条链表中块的大小相同，主要保存大小 <strong>32 至 128 字节的块</strong>；</li>
+<li>Unsorted bin：与 Small Bins 和 Large Bins 类似是双向循环链表 , 只有一个 bin, 其中保存的块大小不定，用于收集刚刚被 free 或从大的块中分裂剩下的块；</li>
+<li>Small bin：chunk 的指针数组 , 每个元素是一条双向循环链表的头部 , 且同一条链表中块的大小相同，主要保存大小 <strong>32 至 1024 字节</strong>的块；</li>
+<li>Large bin：每个元素是一条双向循环链表的头部 , 但同一条链表中块的大小不一定相同 , 按照从大到小的顺序排列 , 每个 bin 保存一定大小范围的块。主要保存大小 <strong>1024 字节以上</strong>的块。</li>
+</ul>
+</li>
+</ul>
+<p>在这里读者仅需明白arena的等级大于bin的等级大于(free)chunk的等级即可，即A&gt;B&gt;C。</p>
+<h4 id="main-arena中的内存申请"><a href="#main-arena中的内存申请" class="headerlink" title="main arena中的内存申请"></a>main arena中的内存申请</h4><p>与 thread 不同的是，main_arena 并不在申请的 heap 中，而是一个全局变量，在 libc.so 的数据段。</p>
+<img src="C:\Users\16434\AppData\Roaming\Typora\typora-user-images\image-20220414210612718.png" alt="image-20220414210612718" style="zoom: 67%;" />
+
+<h4 id="thread-arena中的申请"><a href="#thread-arena中的申请" class="headerlink" title="thread arena中的申请"></a>thread arena中的申请</h4><img src="C:\Users\16434\AppData\Roaming\Typora\typora-user-images\image-20220414210545187.png" alt="image-20220414210545187" style="zoom: 67%;" />
+
+<h4 id="chunk"><a href="#chunk" class="headerlink" title="chunk"></a>chunk</h4><p>在程序的执行过程中，我们称由 malloc 申请的内存为 chunk 。这块内存在 ptmalloc 内部用 malloc_chunk 结构体来表示。当程序申请的 chunk 被 free 后，会被加入到相应的空闲管理列表中。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span> &#123;</span></span><br><span class="line"></span><br><span class="line">  INTERNAL_SIZE_T      prev_size;  <span class="comment">/* Size of previous chunk (if free).  */</span></span><br><span class="line">  INTERNAL_SIZE_T      size;       <span class="comment">/* Size in bytes, including overhead. */</span></span><br><span class="line"></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span>* <span class="title">fd</span>;</span>         <span class="comment">/* double links -- used only if free. */</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span>* <span class="title">bk</span>;</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">/* Only used for large blocks: pointer to next larger size.  */</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span>* <span class="title">fd_nextsize</span>;</span> <span class="comment">/* double links -- used only if free. */</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span>* <span class="title">bk_nextsize</span>;</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>用户最小申请的内存大小必须是 2 * SIZE_SZ 的最小整数倍。32 位系统中，SIZE_SZ 是 4；64 位系统中，SIZE_SZ 是 8。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220415095330146.png" alt="image-20220415095330146"></p>
+<p>​        上图是在使用中的chunk 。</p>
+<p>​    &lt;1&gt;chunk指针指向chunk开始的地址；mem指针指向用户内存块开始的地址。</p>
+<p>​    &lt;2&gt; p=0时，表示前一个chunk为空闲，prev_size才有效。</p>
+<p>​    &lt;3&gt; p=1时，表示前一个chunk正在使用，prev_size无效。 p主要用于内存块的合并操作。</p>
+<p>​    &lt;4&gt; ptmalloc分配的第一个块总是将p设为1,以防止程序引用到不存在的区域。</p>
+<p>​    &lt;5&gt; M=1 为mmap映射区域分配；M=0为heap区域分配。</p>
+<p>​    &lt;6&gt; A=1 为非主分区分配；A=0 为主分区分配。</p>
+<img src="C:\Users\16434\AppData\Roaming\Typora\typora-user-images\image-20220415095927924.png" alt="image-20220415095927924" style="zoom:80%;" />
+
+<p>上图是一个空闲的chunk</p>
+<p>   &lt;1&gt; 空闲的chunk会被放置到空闲的链表bins上。当用户申请内存malloc的时候，会先去查找空闲链表bins上是否有合适的内存。</p>
+<p>​    &lt;2&gt; fp和bp分别指向前一个和后一个空闲链表上的chunk</p>
+<p>​    &lt;3&gt;fp_nextsize和bp_nextsize分别指向前一个空闲chunk和后一个空闲chunk的大小，主要用于在空闲链表上快速查找合适大小的chunk。</p>
+<p>​    &lt;4&gt;fp、bp、fp_nextsize、bp_nextsize的值都会存在原本的用户区域，这样就不需要专门为每个chunk准备单独的内存存储指针了。</p>
+<p>​        当一个 chunk 处于使用状态时，它的下一个 chunk 的 prev_size 域无效，所以下一个 chunk 的该部分也可以被当前 chunk 使用。<strong>这就是 chunk 中的空间复用。</strong></p>
+<h4 id="空闲chunk容器"><a href="#空闲chunk容器" class="headerlink" title="空闲chunk容器"></a>空闲chunk容器</h4><h5 id="bin"><a href="#bin" class="headerlink" title="bin"></a>bin</h5><p>​        用户释放掉的内存并不是马上就归还给操作系统，ptmalloc会统一管理heap和mmap映射区中的空闲的chunk，当用户进行下一次请求分配时，ptmalloc会试图从空闲的内存中挑选一块给用户，这样可以避免频繁的系统调用，降低了内存分配的开销。ptmalloc将大小相似的chunk用双向循环链表连接起来，这样的一个链表称为bin。ptmalloc中一共维护了128个bin，并使用一个数组来存储这些bin（数组实际存储的是指针）。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220415100832075.png" alt="image-20220415100832075"></p>
+<p>​        并不是所有的 chunk 被释放后就 立即被放到 bin 中。ptmalloc 为了提高分配的速度，会把一些小的的 chunk 先放到一个叫做 fast bins 的容器内。</p>
+<h3 id="分配算法概述"><a href="#分配算法概述" class="headerlink" title="分配算法概述"></a>分配算法概述</h3><img src="C:\Users\16434\AppData\Roaming\Typora\typora-user-images\image-20220415144235424.png" alt="image-20220415144235424" style="zoom: 80%;" />
+
+<p>主分配区分配顺序依次为：</p>
+<p>fast bins <strong>–&gt;</strong> small bins <strong>–&gt;</strong>  合并fast bins并把chunk加入unsorted bins，找unsorted bins </p>
+<p><strong>–&gt;</strong> 把unsorted bins加入到large bins，找large bins <strong>–&gt;</strong>  top chunk <strong>–&gt;</strong> 增加heap大小或mmap分配</p>
+<h3 id="回收算法概述"><a href="#回收算法概述" class="headerlink" title="回收算法概述"></a>回收算法概述</h3><img src="C:\Users\16434\AppData\Roaming\Typora\typora-user-images\image-20220415104726171.png" alt="image-20220415104726171" style="zoom: 67%;" />
+
+<p>free()函数接受一个指向分配区域的指针作为参数，释放指针指向需要释放的chunk。</p>
+<p>（1）free()函数首先需要获取分配区的锁来保证线程安全。</p>
+<p>（2）判断传入的指针是否为0，如果为0，则什么都不做，直接return。否则转下一步。</p>
+<p>（3）判断所需释放的chunk是否为mmaped chunk，如果是，则调用munmap()释放解除空间映射，该空间不再有效。</p>
+<p>（4）判断chunk的大小和所处的位置，若chunk_size&lt;= max_fast，并且chunk并不处于heap的顶部，也就是说不与top chunk相邻，则转到下一步，否则转到第6步。</p>
+<p>（5）将chunk放到fast bins中，chunk放入到fast bins中时，并不修改该chunk使用状态位P,也不与相邻的chunk进行合并。只是放进去。这一步做完之后释放就结束了，程序从free()函数中返回。</p>
+<p>（6）判断前一个chunk是否正在使用中，如果前一个块也是空闲块，则合并。并转下一步。</p>
+<p>（7）判断当前释放的chunk的下一个块是否为top chunk，如果是，则转第9步，否则转下一步。</p>
+<p>（8）判断下一个chunk是否处于使用中，如果下一个chunk也是空闲的，则合并，并将合并后的chunk放到unsorted bin中。注意，这里在合并过程中，要更新chunk的大小，以反映合并后的chunk的大小。并转到第10步。</p>
+<p>（9）如果执行到这一步，说明释放了一个与top chunk相邻的chunk。则无论它有多大，都将它和top chunk合并，并更新top chunk的大小等信息。转下一步。</p>
+<p>（10）判断合并后的chunk的大小是否会大于max_fast（默认是64kb），如果是的话，则会触发进行fast bins的合并操作，fast bins中的chunk将被遍历，并与相邻的chunk进行合并，合并后的chunk会被放到unsorted bin中。fast bins将变为空，操作完成后进入到下一步。</p>
+<p>（11）判断 top chunk的大小是否大于mmap收缩阀值（默认是128kb），如果是的话，对于主分配区，则会试图归还top chunk中的一部分给操作系统。但是最先分配的128KB空间是不会归还给操作系统的，ptmalloc会一直管理这部分内存，用来响应用户的分配请求。如果是非主分配区，会进行sub_heap收缩，将top chunk的一部分返回给操作系统，如果 top chunk是整个sub_heap，会将整个sub_heap归还给操作系统。做完这一步后，释放结束，从free()函数退出。</p>
+<p><strong>对于Ubuntu 16.04而言，较小的chunk被free掉后，只是被放入fast bins中，其余什么也不做（见上述第5步）；对于Ubuntu 18.04而言，较小的chunk被free掉后，会被放入tcache bins中，</strong>       </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220415111145345.png" alt="image-20220415111145345"></p>
+<p>​                        </p>
+<p>但无论是被放入fast bins还是tcache bins中，chunk的标志位都不会发生变化：</p>
+<p>利用该特性，可以在free掉某个内存块后，重新申请处于fast bins或tcache bins中的内存块，并对其进行读写操作，从而达到漏洞利用的目的。</p>
+<h3 id="堆相关数据结构"><a href="#堆相关数据结构" class="headerlink" title="堆相关数据结构"></a>堆相关数据结构</h3><h4 id="微观结构"><a href="#微观结构" class="headerlink" title="微观结构"></a>微观结构</h4><h5 id="malloc-chunk"><a href="#malloc-chunk" class="headerlink" title="malloc_chunk"></a>malloc_chunk</h5><p>​        </p>
+<h5 id=""><a href="#" class="headerlink" title=""></a></h5>
     </div>
 
     
@@ -343,7 +453,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A0%86%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86"><span class="nav-number">1.</span> <span class="nav-text">堆基础知识</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Linux%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80"><span class="nav-number">1.</span> <span class="nav-text">Linux内存布局</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#heap%E6%93%8D%E4%BD%9C%E7%9A%84%E7%9B%B8%E5%85%B3%E5%87%BD%E6%95%B0"><span class="nav-number">1.1.</span> <span class="nav-text">heap操作的相关函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Mmap%E6%98%A0%E5%B0%84%E5%8C%BA%E5%9F%9F%E6%93%8D%E4%BD%9C%E7%9A%84%E7%9B%B8%E5%85%B3%E5%87%BD%E6%95%B0"><span class="nav-number">1.2.</span> <span class="nav-text">Mmap映射区域操作的相关函数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A0%86%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86"><span class="nav-number">2.</span> <span class="nav-text">堆基础知识</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%B8%8E%E5%9B%9E%E6%94%B6"><span class="nav-number">3.</span> <span class="nav-text">内存分配与回收</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#main-arena%E4%B8%AD%E7%9A%84%E5%86%85%E5%AD%98%E7%94%B3%E8%AF%B7"><span class="nav-number">3.1.</span> <span class="nav-text">main arena中的内存申请</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#thread-arena%E4%B8%AD%E7%9A%84%E7%94%B3%E8%AF%B7"><span class="nav-number">3.2.</span> <span class="nav-text">thread arena中的申请</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#chunk"><span class="nav-number">3.3.</span> <span class="nav-text">chunk</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A9%BA%E9%97%B2chunk%E5%AE%B9%E5%99%A8"><span class="nav-number">3.4.</span> <span class="nav-text">空闲chunk容器</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#bin"><span class="nav-number">3.4.1.</span> <span class="nav-text">bin</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E9%85%8D%E7%AE%97%E6%B3%95%E6%A6%82%E8%BF%B0"><span class="nav-number">4.</span> <span class="nav-text">分配算法概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%9E%E6%94%B6%E7%AE%97%E6%B3%95%E6%A6%82%E8%BF%B0"><span class="nav-number">5.</span> <span class="nav-text">回收算法概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A0%86%E7%9B%B8%E5%85%B3%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="nav-number">6.</span> <span class="nav-text">堆相关数据结构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BE%AE%E8%A7%82%E7%BB%93%E6%9E%84"><span class="nav-number">6.1.</span> <span class="nav-text">微观结构</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#malloc-chunk"><span class="nav-number">6.1.1.</span> <span class="nav-text">malloc_chunk</span></a></li><li class="nav-item nav-level-5"><a class="nav-link"><span class="nav-number">6.1.2.</span> <span class="nav-text"></span></a></li></ol></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -359,7 +469,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">80</span>
+          <span class="site-state-item-count">81</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -372,7 +482,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">81</span>
+        <span class="site-state-item-count">82</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -419,12 +529,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">188k</span>
+    <span title="站点总字数">195k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">2:51</span>
+    <span title="站点阅读时长">2:57</span>
 </div>
 
         
