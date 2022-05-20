@@ -18,20 +18,20 @@
     var CONFIG = {"hostname":"erkeai.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="摘要​        该文研究了恶意软件的规避行为。论文收集了92种恶意软件用来检测和以及阻止检测的规避技术，并做了系统化，提供了一种根据这些技术的语义和特征进行分类的分类方法。实现了一个对x86二进制文件进行逃避分析的框架，分析了2010年至2019年期间的45,375个恶意软件样本，并采取将这种分析与合法的主流windoiws程序进行比较的方法，来研究规避行为的内在特征。还研究了恶意软件家族与">
+  <meta name="description" content="字符串-有效的括号题目链接 这道题多分析一下题目就知道是一种消除题，其实和前面一道题“对对碰”很像，这道题是出现运算符就运算前面两个数字，结果又重新压入栈。 12345678910111213141516171819202122class Solution &amp;#123;public:    int evalRPN(vector&lt;string&gt;&amp; tokens) &amp;#123;">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Obfuscated Malware Detection Using Deep Generative Model based on Global&#x2F;Local Features">
-<meta property="og:url" content="https://erkeai.github.io/2022/04/07/paper/Obfuscated%20Malware%20Detection%20Using%20Deep/index.html">
+<meta property="og:title" content="代码随想录第三十一天">
+<meta property="og:url" content="https://erkeai.github.io/2022/05/12/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%B8%89%E5%8D%81%E4%B8%80%E5%A4%A9/index.html">
 <meta property="og:site_name" content="hazel&#39;blog">
-<meta property="og:description" content="摘要​        该文研究了恶意软件的规避行为。论文收集了92种恶意软件用来检测和以及阻止检测的规避技术，并做了系统化，提供了一种根据这些技术的语义和特征进行分类的分类方法。实现了一个对x86二进制文件进行逃避分析的框架，分析了2010年至2019年期间的45,375个恶意软件样本，并采取将这种分析与合法的主流windoiws程序进行比较的方法，来研究规避行为的内在特征。还研究了恶意软件家族与">
+<meta property="og:description" content="字符串-有效的括号题目链接 这道题多分析一下题目就知道是一种消除题，其实和前面一道题“对对碰”很像，这道题是出现运算符就运算前面两个数字，结果又重新压入栈。 12345678910111213141516171819202122class Solution &amp;#123;public:    int evalRPN(vector&lt;string&gt;&amp; tokens) &amp;#123;">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2022-04-06T16:00:00.000Z">
-<meta property="article:modified_time" content="2022-04-06T09:14:35.030Z">
+<meta property="article:published_time" content="2022-05-11T16:00:00.000Z">
+<meta property="article:modified_time" content="2022-05-13T07:05:02.781Z">
 <meta property="article:author" content="ZouFeIYu">
-<meta property="article:tag" content="恶意代码">
+<meta property="article:tag" content="栈和队列">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="https://erkeai.github.io/2022/04/07/paper/Obfuscated%20Malware%20Detection%20Using%20Deep/">
+<link rel="canonical" href="https://erkeai.github.io/2022/05/12/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%B8%89%E5%8D%81%E4%B8%80%E5%A4%A9/">
 
 
 <script id="page-configurations">
@@ -44,7 +44,7 @@
   };
 </script>
 
-  <title>Obfuscated Malware Detection Using Deep Generative Model based on Global/Local Features | hazel'blog</title>
+  <title>代码随想录第三十一天 | hazel'blog</title>
   
 
 
@@ -123,7 +123,7 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">82</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">96</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -133,7 +133,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">81</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">95</span></a>
 
   </li>
   </ul>
@@ -164,7 +164,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/04/07/paper/Obfuscated%20Malware%20Detection%20Using%20Deep/">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/05/12/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%B8%89%E5%8D%81%E4%B8%80%E5%A4%A9/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
@@ -177,7 +177,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Obfuscated Malware Detection Using Deep Generative Model based on Global/Local Features
+          代码随想录第三十一天
         </h1>
 
         <div class="post-meta">
@@ -187,14 +187,14 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2022-04-07 00:00:00" itemprop="dateCreated datePublished" datetime="2022-04-07T00:00:00+08:00">2022-04-07</time>
+              <time title="创建时间：2022-05-12 00:00:00" itemprop="dateCreated datePublished" datetime="2022-05-12T00:00:00+08:00">2022-05-12</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-04-06 17:14:35" itemprop="dateModified" datetime="2022-04-06T17:14:35+08:00">2022-04-06</time>
+                <time title="修改时间：2022-05-13 15:05:02" itemprop="dateModified" datetime="2022-05-13T15:05:02+08:00">2022-05-13</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -202,7 +202,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/paper-reading/" itemprop="url" rel="index"><span itemprop="name">paper reading</span></a>
+                  <a href="/categories/leetcode/" itemprop="url" rel="index"><span itemprop="name">leetcode</span></a>
                 </span>
             </span>
 
@@ -212,7 +212,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>1.5k</span>
+              <span>1k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -231,25 +231,18 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>​        该文研究了恶意软件的规避行为。论文收集了92种恶意软件用来检测和以及阻止检测的规避技术，并做了系统化，提供了一种根据这些技术的语义和特征进行分类的分类方法。实现了一个对x86二进制文件进行逃避分析的框架，分析了2010年至2019年期间的45,375个恶意软件样本，并采取将这种分析与合法的主流windoiws程序进行比较的方法，来研究规避行为的内在特征。还研究了恶意软件家族与所采用的规避技术之间的相关性。并且论文确定了特定于恶意代码的技术，而不是恶意代码与合法软件都会使用的技术。</p>
-<p>​        论文实验结果体现了规避技术的使用以及随着时间的演变，发现规避行为十年间，在数量上仅仅增加了12%，但是在技术上已经有显著的提高。最后论文研究了如何应对新型规避技术的部署。</p>
-<h3 id="规避技术分类法"><a href="#规避技术分类法" class="headerlink" title="规避技术分类法"></a>规避技术分类法</h3><p>​        该文根据在操作系统上执行的动作的语义来进行分类。基于先前提出的系统化，该文还开发了由16个语义等价组组成的分类法。有内存指纹、异常处理、CPU指纹、表描述符、陷阱、时间、暂缓、人类交互、注册表、系统环境、WMI、进程环境、文件系统、枚举进程、枚举服务、枚举驱动。 通过静态分析每个二进制程序，计算了实现92个规避技术所需的基本块、指令和函数调用的数量。</p>
-<h3 id="分析框架"><a href="#分析框架" class="headerlink" title="分析框架"></a>分析框架</h3><p>​        可以实现四个级别的检测：指令（监控每个执行指令）、API hook（hook一些感兴趣的Windows API）、系统调用（hook感兴趣的系统调用）、内存访问（监视对特定内存区域的访问）。系统会在逃避前后进行hook,这两个hook都会采用日志记录规避行为。</p>
-<p>​        系统根据级别分为了四个模块，并且还增加了一个库追踪器模块，用来记录规避技术和相关库的调用堆栈。</p>
-<h3 id="规避行为分析"><a href="#规避行为分析" class="headerlink" title="规避行为分析"></a>规避行为分析</h3><p>​        该部分根据五个问题展开</p>
-<p>1.恶意软件最常见的规避技术是什么？</p>
-<p>​        时间和暂缓技术是使用最多的，搜索特定的驱动程序很少被用到，并且实验数据并未观察到对WMI的使用。恶意软件家族也会寻找关键字，其中“vbox”、“sandbox”和“虚拟virtualbox”是最常用的关键字。</p>
-<p>2.恶意软件家族和采用的规避行为技术之间有什么联系吗？</p>
-<p>​        事实上，恶意软件样本通常是由工具构建的。恶意软件的作者通常开发可以很容易地用来生成新的样本的工具。该文建立了一个随机森林分类器；分类器的输入是一个布尔变量数组，表示样本中每种技术的使用情况；分类器的输出是族标签。我们为123个家族（所有至少有50个样本的家族）建立了123个分类器。每个分类器的输出采用分层抽样进行3倍交叉验证训练。对于每个分类器，计算了f1-score，这是一个评估分类器性能的指标，并考虑了所有的混淆矩阵。</p>
-<p>3.在过去的10年里，每个家庭和每个类别所采用的规避技术的数量是否发生了变化？</p>
-<p>​        该部分研究了每种技术的使用周期，规避技术的使用量，单个样本所使用的规避技术的最大数量，恶意样本规避的四大目标占比。</p>
-<p>4.采用恶意软件规避技术如何影响安全社区，反之亦然？</p>
-<p>​        如果该技术已经被广泛采用/已知，在报告发布后，我们注意到在随后的几年中它们的使用有轻微和暂时的下降。相反，如果该技术几乎很少被使用或者被知道，在报告发布后的接下来的几年里，它的采用迅速增加。一旦一种技术被广泛使用，相关报告的数量就会显著增加。</p>
-<p>5.合法的软件是否也采用了规避技术？</p>
-<p>​        合法的程序也会采用规避技术，但是并不是很常见。特别是，只有少数技术被普遍采用，这表明这种技术并不主要用于真正的规避目的。</p>
-<p>​        基于良性软件分析，对每个技术进行了分类：</p>
-<p>​        被恶意软件使用的规避技术。这是在良性软件样本中从未观察到的逃避行为，或者手动验证了它在良性软件样本中被用作一种逃避机制。</p>
-<p>​        被用于良性软件的规避技术。这是在超过1%的良性软件样本中观察到的规避行为，或者手动验证没有被用作逃避行为。</p>
+        <h4 id="字符串-有效的括号"><a href="#字符串-有效的括号" class="headerlink" title="字符串-有效的括号"></a>字符串-有效的括号</h4><p><a target="_blank" rel="noopener" href="https://leetcode.cn/problems/evaluate-reverse-polish-notation/">题目链接</a></p>
+<p>这道题多分析一下题目就知道是一种消除题，其实和前面一道题“对对碰”很像，这道题是出现运算符就运算前面两个数字，结果又重新压入栈。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">evalRPN</span><span class="params">(vector&lt;string&gt;&amp; tokens)</span> </span>&#123;</span><br><span class="line">        stack&lt;<span class="keyword">int</span>&gt;st;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; tokens.<span class="built_in">size</span>(); i++)&#123;</span><br><span class="line">            <span class="keyword">if</span>(tokens[i] == <span class="string">&quot;+&quot;</span> || tokens[i] == <span class="string">&quot;-&quot;</span> || tokens[i] == <span class="string">&quot;*&quot;</span> || tokens[i] == <span class="string">&quot;/&quot;</span>)&#123;</span><br><span class="line">                <span class="keyword">int</span> num1 = st.<span class="built_in">top</span>();</span><br><span class="line">                st.<span class="built_in">pop</span>();</span><br><span class="line">                <span class="keyword">int</span> num2 = st.<span class="built_in">top</span>();</span><br><span class="line">                st.<span class="built_in">pop</span>();</span><br><span class="line">                <span class="keyword">if</span>(tokens[i] == <span class="string">&quot;+&quot;</span>)st.<span class="built_in">push</span>(num2 + num1);</span><br><span class="line">                <span class="keyword">if</span>(tokens[i] == <span class="string">&quot;-&quot;</span>)st.<span class="built_in">push</span>(num2 - num1);</span><br><span class="line">                <span class="keyword">if</span>(tokens[i] == <span class="string">&quot;*&quot;</span>)st.<span class="built_in">push</span>(num2 * num1);</span><br><span class="line">                <span class="keyword">if</span>(tokens[i] == <span class="string">&quot;/&quot;</span>)st.<span class="built_in">push</span>(num2 / num1);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span>&#123;</span><br><span class="line">                st.<span class="built_in">push</span>(<span class="built_in">stoi</span>(tokens[i]));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> st.<span class="built_in">top</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">evalRPN</span>(<span class="params">self, tokens: <span class="type">List</span>[<span class="built_in">str</span>]</span>) -&gt; <span class="built_in">int</span>:</span></span><br><span class="line">        stack = []</span><br><span class="line">        <span class="keyword">for</span> item <span class="keyword">in</span> tokens:</span><br><span class="line">            <span class="keyword">if</span> item <span class="keyword">not</span> <span class="keyword">in</span> &#123;<span class="string">&quot;+&quot;</span>, <span class="string">&quot;-&quot;</span>, <span class="string">&quot;*&quot;</span>, <span class="string">&quot;/&quot;</span>&#125;:</span><br><span class="line">                stack.append(item)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                num1, num2 = stack.pop(), stack.pop()</span><br><span class="line">                stack.append(</span><br><span class="line">                    <span class="built_in">int</span>(<span class="built_in">eval</span>(<span class="string">f&#x27;<span class="subst">&#123;num2&#125;</span> <span class="subst">&#123;item&#125;</span> <span class="subst">&#123;num1&#125;</span>&#x27;</span>))</span><br><span class="line">                )</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">int</span>(stack.pop())</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
 
     </div>
 
@@ -265,7 +258,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="https://erkeai.github.io/2022/04/07/paper/Obfuscated%20Malware%20Detection%20Using%20Deep/" title="Obfuscated Malware Detection Using Deep Generative Model based on Global&#x2F;Local Features">https://erkeai.github.io/2022/04/07/paper/Obfuscated Malware Detection Using Deep/</a>
+    <a href="https://erkeai.github.io/2022/05/12/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%B8%89%E5%8D%81%E4%B8%80%E5%A4%A9/" title="代码随想录第三十一天">https://erkeai.github.io/2022/05/12/leetcode/代码随想录第三十一天/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -276,7 +269,7 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/%E6%81%B6%E6%84%8F%E4%BB%A3%E7%A0%81/" rel="tag"># 恶意代码</a>
+              <a href="/tags/%E6%A0%88%E5%92%8C%E9%98%9F%E5%88%97/" rel="tag"># 栈和队列</a>
           </div>
 
         
@@ -285,12 +278,12 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2022/04/07/pwn/tamuctf_pwn/" rel="prev" title="tamuctf_pwn">
-      <i class="fa fa-chevron-left"></i> tamuctf_pwn
+    <a href="/2022/05/11/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%B8%89%E5%8D%81%E5%A4%A9/" rel="prev" title="代码随想录第三十天">
+      <i class="fa fa-chevron-left"></i> 代码随想录第三十天
     </a></div>
       <div class="post-nav-item">
-    <a href="/2022/04/07/pwn/%E4%B8%AD%E7%BA%A7ROP/" rel="next" title="中级ROP">
-      中级ROP <i class="fa fa-chevron-right"></i>
+    <a href="/2022/05/13/Cheese_point/ring0%E4%B8%8B%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%BF%9D%E6%8A%A4/" rel="next" title="ring0下的进程保护">
+      ring0下的进程保护 <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -350,7 +343,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-number">1.</span> <span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%84%E9%81%BF%E6%8A%80%E6%9C%AF%E5%88%86%E7%B1%BB%E6%B3%95"><span class="nav-number">2.</span> <span class="nav-text">规避技术分类法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E6%9E%90%E6%A1%86%E6%9E%B6"><span class="nav-number">3.</span> <span class="nav-text">分析框架</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%84%E9%81%BF%E8%A1%8C%E4%B8%BA%E5%88%86%E6%9E%90"><span class="nav-number">4.</span> <span class="nav-text">规避行为分析</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2-%E6%9C%89%E6%95%88%E7%9A%84%E6%8B%AC%E5%8F%B7"><span class="nav-number">1.</span> <span class="nav-text">字符串-有效的括号</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -366,7 +359,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">81</span>
+          <span class="site-state-item-count">95</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -379,7 +372,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">82</span>
+        <span class="site-state-item-count">96</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -426,12 +419,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">195k</span>
+    <span title="站点总字数">222k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">2:57</span>
+    <span title="站点阅读时长">3:22</span>
 </div>
 
         

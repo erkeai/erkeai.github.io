@@ -18,20 +18,21 @@
     var CONFIG = {"hostname":"erkeai.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="IRP介绍​    IRP的全名是I&#x2F;O Request Package，即输入输出请求包，它是Windows内核中的一种非常重要的数据结构。上层应用程序与底层驱动程序通信时，应用程序会发出I&#x2F;O请求，操作系统将相应的I&#x2F;O请求转换成相应的IRP，不同的IRP会根据类型被分派到不同的派遣例程中进行处理。 ​      IRP有两个基本的属性，即MajorFunction和MinorFunction">
+  <meta name="description" content="IRP介绍​    IRP的全名是I&#x2F;O Request Package，即输入输出请求包，它是Windows内核中的一种非常重要的数据结构。上层应用程序与底层驱动程序通信时，应用程序会发出I&#x2F;O请求，操作系统将相应的I&#x2F;O请求转换成相应的IRP，不同的IRP会根据类型被分派到不同的派遣函数中进行处理。 ​      IRP有两个基本的属性，即MajorFunction和MinorFunction">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Chapter 7 the I&#x2F;O Request Packet">
 <meta property="og:url" content="https://erkeai.github.io/2022/03/31/wkp/Chapter7%20the%20IO%20Request%20Packet/index.html">
 <meta property="og:site_name" content="hazel&#39;blog">
-<meta property="og:description" content="IRP介绍​    IRP的全名是I&#x2F;O Request Package，即输入输出请求包，它是Windows内核中的一种非常重要的数据结构。上层应用程序与底层驱动程序通信时，应用程序会发出I&#x2F;O请求，操作系统将相应的I&#x2F;O请求转换成相应的IRP，不同的IRP会根据类型被分派到不同的派遣例程中进行处理。 ​      IRP有两个基本的属性，即MajorFunction和MinorFunction">
+<meta property="og:description" content="IRP介绍​    IRP的全名是I&#x2F;O Request Package，即输入输出请求包，它是Windows内核中的一种非常重要的数据结构。上层应用程序与底层驱动程序通信时，应用程序会发出I&#x2F;O请求，操作系统将相应的I&#x2F;O请求转换成相应的IRP，不同的IRP会根据类型被分派到不同的派遣函数中进行处理。 ​      IRP有两个基本的属性，即MajorFunction和MinorFunction">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220304144523080.png">
 <meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220331104749931.png">
 <meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220331155121884.png">
 <meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220331155052079.png">
 <meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220331160047247.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220511194722486.png">
 <meta property="article:published_time" content="2022-03-30T16:00:00.000Z">
-<meta property="article:modified_time" content="2022-04-02T08:23:54.988Z">
+<meta property="article:modified_time" content="2022-05-12T02:17:50.232Z">
 <meta property="article:author" content="ZouFeIYu">
 <meta property="article:tag" content="WDM">
 <meta property="article:tag" content="IRP">
@@ -131,7 +132,7 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">82</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">96</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -141,7 +142,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">81</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">95</span></a>
 
   </li>
   </ul>
@@ -202,7 +203,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-04-02 16:23:54" itemprop="dateModified" datetime="2022-04-02T16:23:54+08:00">2022-04-02</time>
+                <time title="修改时间：2022-05-12 10:17:50" itemprop="dateModified" datetime="2022-05-12T10:17:50+08:00">2022-05-12</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -220,14 +221,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>7.3k</span>
+              <span>9.7k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>7 分钟</span>
+              <span>9 分钟</span>
             </span>
 
         </div>
@@ -239,8 +240,8 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h3 id="IRP介绍"><a href="#IRP介绍" class="headerlink" title="IRP介绍"></a>IRP介绍</h3><p>​    IRP的全名是I/O Request Package，即输入输出请求包，它是Windows内核中的一种非常重要的数据结构。上层应用程序与底层驱动程序通信时，应用程序会发出I/O请求，操作系统将相应的I/O请求转换成相应的IRP，不同的IRP会根据类型被分派到不同的派遣例程中进行处理。</p>
-<p>​      IRP有两个基本的属性，即<strong>MajorFunction</strong>和<strong>MinorFunction</strong>，分别记录IRP的主类型和子类型。操作系统根据MajorFunction决定将IRP分发到哪个派遣例程，然后派遣例程根据MinorFunction进行细分处理。没有设置派遣函数的IRP，默认与<strong>IopInvalidDeviceRequest</strong>函数关联。</p>
+        <h3 id="IRP介绍"><a href="#IRP介绍" class="headerlink" title="IRP介绍"></a>IRP介绍</h3><p>​    IRP的全名是I/O Request Package，即输入输出请求包，它是Windows内核中的一种非常重要的数据结构。上层应用程序与底层驱动程序通信时，应用程序会发出I/O请求，操作系统将相应的I/O请求转换成相应的IRP，不同的IRP会根据类型被分派到不同的派遣函数中进行处理。</p>
+<p>​      IRP有两个基本的属性，即<strong>MajorFunction</strong>和<strong>MinorFunction</strong>，分别记录IRP的主类型和子类型。操作系统根据MajorFunction决定将IRP分发到哪个派遣函数，然后派遣函数根据MinorFunction进行细分处理。没有设置派遣函数的IRP，默认与<strong>IopInvalidDeviceRequest</strong>函数关联。</p>
 <p>​      首先一个IRP在被分配时，调用者必须指定要分配多少个<strong>IO_STACK_LOCATION</strong>，这些结构直接在内存中伴随着IRP，其数量是设备堆栈中设备对象的数量。驱动程序会创建一个个设备对象，并将这些设备对象叠成一个垂直结构，叫做设备栈。IRP会被操作系统发送到设备栈顶层，如果顶层的设备对象的派遣函数结束了IRP的请求，那么这次I/O请求结束，如果没有，那么操作系统将IRP转发到设备栈的下一层设备处理，直到找到能够结束这个IRP请求的派遣函数的设备。</p>
 <p>​      因此，一个IRP请求可能被转发多次，为了记录IRP在每层设备中做的操作，IRP会有个<strong>IO_STACK_LOCATION</strong>数组<u>（数组中的每个堆栈单元都对应一个将处理该IRP的驱动程序，另外还有一个堆栈单元供IRP的创建者使用。堆栈单元中包含该IRP的类型代码和参数信息以及完成函数的地址）</u>，数组的元素个数应该大于IRP穿过的设备数目， 当一个驱动程序接收到一个IRP时，将会获得一个指向IRP结构的指针，对于本层设备对应的<strong>IO_STACK_LOCATION</strong>,可以通过<code>IoGetCurrentIrpStackLocation</code>函数得到。</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220304144523080.png" alt="image-20220304144523080"></p>
@@ -295,7 +296,7 @@
 <li><strong>AssociatedIrp</strong> : 这个成员是个联合体，其中存在一个SystemBuffer程序；当内核层使用用户层的数据的时候是通过拷贝数据的方式来实现的话，那么拷贝后的数据就放在了AssociatedIrp.SystemBuffer中了。这个成员生效的标记是DO_BUFFERED_IO或者METHOD_BUFFERED。</li>
 <li><strong>IoStatus</strong> ： 返回的状态信息。</li>
 <li><strong>RequestorMode</strong> : UserMode或KernelMode，指定原始I/O请求的来源。驱动程序有时需要查看这个值来决定是否要信任某些参数。</li>
-<li>**PendingReturned **: Pending 状态，如果为TRUE，则表明处理该IRP的最低级派遣例程返回了STATUS_PENDING。</li>
+<li>**PendingReturned **: Pending 状态，如果为TRUE，则表明处理该IRP的最低级派遣函数返回了STATUS_PENDING。</li>
 <li><strong>StackCount</strong> : 设备栈的数目。</li>
 <li><strong>CurrentLocation</strong> : 当前处于哪个设备栈的索引。</li>
 <li><strong>Cancel</strong> : IRP是否被取消，如果为TRUE，则表明IoCancelIrp已被调用(该函数用于取消这个请求)。如果为FALSE，则表明没有调用IoCancelIrp函数。</li>
@@ -304,6 +305,30 @@
 <li><strong>UserBuffer(PVOID)</strong> : 用户层参数的直接地址，设置标记METHOD_NEITHER时候有效。</li>
 <li>**Tail.Overlay **是Tail联合中的一种联合结构，如下：<br><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220331160047247.png" alt="image-20220331160047247"></li>
 </ul>
+<h3 id="访问用户缓冲区"><a href="#访问用户缓冲区" class="headerlink" title="访问用户缓冲区"></a>访问用户缓冲区</h3><p>驱动程序创建设备对象的时候，需要考虑该设备以何种方式读写。读写主要有缓冲区方式读写、直接方式读写、其他方式读写。一些派遣函数，比如IRP_MJ_READ，IRP_MJ_WRITE，IRP_MJ_DEVICE_CONTROL接受客户端提供的缓冲区——在大多数情况下来自用户模式。通常，派遣函数是在IRQL0和请求线程上下文中调用，这意味着用户模式提供的缓冲区指针非常容易访问：IRQL是0，所以页面错误通常会被处理，线程是请求者，因此指针在这个进程上下文中是有效的。</p>
+<p>以WriteFile为例，WriteFile要求用户提供一段缓冲区，并且说明缓冲区大小，然后将这段内存数据传入到驱动程序中，这段缓冲区内存是用户模式的内存地址，驱动程序如果直接引用这段内存很危险。因为操作系统是多任务的，他可能随时切换到别的进程。</p>
+<h4 id="缓冲区方式读写"><a href="#缓冲区方式读写" class="headerlink" title="缓冲区方式读写"></a>缓冲区方式读写</h4><p>针对解决上述问题，缓冲区方式读写这种方法中，<strong>操作系统将应用程序提供的缓冲区的数据复制到内核模式下的地址中</strong>。IRP的派遣函数操作的是内核模式下的缓冲区而不是用户模式下的。这样的方法的缺点是，影响了运行效率，在少量内存操作时，可以采用这种方法。</p>
+<p>1.I/O管理器会从非分页池中分配一个与用户模式下的缓冲区相同大小的缓冲区。并且Read/WriteFile创建的IRP的AssociatedIrp-&gt;SystemBuffer子域会记录这段内存地址。（可以通过IO_STACK_LOCATION中的Parameters.Read(or Write).Length知道请求了多少字节。）</p>
+<p>2.I/O管理器会进行用户模式地址和内核模式地址的数据复制。</p>
+<p>3.一旦驱动程序完成了IRP，I/O管理器（对于ReadFile请求）将系统缓冲区复制回用户的缓冲区(复制的大小由IoStatus.Information(记录了实际操作了多少字节)决定)</p>
+<p>4.最后，I/O管理器释放内核缓冲区。</p>
+<p><strong>特点：</strong>使用简单，只需在设备对象中指定标志，其他所有事情都由I/O管理器处理。总是有一个副本，所以它最好用于小的缓冲区（通常最多一页）。大型缓冲区的复制成本可能会很高。在这种情况下，应该使用直接I/O来代替。</p>
+<h4 id="直接方式读写"><a href="#直接方式读写" class="headerlink" title="直接方式读写"></a>直接方式读写</h4><p>与前一种方式不同，该方式读写设备时，操作系统会将用户模式下的缓冲区锁住。然后操作系统将这段缓冲区在内核模式地址再映射一遍。这样，用户模式和内核模式的缓冲区指向的是同一区域的物理内存。无论操作系统如何切换进程，内核模式地址都保持不变。</p>
+<p>锁定后，操作系统用<strong>内存描述符表（MDL）</strong>记录这段内存,该数据结构描述了缓冲区是如何映射到RAM的，该数据结构存储在IRP的pIrp-&gt;MdlAddress。</p>
+<img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220511194722486.png" alt="image-20220511194722486" style="zoom:67%;" />
+
+<p>从上图可知，这段虚拟内存首地址应该是mdl-&gt;StartVa+mdl-&gt;ByteOffset。</p>
+<p>实现中主要用到MmGetSystemAddressForMdlSafe函数（该函数第二个参数是指定优先级），得到MDL在内核模式下的映射，返回值是内核地址。</p>
+<p>如果返回NULL，这意味着系统超出系统页表或系统页表很低（取决于上面的优先级参数）。这种情况可能出现在内存很少的情况下，如果出现这种情况，那么IRP的完成状态应该是STATUS_INSUFFICIENT_RESOURCES。</p>
+<h4 id="其他方式读写"><a href="#其他方式读写" class="headerlink" title="其他方式读写"></a>其他方式读写</h4><p>派遣函数直接读写应用程序提供的额缓冲区地址，只有把驱动程序和应用程序运行在相同线程上下文的情况下，才能使用这种方式。</p>
+<p>缓冲区内存地址，可以在派遣函数中通过IRP的pIrp-&gt;UsersBuffer得到。因为ReadFile可能把空指针地址或者非法地址传递给驱动程序，所以驱动程序在使用用户模式地址前，需要探测这段内存是否可读或者可写（使用ProbeForWrite函数和try块）</p>
+<h4 id="IO设备控制操作"><a href="#IO设备控制操作" class="headerlink" title="IO设备控制操作"></a>IO设备控制操作</h4><p>除了前面说的ReadFile，WriteFile之外，还可以通过另外一种方式操作设备。DeviceIoControl内部会使操作系统创建一个IRP_MJ_DEVICE_CONTROL类型的IRP，然后操作系统会将这个IRP转发到派遣函数。</p>
+<h5 id="DeviceIoControl与驱动交互"><a href="#DeviceIoControl与驱动交互" class="headerlink" title="DeviceIoControl与驱动交互"></a>DeviceIoControl与驱动交互</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">BOOL <span class="title">DeviceIoControl</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    HANDLE hDevice, <span class="comment">// handle to device or file</span></span></span></span><br><span class="line"><span class="params"><span class="function">    DWORD dwIoControlCode, <span class="comment">// IOCTL code (控制码)</span></span></span></span><br><span class="line"><span class="params"><span class="function">    PVOID lpInBuffer, <span class="comment">// input buffer</span></span></span></span><br><span class="line"><span class="params"><span class="function">    DWORD nInBufferSize, <span class="comment">// size of input buffer</span></span></span></span><br><span class="line"><span class="params"><span class="function">    PVOID lpOutBuffer, <span class="comment">// output buffer</span></span></span></span><br><span class="line"><span class="params"><span class="function">    DWORD nOutBufferSize, <span class="comment">// size of output buffer</span></span></span></span><br><span class="line"><span class="params"><span class="function">    PDWORD lpdwBytesReturned, <span class="comment">// # of bytes actually returned</span></span></span></span><br><span class="line"><span class="params"><span class="function">    LPOVERLAPPED lpOverlapped)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>（IOCTL）控制码主要由四个参数构成，由CTL_CODE宏提供</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> CTL_CODE( DeviceType, Function, Method, Access ) ( \</span></span><br><span class="line"><span class="meta">((DeviceType) &lt;&lt; 16) | ((Access) &lt;&lt; 14) | ((Function) &lt;&lt; 2) | (Method))</span></span><br></pre></td></tr></table></figure>
+
+<p>第三个参数比较关键，指的是操作模式（METHOD_BUFFERED、METHOD_IN_DIRECT、METHOD_OUT_DIRECT、METHOD_NEITHER）,这几种操作模式与前面提到的缓冲区、直接和其他访问方式类似，对于METHOD_IN/OUT_DIRECT的区别是，当以只读权限打开设备的时候，前者会成功，后者会失败。如果以读写权限打开设备，两者都成功。</p>
 <p>参考链接：<a target="_blank" rel="noopener" href="https://blog.csdn.net/xiangbaohui/article/details/104910607">windows驱动之IRP结构</a>、<a target="_blank" rel="noopener" href="https://docs.microsoft.com/en-us/windows-hardware/drivers/gettingstarted/driver-stacks">微软官方文档</a></p>
 
     </div>
@@ -407,7 +432,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#IRP%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.</span> <span class="nav-text">IRP介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#WDM%E4%B8%8ENT%E9%A9%B1%E5%8A%A8%E7%A8%8B%E5%BA%8F"><span class="nav-number">2.</span> <span class="nav-text">WDM与NT驱动程序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BE%E5%A4%87%E8%8A%82%E7%82%B9%E5%92%8C%E8%AE%BE%E5%A4%87%E5%A0%86%E6%A0%88"><span class="nav-number">3.</span> <span class="nav-text">设备节点和设备堆栈</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IRP%E6%93%8D%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="nav-number">4.</span> <span class="nav-text">IRP操作流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IRP"><span class="nav-number">5.</span> <span class="nav-text">IRP</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#IRP%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.</span> <span class="nav-text">IRP介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#WDM%E4%B8%8ENT%E9%A9%B1%E5%8A%A8%E7%A8%8B%E5%BA%8F"><span class="nav-number">2.</span> <span class="nav-text">WDM与NT驱动程序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BE%E5%A4%87%E8%8A%82%E7%82%B9%E5%92%8C%E8%AE%BE%E5%A4%87%E5%A0%86%E6%A0%88"><span class="nav-number">3.</span> <span class="nav-text">设备节点和设备堆栈</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IRP%E6%93%8D%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="nav-number">4.</span> <span class="nav-text">IRP操作流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IRP"><span class="nav-number">5.</span> <span class="nav-text">IRP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BF%E9%97%AE%E7%94%A8%E6%88%B7%E7%BC%93%E5%86%B2%E5%8C%BA"><span class="nav-number">6.</span> <span class="nav-text">访问用户缓冲区</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BC%93%E5%86%B2%E5%8C%BA%E6%96%B9%E5%BC%8F%E8%AF%BB%E5%86%99"><span class="nav-number">6.1.</span> <span class="nav-text">缓冲区方式读写</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E6%96%B9%E5%BC%8F%E8%AF%BB%E5%86%99"><span class="nav-number">6.2.</span> <span class="nav-text">直接方式读写</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B6%E4%BB%96%E6%96%B9%E5%BC%8F%E8%AF%BB%E5%86%99"><span class="nav-number">6.3.</span> <span class="nav-text">其他方式读写</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IO%E8%AE%BE%E5%A4%87%E6%8E%A7%E5%88%B6%E6%93%8D%E4%BD%9C"><span class="nav-number">6.4.</span> <span class="nav-text">IO设备控制操作</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#DeviceIoControl%E4%B8%8E%E9%A9%B1%E5%8A%A8%E4%BA%A4%E4%BA%92"><span class="nav-number">6.4.1.</span> <span class="nav-text">DeviceIoControl与驱动交互</span></a></li></ol></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -423,7 +448,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">81</span>
+          <span class="site-state-item-count">95</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -436,7 +461,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">82</span>
+        <span class="site-state-item-count">96</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -483,12 +508,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">195k</span>
+    <span title="站点总字数">222k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">2:57</span>
+    <span title="站点阅读时长">3:22</span>
 </div>
 
         
