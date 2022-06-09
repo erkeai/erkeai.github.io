@@ -120,7 +120,7 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">96</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">103</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -130,7 +130,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">95</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">101</span></a>
 
   </li>
   </ul>
@@ -156,6 +156,773 @@
 
           <div class="content index posts-expand">
             
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/04/07/pwn/tamuctf_pwn/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/04/07/pwn/tamuctf_pwn/" class="post-title-link" itemprop="url">tamuctf_pwn</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-04-07 00:00:00 / 修改时间：20:23:42" itemprop="dateCreated datePublished" datetime="2022-04-07T00:00:00+08:00">2022-04-07</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/pwn/" itemprop="url" rel="index"><span itemprop="name">pwn</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.6k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="pwn1"><a href="#pwn1" class="headerlink" title="pwn1"></a>pwn1</h3><p>​       看一下程序基本情况如下，动态链接的32位程序，只有canary保护没有打开。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407150427052.png" alt="image-20220407150427052"></p>
+<p>​        <img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407150257274.png" alt="image-20220407150257274"></p>
+<p>​        IDA看一下程序，可以看到明显<code>gets</code>函数处存在栈溢出，并且当v5等于某个值的时候，就执行<code>print_flag</code>函数输出flag。右键那个值-&gt;hexadecimal，可以看到该值十六进制为0xDEA110CB，也就是当v5为该值，就会输出flag，所以只需要栈溢出覆盖v5的值为0xDEA110CB，不需要自己找<code>system(&#39;/bin/sh&#39;)</code></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407151610311.png" alt="image-20220407151610311"></p>
+<p>​        计算一下偏移变量s到变量v5的偏移距离，由IDA得s=ebp-3Bh、v5=ebp-10h，两者偏移距离为2Bh</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407152707564.png" alt="image-20220407152707564"></p>
+<h4 id="payload"><a href="#payload" class="headerlink" title="payload"></a>payload</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407153452051.png" alt="image-20220407153452051"></p>
+<p>因为服务器啥的已经没开了，所以只能纸上谈兵hh，但是这道题确实也就比较简单。</p>
+<h3 id="pwn2"><a href="#pwn2" class="headerlink" title="pwn2"></a>pwn2</h3><p>​        先看一下该文件的详细信息，发现依旧只有canary没打开。是动态链接的32位程序。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407153944825.png" alt="image-20220407153944825"></p>
+<p>IDA看一下程序，可以看到<code>gets</code>函数存在明显的栈溢出漏洞，字符串和函数中都没有看到<code>system</code>和<code>bin/sh</code>的身影，并且下面有一个函数<code>select_func</code></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407155104364.png" alt="image-20220407155104364"></p>
+<p>看一下代码逻辑，发现拷贝了0x1F个字符到目标字符串，如果目标字符串等于<code>one</code>时候，将<code>one</code>赋值给v3,然后调用<code>v3()</code></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407155317532.png" alt="image-20220407155317532"></p>
+<p>看函数列表，存在<code>one()``two()</code>函数以及<code>print_flag()</code>，函数地址分别为0x00000754，0x000006AD，0x000006D8。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407160314057.png" alt="image-20220407160314057"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407162416467.png" alt="image-20220407162416467"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407162438986.png" alt="image-20220407162438986"></p>
+<p>我们现在需要做的就是跳转到<code>print_flag</code>函数，gets函数可以赋值31个字节给dest变量，dest与v3之间相差30个字节，可以溢出一个字节，v3初始值为two，two又与print_flag函数相差一个字节，所以溢出的一个字节就可以将v3的初始值修改为print_flag函数地址。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407163600996.png" alt="image-20220407163600996"></p>
+<h4 id="payload-1"><a href="#payload-1" class="headerlink" title="payload"></a>payload</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407164012235.png" alt="image-20220407164012235"></p>
+<h3 id="pwn3"><a href="#pwn3" class="headerlink" title="pwn3"></a>pwn3</h3><p>​        惯例看一下程序情况，发现只开了RELRO以及PIE，并且有RWX段。推测可能是自己写shellcode的题目。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407164138366.png" alt="image-20220407164138366"></p>
+<p>​        IDA打开看一下，主要点进<code>echo</code>函数看一下，发现存在<code>gets</code>函数栈溢出漏洞<strong>（注意题目本身就泄露出了s的地址）</strong></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407164648542.png" alt="image-20220407164648542"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407164725968.png" alt="image-20220407164725968"></p>
+<p>​        s的地址为ebp-12Ah，画个图看一下。s与EBP之间相差298个字节，s规定的数据为294字节大小，所以溢出够298+4个字节后将获取到的s地址覆盖掉函数返回地址、使程序跳转至s处执行shellcode。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407171136775.png" alt="image-20220407171136775"></p>
+<h4 id="payload-2"><a href="#payload-2" class="headerlink" title="payload"></a>payload</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407172044765.png" alt="image-20220407172044765"></p>
+<h3 id="pwn4"><a href="#pwn4" class="headerlink" title="pwn4"></a>pwn4</h3><p>​        发现只开启了NX保护</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407172747624.png" alt="image-20220407172747624"></p>
+<p>​    IDA查看字符串和函数，可以看到有‘/bin/sh’和<code>system</code>函数，/bin/sh字符串，地址为0x0804A034</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407190256774.png" alt="image-20220407190256774"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407190433644.png" alt="image-20220407190433644"></p>
+<p>​        主函数循环执行<code>laas</code>函数，该函数中可以看到gets函数存在明显栈溢出漏洞，如果在s字符串中没有找到ASCII码为47的字符<code>/</code>，那么就传入s参数执行<code>run_cmd</code>函数</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407190659867.png" alt="image-20220407190659867"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407190733634.png" alt="image-20220407190733634"></p>
+<p>​        在run_cmd()函数未进行任何过滤直接调用system()函数执行系统命令（虽然可以直接<code>sendline(&#39;/bin/cat flag.txt&#39;)</code>，但是这道题还是走一下常规pwn思路）：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407190901388.png" alt="image-20220407190901388"></p>
+<p>看下call system()的地址，为0x080485AD，字符串s地址为ebp-21h：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407191305838.png" alt="image-20220407191305838"></p>
+<h4 id="payload-3"><a href="#payload-3" class="headerlink" title="payload"></a>payload</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407193706392.png" alt="image-20220407193706392"></p>
+<p>还有一种写法，下面就是利用system的地址，而不是cal了system的地址</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407193829235.png" alt="image-20220407193829235"></p>
+<h3 id="pwn5"><a href="#pwn5" class="headerlink" title="pwn5"></a>pwn5</h3><p>​        查看程序基本情况，发现是静态链接的，那就和libc无关了，并且只开了NX</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407194026908.png" alt="image-20220407194026908"></p>
+<p>​        IDA发现其实逻辑啥的和pwn4一样，不过下图圈起来这里变成了7（这里也可以直接用<code>;$0</code>,还有一种利用vi命令及:shell的骚姿势，输入<code>;vi</code>再输入<code>:shell</code>即可执行shell）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407194549935.png" alt="image-20220407194549935"></p>
+<p>​        也可以找到‘/bin/sh’字符串和<code>system</code>函数。地址分别为0x080BC140和0x0804EE30,s地址为ebp-0Dh</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407194754387.png" alt="image-20220407194754387"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407194825643.png" alt="image-20220407194825643"></p>
+<p>看到别人写的是有exit函数地址，但是感觉替换成其他四个字节的数据也可以（实践了一下确实可以）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407201448443.png" alt="image-20220407201448443"></p>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2019/03/08/TAMUctf-Pwn-writeup/">TAMUCTF-PWN</a> </p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/04/06/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%BA%8C%E5%8D%81%E4%B8%80%E5%A4%A9/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/04/06/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%BA%8C%E5%8D%81%E4%B8%80%E5%A4%A9/" class="post-title-link" itemprop="url">代码随想录第二十一天</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-04-06 00:00:00" itemprop="dateCreated datePublished" datetime="2022-04-06T00:00:00+08:00">2022-04-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-04-07 10:07:20" itemprop="dateModified" datetime="2022-04-07T10:07:20+08:00">2022-04-07</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/leetcode/" itemprop="url" rel="index"><span itemprop="name">leetcode</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>784</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="字符串-反转字符串"><a href="#字符串-反转字符串" class="headerlink" title="字符串-反转字符串"></a>字符串-反转字符串</h4><p><a target="_blank" rel="noopener" href="https://leetcode-cn.com/problems/reverse-string/">题目链接</a></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">reverseString</span><span class="params">(vector&lt;<span class="keyword">char</span>&gt;&amp; s)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> fast = s.<span class="built_in">size</span>() - <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">int</span> slow = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span>(fast &gt; slow)&#123;    <span class="comment">//fast != slow会出错,当字符串是偶数的时候会出事，fast与slow永远不会相等</span></span><br><span class="line">            <span class="keyword">char</span> tmp = s[slow];</span><br><span class="line">            s[slow] = s[fast];</span><br><span class="line">            s[fast] = tmp;</span><br><span class="line">            fast--;</span><br><span class="line">            slow++;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">//可以直接用swap</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">reverseString</span><span class="params">(vector&lt;<span class="keyword">char</span>&gt;&amp; s)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>, j = s.<span class="built_in">size</span>() - <span class="number">1</span>; i &lt; s.<span class="built_in">size</span>()/<span class="number">2</span>; i++, j--) &#123;</span><br><span class="line">            <span class="built_in">swap</span>(s[i],s[j]);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">reverseString</span>(<span class="params">self, s: <span class="type">List</span>[<span class="built_in">str</span>]</span>) -&gt; <span class="literal">None</span>:</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        Do not return anything, modify s in-place instead.</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        left, right = <span class="number">0</span>, <span class="built_in">len</span>(s) - <span class="number">1</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 该方法已经不需要判断奇偶数，经测试后时间空间复杂度比用 for i in range(right//2)更低</span></span><br><span class="line">        <span class="comment"># 推荐该写法，更加通俗易懂</span></span><br><span class="line">        <span class="keyword">while</span> left &lt; right:</span><br><span class="line">            s[left], s[right] = s[right], s[left]</span><br><span class="line">            left += <span class="number">1</span></span><br><span class="line">            right -= <span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/04/05/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%BA%8C%E5%8D%81%E5%A4%A9/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/04/05/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%BA%8C%E5%8D%81%E5%A4%A9/" class="post-title-link" itemprop="url">代码随想录第二十天</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-04-05 00:00:00 / 修改时间：17:02:15" itemprop="dateCreated datePublished" datetime="2022-04-05T00:00:00+08:00">2022-04-05</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/leetcode/" itemprop="url" rel="index"><span itemprop="name">leetcode</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="哈希表-四数之和"><a href="#哈希表-四数之和" class="headerlink" title="哈希表-四数之和"></a>哈希表-四数之和</h4><p><a target="_blank" rel="noopener" href="https://leetcode-cn.com/problems/4sum/">题目链接</a></p>
+<p>这道题采用双指针的方法，首先顺序依次是i，j，left，right。和三数之和是一样的操作</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; <span class="built_in">fourSum</span>(vector&lt;<span class="keyword">int</span>&gt;&amp; nums, <span class="keyword">int</span> target) &#123;</span><br><span class="line">        vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; result;</span><br><span class="line">        <span class="built_in">sort</span>(nums.<span class="built_in">begin</span>(), nums.<span class="built_in">end</span>());</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; nums.<span class="built_in">size</span>(); i++)&#123;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span>(i &gt; <span class="number">0</span> &amp;&amp; nums[i] == nums[i - <span class="number">1</span>])<span class="keyword">continue</span>;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">for</span>(<span class="keyword">int</span> j = i + <span class="number">1</span>; j &lt; nums.<span class="built_in">size</span>(); j++)&#123;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span>(j &gt; i + <span class="number">1</span> &amp;&amp; nums[j] == nums[j - <span class="number">1</span>])<span class="keyword">continue</span>;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">int</span> left = j + <span class="number">1</span>;</span><br><span class="line">                <span class="keyword">int</span> right = nums.<span class="built_in">size</span>() - <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">while</span>(left &lt; right)&#123;</span><br><span class="line">                   <span class="comment">// if(nums[i] + nums[j] + nums[left] + nums[right] &gt; target)right--;//会溢出</span></span><br><span class="line">                    <span class="keyword">if</span>(nums[i] + nums[j] &gt; target - (nums[left] + nums[right]))</span><br><span class="line">                        right--;</span><br><span class="line">        </span><br><span class="line"></span><br><span class="line">                    <span class="keyword">else</span> <span class="keyword">if</span>(nums[i] + nums[j] &lt; target - (nums[left] + nums[right]))</span><br><span class="line">                        left++;</span><br><span class="line"></span><br><span class="line">                    <span class="keyword">else</span>&#123;</span><br><span class="line">                        result.<span class="built_in">push_back</span>(vector&lt;<span class="keyword">int</span>&gt;&#123;nums[i], nums[j], nums[left], nums[right]&#125;);</span><br><span class="line">                        <span class="keyword">while</span>(left &lt; right &amp;&amp; nums[right] == nums[right - <span class="number">1</span>]) right--;</span><br><span class="line">                        <span class="keyword">while</span>(left &lt; right &amp;&amp; nums[left] == nums[left + <span class="number">1</span>]) left++;</span><br><span class="line"></span><br><span class="line">                        right--;</span><br><span class="line">                        left++;</span><br><span class="line">                    &#125;</span><br><span class="line">                    </span><br><span class="line"></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">fourSum</span>(<span class="params">self, nums: <span class="type">List</span>[<span class="built_in">int</span>], target: <span class="built_in">int</span></span>) -&gt; <span class="type">List</span>[<span class="type">List</span>[<span class="built_in">int</span>]]:</span></span><br><span class="line">    </span><br><span class="line">    nums.sort()</span><br><span class="line">    n = <span class="built_in">len</span>(nums)</span><br><span class="line">    res = []</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(n):</span><br><span class="line">        <span class="keyword">if</span> i &gt; <span class="number">0</span> <span class="keyword">and</span> nums[i] == nums[i - <span class="number">1</span>]: <span class="keyword">continue</span></span><br><span class="line">        <span class="keyword">for</span> k <span class="keyword">in</span> <span class="built_in">range</span>(i+<span class="number">1</span>, n):</span><br><span class="line">            <span class="keyword">if</span> k &gt; i + <span class="number">1</span> <span class="keyword">and</span> nums[k] == nums[k-<span class="number">1</span>]: <span class="keyword">continue</span></span><br><span class="line">            p = k + <span class="number">1</span></span><br><span class="line">            q = n - <span class="number">1</span></span><br><span class="line"></span><br><span class="line">            <span class="keyword">while</span> p &lt; q:</span><br><span class="line">                <span class="keyword">if</span> nums[i] + nums[k] + nums[p] + nums[q] &gt; target: q -= <span class="number">1</span></span><br><span class="line">                <span class="keyword">elif</span> nums[i] + nums[k] + nums[p] + nums[q] &lt; target: p += <span class="number">1</span></span><br><span class="line">                <span class="keyword">else</span>:</span><br><span class="line">                    res.append([nums[i], nums[k], nums[p], nums[q]])</span><br><span class="line">                    <span class="keyword">while</span> p &lt; q <span class="keyword">and</span> nums[p] == nums[p + <span class="number">1</span>]: p += <span class="number">1</span></span><br><span class="line">                    <span class="keyword">while</span> p &lt; q <span class="keyword">and</span> nums[q] == nums[q - <span class="number">1</span>]: q -= <span class="number">1</span></span><br><span class="line">                    p += <span class="number">1</span></span><br><span class="line">                    q -= <span class="number">1</span></span><br><span class="line">    <span class="keyword">return</span> res</span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/04/04/paper/A%20Systematical%20and%20longitudinal%20study%20of%20evasive%20behaviors%20in%20windows%20malware/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/04/04/paper/A%20Systematical%20and%20longitudinal%20study%20of%20evasive%20behaviors%20in%20windows%20malware/" class="post-title-link" itemprop="url">A Systematical and longitudinal study of evasive behaviors in windows malware</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-04-04 00:00:00" itemprop="dateCreated datePublished" datetime="2022-04-04T00:00:00+08:00">2022-04-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-04-06 17:13:37" itemprop="dateModified" datetime="2022-04-06T17:13:37+08:00">2022-04-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper-reading/" itemprop="url" rel="index"><span itemprop="name">paper reading</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>​        该文研究了恶意软件的规避行为。论文收集了92种恶意软件用来检测和以及阻止检测的规避技术，并做了系统化，提供了一种根据这些技术的语义和特征进行分类的分类方法。实现了一个对x86二进制文件进行逃避分析的框架，分析了2010年至2019年期间的45,375个恶意软件样本，并采取将这种分析与合法的主流windoiws程序进行比较的方法，来研究规避行为的内在特征。还研究了恶意软件家族与所采用的规避技术之间的相关性。并且论文确定了特定于恶意代码的技术，而不是恶意代码与合法软件都会使用的技术。</p>
+<p>​        论文实验结果体现了规避技术的使用以及随着时间的演变，发现规避行为十年间，在数量上仅仅增加了12%，但是在技术上已经有显著的提高。最后论文研究了如何应对新型规避技术的部署。</p>
+<h3 id="规避技术分类法"><a href="#规避技术分类法" class="headerlink" title="规避技术分类法"></a>规避技术分类法</h3><p>​        该文根据在操作系统上执行的动作的语义来进行分类。基于先前提出的系统化，该文还开发了由16个语义等价组组成的分类法。有内存指纹、异常处理、CPU指纹、表描述符、陷阱、时间、暂缓、人类交互、注册表、系统环境、WMI、进程环境、文件系统、枚举进程、枚举服务、枚举驱动。 通过静态分析每个二进制程序，计算了实现92个规避技术所需的基本块、指令和函数调用的数量。</p>
+<h3 id="分析框架"><a href="#分析框架" class="headerlink" title="分析框架"></a>分析框架</h3><p>​        可以实现四个级别的检测：指令（监控每个执行指令）、API hook（hook一些感兴趣的Windows API）、系统调用（hook感兴趣的系统调用）、内存访问（监视对特定内存区域的访问）。系统会在逃避前后进行hook,这两个hook都会采用日志记录规避行为。</p>
+<p>​        系统根据级别分为了四个模块，并且还增加了一个库追踪器模块，用来记录规避技术和相关库的调用堆栈。</p>
+<h3 id="规避行为分析"><a href="#规避行为分析" class="headerlink" title="规避行为分析"></a>规避行为分析</h3><p>​        该部分根据五个问题展开</p>
+<p>1.恶意软件最常见的规避技术是什么？</p>
+<p>​        时间和暂缓技术是使用最多的，搜索特定的驱动程序很少被用到，并且实验数据并未观察到对WMI的使用。恶意软件家族也会寻找关键字，其中“vbox”、“sandbox”和“虚拟virtualbox”是最常用的关键字。</p>
+<p>2.恶意软件家族和采用的规避行为技术之间有什么联系吗？</p>
+<p>​        事实上，恶意软件样本通常是由工具构建的。恶意软件的作者通常开发可以很容易地用来生成新的样本的工具。该文建立了一个随机森林分类器；分类器的输入是一个布尔变量数组，表示样本中每种技术的使用情况；分类器的输出是族标签。我们为123个家族（所有至少有50个样本的家族）建立了123个分类器。每个分类器的输出采用分层抽样进行3倍交叉验证训练。对于每个分类器，计算了f1-score，这是一个评估分类器性能的指标，并考虑了所有的混淆矩阵。</p>
+<p>3.在过去的10年里，每个家庭和每个类别所采用的规避技术的数量是否发生了变化？</p>
+<p>​        该部分研究了每种技术的使用周期，规避技术的使用量，单个样本所使用的规避技术的最大数量，恶意样本规避的四大目标占比。</p>
+<p>4.采用恶意软件规避技术如何影响安全社区，反之亦然？</p>
+<p>​        如果该技术已经被广泛采用/已知，在报告发布后，我们注意到在随后的几年中它们的使用有轻微和暂时的下降。相反，如果该技术几乎很少被使用或者被知道，在报告发布后的接下来的几年里，它的采用迅速增加。一旦一种技术被广泛使用，相关报告的数量就会显著增加。</p>
+<p>5.合法的软件是否也采用了规避技术？</p>
+<p>​        合法的程序也会采用规避技术，但是并不是很常见。特别是，只有少数技术被普遍采用，这表明这种技术并不主要用于真正的规避目的。</p>
+<p>​        基于良性软件分析，对每个技术进行了分类：</p>
+<p>​        被恶意软件使用的规避技术。这是在良性软件样本中从未观察到的逃避行为，或者手动验证了它在良性软件样本中被用作一种逃避机制。</p>
+<p>​        被用于良性软件的规避技术。这是在超过1%的良性软件样本中观察到的规避行为，或者手动验证没有被用作逃避行为。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/04/01/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E5%8D%81%E4%B9%9D%E5%A4%A9/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/04/01/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E5%8D%81%E4%B9%9D%E5%A4%A9/" class="post-title-link" itemprop="url">代码随想录第十九天</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-04-01 00:00:00 / 修改时间：11:13:01" itemprop="dateCreated datePublished" datetime="2022-04-01T00:00:00+08:00">2022-04-01</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/leetcode/" itemprop="url" rel="index"><span itemprop="name">leetcode</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.7k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="哈希表-三数之和"><a href="#哈希表-三数之和" class="headerlink" title="哈希表-三数之和"></a>哈希表-三数之和</h4><p><a target="_blank" rel="noopener" href="https://leetcode-cn.com/problems/3sum/">题目链接</a></p>
+<p>这道题采用双指针的方法，首先顺序依次是i，left，right。按照每个i下标处的值一次寻找排序后数组中满足条件的left和right下标位置的值（注意去重）。第一个i处理完成后，i递增，如果此时发现由重复的数也需要去重，这样可以寻找出所有满足条件的数组</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; <span class="built_in">threeSum</span>(vector&lt;<span class="keyword">int</span>&gt;&amp; nums) &#123;</span><br><span class="line">        vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; result;</span><br><span class="line">        <span class="built_in">sort</span>(nums.<span class="built_in">begin</span>(),nums.<span class="built_in">end</span>());</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; nums.<span class="built_in">size</span>(); i++)&#123;</span><br><span class="line">            <span class="keyword">if</span>(nums[i] &gt; <span class="number">0</span>) <span class="keyword">return</span> result;</span><br><span class="line">            <span class="keyword">if</span>(i &gt; <span class="number">0</span> &amp;&amp; nums[i] == nums[i - <span class="number">1</span>])<span class="keyword">continue</span>;</span><br><span class="line">            <span class="keyword">int</span> left = i + <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">int</span> right = nums.<span class="built_in">size</span>() - <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">while</span>(left &lt; right)&#123;</span><br><span class="line">                <span class="keyword">if</span>(nums[i] + nums[left] + nums[right] &gt; <span class="number">0</span>)&#123;</span><br><span class="line">                    right--;</span><br><span class="line">                    <span class="keyword">while</span>(left &lt; right &amp;&amp; nums[right] == nums[right + <span class="number">1</span>]) right--;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">else</span> <span class="keyword">if</span>(nums[i] + nums[left] + nums[right] &lt; <span class="number">0</span>)&#123;</span><br><span class="line">                    left++;</span><br><span class="line">                    <span class="keyword">while</span>(left &lt; right &amp;&amp; nums[left] == nums[left<span class="number">-1</span>]) left++;</span><br><span class="line">                &#125; </span><br><span class="line">                <span class="keyword">else</span>&#123;</span><br><span class="line">                    result.<span class="built_in">push_back</span>(vector&lt;<span class="keyword">int</span>&gt;&#123;nums[i], nums[left], nums[right]&#125;);</span><br><span class="line">                    <span class="keyword">while</span>(left &lt; right &amp;&amp; nums[right] == nums[right - <span class="number">1</span>]) right--;</span><br><span class="line">                    <span class="keyword">while</span>(left &lt; right &amp;&amp; nums[left] == nums[left+<span class="number">1</span>]) left++;</span><br><span class="line">                    right--;</span><br><span class="line">                    left++;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;     </span><br><span class="line">            </span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">threeSum</span>(<span class="params">self, nums: <span class="type">List</span>[<span class="built_in">int</span>]</span>) -&gt; <span class="type">List</span>[<span class="type">List</span>[<span class="built_in">int</span>]]:</span></span><br><span class="line">        n = <span class="built_in">len</span>(nums)</span><br><span class="line">        ans = <span class="built_in">list</span>()</span><br><span class="line">        nums.sort()</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(n):</span><br><span class="line">            left = i + <span class="number">1</span></span><br><span class="line">            right = n - <span class="number">1</span></span><br><span class="line">            <span class="keyword">if</span> nums[i] &gt; <span class="number">0</span>:</span><br><span class="line">                <span class="keyword">break</span></span><br><span class="line">            <span class="keyword">if</span> i &gt; <span class="number">0</span> <span class="keyword">and</span> nums[i] == nums[i-<span class="number">1</span>]:</span><br><span class="line">                <span class="keyword">continue</span></span><br><span class="line">            <span class="keyword">while</span> left &lt; right:</span><br><span class="line">                total = nums[i] + nums[left] + nums[right]</span><br><span class="line">                <span class="keyword">if</span> total &gt; <span class="number">0</span>:</span><br><span class="line">                    right -= <span class="number">1</span></span><br><span class="line">                    <span class="keyword">while</span> left &lt; right <span class="keyword">and</span> nums[right] == nums[right + <span class="number">1</span>]: right -= <span class="number">1</span></span><br><span class="line">                <span class="keyword">elif</span> total &lt; <span class="number">0</span>:</span><br><span class="line">                    left += <span class="number">1</span></span><br><span class="line">                    <span class="keyword">while</span> left &lt; right <span class="keyword">and</span> nums[left] == nums[left - <span class="number">1</span>]: left += <span class="number">1</span></span><br><span class="line">                <span class="keyword">else</span>:</span><br><span class="line">                    ans.append([nums[i], nums[left], nums[right]])</span><br><span class="line">                    <span class="keyword">while</span> left &lt; right <span class="keyword">and</span> nums[left] == nums[left + <span class="number">1</span>]: left += <span class="number">1</span></span><br><span class="line">                    <span class="keyword">while</span> left &lt; right <span class="keyword">and</span> nums[right] == nums[right - <span class="number">1</span>]: right -= <span class="number">1</span></span><br><span class="line">                    left += <span class="number">1</span></span><br><span class="line">                    right -= <span class="number">1</span> </span><br><span class="line">        <span class="keyword">return</span> ans</span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/04/01/pwn/%E6%A0%88%E6%BA%A2%E5%87%BA%E6%94%BB%E5%87%BB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/04/01/pwn/%E6%A0%88%E6%BA%A2%E5%87%BA%E6%94%BB%E5%87%BB/" class="post-title-link" itemprop="url">栈溢出攻击以及基本ROP</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-04-01 00:00:00" itemprop="dateCreated datePublished" datetime="2022-04-01T00:00:00+08:00">2022-04-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-04-11 19:50:46" itemprop="dateModified" datetime="2022-04-11T19:50:46+08:00">2022-04-11</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/pwn/" itemprop="url" rel="index"><span itemprop="name">pwn</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>7.7k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>7 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="栈溢出攻击基础知识"><a href="#栈溢出攻击基础知识" class="headerlink" title="栈溢出攻击基础知识"></a>栈溢出攻击基础知识</h2><p>​        栈溢出指的是程序向栈中某个变量中写入的字节数超过了这个变量本身所申请的字节数，因而导致与其相邻的栈中的变量的值被改变。关于栈溢出攻击，可以看一下下面的图。  </p>
+<p>​        缓冲区可以理解为一段可读写的内存区域。代码段存放的是程序的机器码和只读数据。数据段存储的是静态数据和用户的全局变量。堆存储程序运行时分配的变量，大小不固定，由内存地址低向高增长。栈存放函数调用时的临时信息结构，由内存地址高向低增长。入栈（PUSH）时，栈顶变小。出栈（POP）时，栈顶变大。</p>
+<p>​        除了代码段和数据区域，其他的内存区域都能作为缓冲区，因此缓冲区溢出的位置可能在数据段、也可能在堆栈段。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401142938542.png" alt="image-20220401142938542"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401143120042.png" alt="image-20220401143120042"></p>
+<h3 id="linux安全机制"><a href="#linux安全机制" class="headerlink" title="linux安全机制"></a>linux安全机制</h3><ul>
+<li>canary(GS)：在栈靠近栈底某个位置设置初值，当函数结束时会检查这个栈上的值是否和存进去的值一致，防止栈溢出的一种保护</li>
+<li>relro：主要用来保护重定位表段对应数据区域，默认可写。分为两种，Partial RELRO：got表不可写，got.plt可写。Full RELRO：got表，got.plt不可写</li>
+<li>PIE(ALSR)：程序开启了PIE保护的话，在每次加载程序时都改变加载的基地址，不会影响指令间的相对地址</li>
+<li>NX(DEP)：数据执行保护，指不允许数据页(默认的堆页、各种堆栈页以及内存池页)执行代码</li>
+</ul>
+<h2 id="基本ROP"><a href="#基本ROP" class="headerlink" title="基本ROP"></a>基本ROP</h2><p>​        直接向栈或者堆上直接注入代码的方式已经难以发挥效果，提出的主要的绕过保护的方法就是ROP（面向返回的编程），主要思想是在<strong>栈缓冲区溢出的基础上，利用程序中已有的小片段 (gadgets) 来改变某些寄存器或者变量的值，从而控制程序的执行流程。</strong>所谓 gadgets 就是以 ret 结尾的指令序列，通过这些指令序列，我们可以修改某些地址的内容，方便控制程序的执行流程。</p>
+<p>利用条件如下：</p>
+<pre><code>        * 程序存在溢出，并且可以控制返回地址。
+        * 可以找到满足条件的gadgets以及其地址。
+</code></pre>
+<h3 id="ret2text"><a href="#ret2text" class="headerlink" title="ret2text"></a>ret2text</h3><p>ret2text 即控制程序执行程序本身已有的的代码 (.text)。我们控制执行程序已有的代码的时候也可以控制程序执行好几段不相邻的程序已有的代码 (也就是 gadgets)。</p>
+<p>1.先查看一下该elf文件，可以看到是32位elf文件见，并且是动态连接的。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401155738902.png" alt="image-20220401155738902"></p>
+<p>查看一下程序的保护机制，可以看到是32位的程序且仅仅开启了栈不可执行保护NX</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401202249910.png" alt="image-20220401202249910"></p>
+<h4 id="IDA分析"><a href="#IDA分析" class="headerlink" title="IDA分析"></a>IDA分析</h4><p>IDA看一下，可以看到主函数使用了<code>gets</code>函数，显然这个是可以利用的栈溢出漏洞。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401165554355.png" alt="image-20220401165554355"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401203317416.png" alt="image-20220401203317416"></p>
+<p>查看字符串，双击进去看到是<code>secure</code>函数调用，这也就是gadgets，即反弹shell地址：0x0804863A</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401165837291.png" alt="image-20220401165837291"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401174052664.png" alt="image-20220401174052664"></p>
+<h4 id="构造payload"><a href="#构造payload" class="headerlink" title="构造payload"></a>构造payload</h4><p>​        构造之前，需要计算能够控制得内存起始地址距离main()函数返回地址得字节数。在<code>gets</code>函数那个图中的call前面两行，说明了参数的地址是esp+0x1c，通过动态调试，我们也可以发现这一点。</p>
+<p>​        在0x080486AE处下断点调试</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402094553917.png" alt="image-20220402094553917"></p>
+<p>​        ESP为<code>ffffd130</code>，其中存放的内容为<code>ffffd14c</code>，即输入的内容s的地址为<code>ESP+1c= ffffd14c</code>，而EBP为<code>ffffd1b8</code>，则s到EBP的偏移为<code>|ffffd1b8- ffffd14c|=6c</code>，所以s相对与返回地址的偏移为0x6c+4=0x70。</p>
+<h4 id="payload"><a href="#payload" class="headerlink" title="payload"></a>payload</h4><p>​        我们的目标就是控制这个ret，由前面分析知，可以利用.text代码段区域中的<code>system(“/bin/sh”)</code>代码，该代码段即为可被ROP利用的Gadget，地址为<code>0x0804863a</code>，将其覆盖到函数返回地址处，前面再padding 70h个字节码即可。（图中应该是sendline，懒得重新截图了）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402101815404.png" alt="image-20220402101815404"></p>
+<p>成功getshell：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402103300478.png" alt="image-20220402103300478"></p>
+<h3 id="ret2shellcode"><a href="#ret2shellcode" class="headerlink" title="ret2shellcode"></a>ret2shellcode</h3><p>​        ret2shellcode也就是控制程序执行shellcode(<strong>修改函数返回地址，让其指向溢出数据中的一段指令</strong>)。要想执行 shellcode，需要shellcode所在的区域具有可执行权限。该方法关键点：</p>
+<ul>
+<li>溢出点附近有可执行权限，以便让填充的shellcode能够被执行；</li>
+<li>有类似于jmp esp这样的gadget，使得程序能够跳转到shellcode中。</li>
+</ul>
+<p>​        前提条件：该技术的前提是需要操作系统关闭内存布局随机化以及需要程序调用栈有可执行权限。</p>
+<h4 id="静态分析"><a href="#静态分析" class="headerlink" title="静态分析"></a>静态分析</h4><p>​    可以看到是动态链接的32位程序，没有开启任何保护，并且具有可读、可写、可执行段。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402193552695.png" alt="image-20220402193552695"></p>
+<p>​        IDA打开查看，依然是基本的栈溢出漏洞，不过这次将对应字符串复制到了buf2处</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402193819764.png" alt="image-20220402193819764"></p>
+<p>​        buf2处于bss段（这次查看字符串，并没有之前所利用的system(“/bin/sh”)了）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402193948368.png" alt="image-20220402193948368"></p>
+<p>​        先输入命令<code>b main</code>和<code>r</code>，然后输入vmmap查看映射状况，可以看到第三行，buf2所在的bss段具有可读可写可执行权限</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402194512179.png" alt="image-20220402194512179"></p>
+<h4 id="调试分析"><a href="#调试分析" class="headerlink" title="调试分析"></a>调试分析</h4><p>​        可以和ret2text一样利用gdb下断点来计算偏移地址，也可以用GDB pattern字符串计算偏移量，先用<code>pattern_create</code>创建计算溢出偏移量的字符串，在输入的时候输入就可以了。（<strong>EIP指向CPU即将要执行的指令，SIGSEGV是当一个进程执行了一个无效的内存引用，或发生段错误时发送给它的信号</strong>）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402200053543.png" alt="image-20220402200053543"></p>
+<p>​        <code>pattern_offset</code>计算出偏移量。也就是0x70</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402200631556.png" alt="image-20220402200631556"></p>
+<h4 id="payload-1"><a href="#payload-1" class="headerlink" title="payload"></a>payload</h4><p>​        <code>asm()</code>接收一个字符串作为参数，得到汇编码的机器代码。shellcraft模块是shellcode的模块，包含一些生成shellcode的函数。其中的子模块声明架构，比如<code>shellcraft.arm</code> 是ARM架构的，<code>shellcraft.amd64</code>是AMD64架构，<code>shellcraft.i386</code>是Intel 80386架构的，以及有一个<code>shellcraft.common</code>是所有架构通用的。</p>
+<p>​        而这里的<code>shellcraft.sh()</code>则是执行/bin/sh的shellcode了。<code>shellcode.ljust()</code>这段代码就是要讲shellcode不足112长度的地方用a来填充。<strong>注意红框部分，圈起来的地方需要<code>b&#39;A&#39;</code>，不然会报错。</strong><br><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402202232199.png" alt="image-20220402202232199"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402202212510.png" alt="image-20220402202212510"></p>
+<h3 id="ret2syscall"><a href="#ret2syscall" class="headerlink" title="ret2syscall"></a>ret2syscall</h3><p>​        ret2syscall即控制程序执行系统调用，获取shell。需要满足两个条件：</p>
+<pre><code>    程序中有分别用于控制eax，ebx，ecx，edx的gadgets；
+    程序中有int 0x80指令，用于触发系统调用。
+</code></pre>
+<p>​        一般利用如下系统调用来获取shell：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">execve(<span class="string">&quot;/bin/sh&quot;</span>,NULL,NULL)</span><br></pre></td></tr></table></figure>
+
+<p>​        当遇到32位程序时，需要使得：</p>
+<ul>
+<li>系统调用号，即 eax 应该为 0xb（0xb 为 execve 对应的系统调用号）</li>
+<li>第一个参数，即 ebx 应该指向 /bin/sh 的地址，其实执行 sh 的地址也可以。</li>
+<li>第二个参数，即 ecx 应该为 0</li>
+<li>第三个参数，即 edx 应该为 0</li>
+</ul>
+<h4 id="Linux系统调用的实现"><a href="#Linux系统调用的实现" class="headerlink" title="Linux系统调用的实现"></a>Linux系统调用的实现</h4><p>Linux 的系统调用通过 int 80h 实现，用系统调用号来区分入口函数。在 Linux 中，<code>0x80</code>中断处理程序是内核，用于其他程序对内核进行系统调用。操作系统实现系统调用的基本过程是：</p>
+<ul>
+<li>应用程序调用库函数（API）；</li>
+<li>API 将系统调用号存入 EAX，然后通过中断调用使系统进入内核态；</li>
+<li>内核中的中断处理函数根据系统调用号，调用对应的内核函数（系统调用）；</li>
+<li>系统调用完成相应功能，将返回值存入 EAX，返回到中断处理函数；</li>
+<li>中断处理函数返回到 API 中；</li>
+<li>API 将 EAX 返回给应用程序。</li>
+</ul>
+<p>应用程序的调用过程是：</p>
+<ul>
+<li>把系统调用的编号存入 EAX；</li>
+<li>把函数参数存入其它通用寄存器；</li>
+<li>触发 0x80 号中断（int 0x80）。</li>
+</ul>
+<h4 id="静态分析-1"><a href="#静态分析-1" class="headerlink" title="静态分析"></a>静态分析</h4><p>​        发现文件是32位的静态链接文件，并且只打开了NX保护</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404125137686.png" alt="image-20220404125137686"></p>
+<p>​        IDA打开看到，<code>gets</code>函数存在栈溢出风险，</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404125637358.png" alt="image-20220404125637358"></p>
+<p>​        如何控制寄存器的值呢？这里就需要使用 gadgets。比如说，现在栈顶是 10，那么如果此时执行了 pop eax，那么现在 eax 的值就为 10。但是我们并不能期待有一段连续的代码可以同时控制对应的寄存器，所以我们需要一段一段控制，这也是我们在 gadgets 最后使用 ret 来再次控制程序执行流程的原因。具体寻找 gadgets 的方法，我们可以使用 ropgadgets 这个工具。</p>
+<p>​        寻找pop eax~edx+ret寄存器的指令，记下符合条件的地址分别为0x080bb196和0x0806eb90：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404134647641.png" alt="image-20220404134647641"></p>
+<p>​        类似于之前的做法，我们可以获得 v4 相对于 ebp 的偏移为 108。所以我们需要覆盖的返回地址相对于 v4 的偏移为 112。此次，由于我们不能直接利用程序中的某一段代码或者自己填写代码来获得 shell，所以我们利用程序中的 gadgets 来获得 shell，而对应的 shell 获取则是利用系统调用。</p>
+<p>​        我们还需要获得 /bin/sh 字符串对应的地址，还有 int 0x80 的地址。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404142901925.png" alt="image-20220404142901925"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404142942346.png" alt="image-20220404142942346"></p>
+<h4 id="payload-2"><a href="#payload-2" class="headerlink" title="payload"></a>payload</h4><p>payload构造如下，要在将返回地址指向int 0x80,在返回之前要将四个寄存器赋值完成，所以最终payload构成是</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">payload = padding+pop_eax+”0xb”+pop_edx_ecx_ebx+0+0+”/bin/sh”+int 0x80</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404141904456.png" alt="image-20220404141904456"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404142841848.png" alt="image-20220404142841848"></p>
+<h3 id="ret2libc"><a href="#ret2libc" class="headerlink" title="ret2libc"></a>ret2libc</h3><p>​        libc是Standard C library的简称，它是符合ANSI C标准的一个函数库。libc库提供C语言中所使用的宏，类型定义，字符串操作函数，数学计算函数以及输入输出函数等。简而言之，每个使用了标准库函数的Linux程序，都会加载libc，以便能够真正调用这些库函数。在Ubuntu中，libc的实现是libc.so.6（32位）或libc-2.xx.so（64位），不同的Ubuntu系统，xx是不一样的，例如Ubuntu 16.04的64位libc实现是libc-2.23.so。</p>
+<p>​        这种攻击方式主要是针对 <strong>动态链接(Dynamic linking)</strong> 编译的程序，因为正常情况下是无法在程序中找到像 <strong>system() 、execve()</strong> 这种系统级函数(<u>如果程序中直接包含了这种函数就可以直接控制返回地址指向他们，而不用通过这种麻烦的方式</u>,，比如<strong>ret2text</strong>)。因为程序是动态链接生成的，所以在程序运行时会调用 <strong>libc.so (程序被装载时，动态链接器会将程序所有所需的动态链接库加载至进程空间，libc.so 就是其中最基本的一个)<strong>，</strong>libc.so</strong> 是 linux 下 C 语言库中的运行库<strong>glibc</strong> 的动态链接版，并且 <strong>libc</strong>.<strong>so</strong> 中包含了大量的可以利用的函数，包括 <strong>system() 、execve()</strong> 等系统级函数，我们可以通过找到这些函数在内存中的地址覆盖掉返回地址来获得当前进程的控制权。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405155936033.png" alt="image-20220405155936033"></p>
+<p>​        就像Windows里面对DLL的调用一样，如果一个Linux程序想要隐式调用libc库函数，就需要在程序的“导入表”中填写该函数的相关信息，包括函数名。当然，Linux是没有“导入表”这个概念的，取而代之的是.plt表和.got表，对比Windows，它们就像INT表和IAT表。前者是编译后就已经写好的，里面并不包含真正的目标函数地址；后者是在运行时确定的，包含真正的目标函数地址。</p>
+<p>​        <strong>为什么要多用一个PLT表？</strong>原因是为了程序的运行效率，GOT表的初始值都指向PLT对应的某个片段中，而对应的PLT片段中包含能够解析函数地址的函数。（提高效率的原因就在这里）</p>
+<p>​        外部函数的内存地址存储在 GOT 而非 PLT 表内，PLT 存储的入口点又指向 GOT 的对应条目，那么程序为什么选择 PLT 而非 GOT 作为调用的入口点呢？GOT 表的初始值都指向 PLT 表对应条目中的某个片段，这个片段的作用是调用一个<strong>函数地址解析函数</strong>。当程序需要调用某个外部函数时，首先到 PLT 表内寻找对应的入口点，跳转到 GOT 表中。如果这是第一次调用这个函数，程序会通过 GOT 表再次跳转回 PLT 表，运行地址解析程序来确定函数的确切地址，并用其覆盖掉 GOT 表的初始值，之后再执行函数调用。当再次调用这个函数时，程序仍然首先通过 PLT 表跳转到 GOT 表，此时 GOT 表已经存有获取函数的内存地址，所以会直接跳转到函数所在地址执行函数。整个过程如下面两张图所示。</p>
+<p>​        <img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406155849976.png" alt="image-20220406155849976"></p>
+<p>再次调用的时候如下：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406155917813.png" alt="image-20220406155917813"></p>
+<p>​        ret2libc，即控制执行 libc 中的函数，通常是返回至某个函数的 plt 处或者函数的具体位置 (即函数对应的 got 表项的内容)。一般情况下，我们会选择执行 system(“/bin/sh”)，故而此时我们需要知道 system 函数的地址。</p>
+<h4 id="静态分析-2"><a href="#静态分析-2" class="headerlink" title="静态分析"></a>静态分析</h4><p>​        首先看一下程序基本情况，发现是动态链接的并且只开启了NX保护</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405151835554.png" alt="image-20220405151835554"></p>
+<p>​        IDA查看</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405152932134.png" alt="image-20220405152932134"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405153116989.png" alt="image-20220405153116989"></p>
+<p>​        可知“/bin/sh”字符串所在地址为0x08048720。</p>
+<p>​        因为要从libc中寻找利用函数，则可以在ida直接查看plt中是否有<code>system()</code>函数，发现是存在有的且地址为<code>0x08048460</code>,其内容只是一条jmp指令，跳转到.got表的地址中去。</p>
+<p>​        而.got表又是程序运行起来之后动态填充的，因此，我们在进行pwn时，只需返回到.plt表中的对应函数地址处，就能够让系统“帮忙”调用目标函数了。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405153323375.png" alt="image-20220405153323375"></p>
+<p>​        至于用户输入的变量v4距函数返回地址的偏移地址的计算如之前所示，结果是一样的为0x70。</p>
+<h4 id="payload-3"><a href="#payload-3" class="headerlink" title="payload"></a>payload</h4><p>​        这里我们需要注意函数调用栈的结构，如果是正常调用 system 函数，我们调用的时候会有一个对应的返回地址，这里以’bbbb’ 作为虚假的地址，其后参数对应的参数内容。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405163142087.png" alt="image-20220405163142087"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405163611287.png" alt="image-20220405163611287"></p>
+<h4 id="只有system-无‘bin-sh’"><a href="#只有system-无‘bin-sh’" class="headerlink" title="只有system(),无‘bin/sh’"></a>只有system(),无‘bin/sh’</h4><p>​        此次需要我们自己来读取字符串，所以我们需要两个 gadgets，第一个控制程序读取字符串，第二个控制程序执行 system(“/bin/sh”)。</p>
+<p>​        可以在plt中看到有gets()函数，即可以将该gets()函数地址用来踩掉原本程序函数的返回地址，然后通过输入的方式将“/bin/sh”输入进去。换句话说，整个过程分成了两部分，第一部分是将“/bin/sh”读入到内存中；第二部分是执行system()获取shell。</p>
+<p>​        可知get()函数地址为08048460。查看gets()函数，其需要一个可读可写的指针参数，且会返回值</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406104719572.png" alt="image-20220406104719572"></p>
+<p>​        寻找一块可读可写的buffer区，通常会寻找.bss段，使用IDA查看可看到存在buf2[100]数组，并且调用命令<code>vmmap</code>可以看到该.bss段可读可写。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406104605394.png" alt="image-20220406104605394"></p>
+<p>​        因为在<code>gets()</code>函数完成后需要调用<code>system()</code>函数需要保持堆栈平衡，所以在调用完gets()函数后提升堆栈，这就需要<code>add esp, 4</code>这样的指令但是程序中并没有这样的指令。更换思路，通过使用<code>pop xxx</code>指令也可以完成同样的功能，在程序中找到了<code>pop ebx，ret</code>指令。通过ROPgadget工具查看，发现存在一条符合条件的指令，地址为<code>0x0804841d</code></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406104929107.png" alt="image-20220406104929107"></p>
+<p>payload构造如下</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406112911760.png" alt="image-20220406112911760"></p>
+<h4 id="无system-无‘bin-sh’"><a href="#无system-无‘bin-sh’" class="headerlink" title="无system(),无‘bin/sh’"></a>无system(),无‘bin/sh’</h4><p>​        通常情况下，并没有这么好的条件让我们能够直接调用system。我们需要想办法通过已知函数地址，去推测system函数的地址。</p>
+<p>​        由于一个ELF文件在生成完成后，它的不同函数之间的偏移地址是不会改变的，或者说，<strong>每一个函数与文件起始地址之间的偏移是不会改变的</strong>。所以我们可以通过<strong>泄露libc中某个被调用过的函数的地址来获取libc版本，获取libc中各个偏移地址值</strong>，然后通过某个函数的真实地址计算出system()和/bin/bash的真实地址。</p>
+<p>​        对于system()函数，其属于libc，在libc.so动态链接库中的函数之间相对偏移是固定的。我们由泄露的某个函数的GOT表地址可以计算出偏移地址<strong>（A真实地址-A的偏移地址 = B真实地址-B的偏移地址 = 基地址）</strong>，从而可以得到system()函数的真实地址（当然也可以直接调用pwntools的libc.address得到libc的真实地址，然后再直接查找即可找到真实的system()函数地址）。        </p>
+<h5 id="利用过程"><a href="#利用过程" class="headerlink" title="利用过程"></a>利用过程</h5><p>​        红色箭头为第一次溢出调用，通过gets()栈溢出至函数返回地址处将其覆盖为puts的plt地址，将puts的GOT表地址泄露输出出来，再返回到_start()函数重新执行程序；蓝色箭头为程序第二次执行时的溢出调用，重新通过gets()输入内容栈溢出至函数返回地址处，覆盖该地址为libc中找到的system()地址（libc地址由泄露的puts函数地址计算得出），从而getshell：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406140129118.png" alt="image-20220406140129118"></p>
+<ul>
+<li>将puts()的plt地址覆盖到函数返回地址处，通过puts()泄露某个已执行过的函数的GOT地址，并且返回地址设置为_start()或main()，以便于重新执行一遍程序</li>
+<li>通过recv(4)接收puts()输出泄露的某个已执行过的函数的GOT地址，再以此来计算libc中地址与真实地址的偏移量；或者通过泄露的某个已执行过的函数的GOT地址，直接使用pwntools的<code>libc.address=func_got-libc.symbols[‘func’]</code>的形式直接获取libc的真实地址，从而直接通过<code>system_addr=libc.symbols[‘system’]</code>的方式直接获取该函数真实地址</li>
+<li>程序再次执行时填充padding，在函数返回地址处覆盖为libc中system()函数的真实地址，其中参数为libc中”/bin/sh”字符串的真实地址。</li>
+</ul>
+<p>​        上面提到的泄漏方式，则是读取got表中的值。而反推libc版本的工作，已经有大佬通过编写<a target="_blank" rel="noopener" href="https://github.com/lieanu/LibcSearcher">LibcSearcher</a>帮忙完成了。</p>
+<p>​        整个利用过程总体而言分为三步：</p>
+<p>​            （1）  第一次ROP，打印出某个已知函数got表的值；</p>
+<p>​            （2）  读取打印的这个值，并解析成地址，然后利用这个地址通过LibcSearcher去反推libc版本，进而利用已知偏移获取到libc基址；</p>
+<p>​            （3）  解析ELF文件，获取目标函数（包括system）的偏移，加上基址就是目标函数实际地址，将获取到的地址填入溢出点完成exploit。</p>
+<h4 id="payload-4"><a href="#payload-4" class="headerlink" title="payload"></a>payload</h4><p>​        在第一次栈溢出puts()的plt地址覆盖函数返回地址时，puts()的返回地址可以设置为_start()或main()函数地址。</p>
+<p><strong>_start()和main()的区别</strong></p>
+<p>​        简单地说，main()函数是用户代码的入口，是对用户而言的；而<code>_start()</code>函数是系统代码的入口，是程序真正的入口.我们可以看下本题的<code>_start()</code>函数内容，其包含<code>main()</code>和<code>__libc_start_main()</code>函数的调用，也就是说，它才是程序真正的入口：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406142427454.png" alt="image-20220406142427454"></p>
+<p><strong>返回地址为_start()函数</strong></p>
+<p>这里的示例只展示了两个可利用的函数puts()和__libc_start_main()。</p>
+<p><strong>泄露puts()函数地址</strong></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406152131967.png" alt="image-20220406152131967"></p>
+<p><strong>泄露__libc_start_main 地址</strong></p>
+<ul>
+<li>泄露 __libc_start_main 地址（<strong>这个地址就是libc文件的基址</strong>）</li>
+<li>获取 libc 版本</li>
+<li>获取 system 地址与 /bin/sh 的地址</li>
+<li>再次执行源程序</li>
+<li>触发栈溢出执行 system(‘/bin/sh’)</li>
+</ul>
+<p>注意返回地址为start()</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406155128449.png" alt="image-20220406155128449"></p>
+<p>看了别人的博客发现，当将先将_start()换成main()，payload2的B字符的偏移量不变，运行脚本会报错，添加GDB调试交互发现溢出多了8个B</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406155326463.png" alt="image-20220406155326463"></p>
+<h3 id="tips"><a href="#tips" class="headerlink" title="tips"></a>tips</h3><p>为了更好理解，在网上找到了这个图，栈溢出利用的时候按照1234的顺序来写payload，先构造main()函数，造成溢出，然后构造puts()函数。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406105537868.png" alt="image-20220406105537868"></p>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2019/03/03/%E6%A0%88%E6%BA%A2%E5%87%BA%E4%B9%8Bret2shellcode/">栈溢出之ret系列</a>、<a target="_blank" rel="noopener" href="https://ctf-wiki.org/pwn/linux/user-mode/stackoverflow/x86/basic-rop/">CTF-Wiki</a></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -453,7 +1220,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-05-12 10:17:50" itemprop="dateModified" datetime="2022-05-12T10:17:50+08:00">2022-05-12</time>
+                <time title="修改时间：2022-06-06 20:19:58" itemprop="dateModified" datetime="2022-06-06T20:19:58+08:00">2022-06-06</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -770,619 +1537,10 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/03/28/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E5%8D%81%E5%85%AD%E5%A4%A9/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/03/28/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E5%8D%81%E5%85%AD%E5%A4%A9/" class="post-title-link" itemprop="url">代码随想录第十六天</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2022-03-28 00:00:00 / 修改时间：10:03:58" itemprop="dateCreated datePublished" datetime="2022-03-28T00:00:00+08:00">2022-03-28</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/leetcode/" itemprop="url" rel="index"><span itemprop="name">leetcode</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>445</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h4 id="哈希表-快乐数"><a href="#哈希表-快乐数" class="headerlink" title="哈希表-快乐数"></a>哈希表-快乐数</h4><p><a target="_blank" rel="noopener" href="https://leetcode-cn.com/problems/happy-number/">题目链接</a></p>
-<p>这道题也是用C++的<code>unordered_set</code>比较简单，题目中提到无限循环，也就是sum是出现过的，也就陷入了无限循环了已经，这个时候就返回false。</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">getSum</span><span class="params">(<span class="keyword">int</span> n)</span></span>&#123;</span><br><span class="line">        <span class="keyword">int</span> sum = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span>(n)&#123;</span><br><span class="line">            sum += (n % <span class="number">10</span>)*(n % <span class="number">10</span>);</span><br><span class="line">            n /= <span class="number">10</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> sum;   </span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">bool</span> <span class="title">isHappy</span><span class="params">(<span class="keyword">int</span> n)</span> </span>&#123;</span><br><span class="line">        unordered_set&lt;<span class="keyword">int</span>&gt; sumSet;</span><br><span class="line">        <span class="keyword">while</span>(<span class="number">1</span>)&#123;</span><br><span class="line">            <span class="keyword">int</span> sum = <span class="built_in">getSum</span>(n);</span><br><span class="line">            <span class="keyword">if</span>(sum == <span class="number">1</span>)<span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">            <span class="keyword">if</span>(sumSet.<span class="built_in">find</span>(sum) != sumSet.<span class="built_in">end</span>())</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                sumSet.<span class="built_in">insert</span>(sum);</span><br><span class="line">            n = sum;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/03/25/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E5%8D%81%E4%BA%94%E5%A4%A9/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/03/25/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E5%8D%81%E4%BA%94%E5%A4%A9/" class="post-title-link" itemprop="url">代码随想录第十五天</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2022-03-25 00:00:00 / 修改时间：15:37:56" itemprop="dateCreated datePublished" datetime="2022-03-25T00:00:00+08:00">2022-03-25</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/leetcode/" itemprop="url" rel="index"><span itemprop="name">leetcode</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>447</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h4 id="哈希表-两个数组的交集"><a href="#哈希表-两个数组的交集" class="headerlink" title="哈希表-两个数组的交集"></a>哈希表-两个数组的交集</h4><p><a target="_blank" rel="noopener" href="https://leetcode-cn.com/problems/intersection-of-two-arrays/">题目链接</a></p>
-<p>这道题用C++的<code>unordered_set</code>比较简单，这个容器是个无序的set容器，容器内部存的值都不相等，并且不能被修改，并非以键值对的形式存储数据，而是直接存储数据的值。（键和值相等）</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">isAnagram</span><span class="params">(<span class="keyword">char</span> * s, <span class="keyword">char</span> * t)</span></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> record[<span class="number">26</span>] = &#123;<span class="number">0</span>&#125;;</span><br><span class="line">    <span class="keyword">int</span> len_s = <span class="built_in">strlen</span>(s);</span><br><span class="line">    <span class="keyword">int</span> <span class="keyword">len_t</span> = <span class="built_in">strlen</span>(t);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; len_s; i++)&#123;</span><br><span class="line">        record[s[i]-<span class="string">&#x27;a&#x27;</span>]++;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; <span class="keyword">len_t</span>; j++)&#123;</span><br><span class="line">        record[t[j]-<span class="string">&#x27;a&#x27;</span>]--;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> k = <span class="number">0</span>; k &lt; <span class="number">26</span>; k++)&#123;</span><br><span class="line">        <span class="keyword">if</span>(record[k] != <span class="number">0</span>)<span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">          </span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/03/24/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E5%8D%81%E5%9B%9B%E5%A4%A9/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/03/24/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E5%8D%81%E5%9B%9B%E5%A4%A9/" class="post-title-link" itemprop="url">代码随想录第十四天</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2022-03-24 00:00:00 / 修改时间：10:28:56" itemprop="dateCreated datePublished" datetime="2022-03-24T00:00:00+08:00">2022-03-24</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/leetcode/" itemprop="url" rel="index"><span itemprop="name">leetcode</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>539</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h4 id="哈希表-有效的字母异位"><a href="#哈希表-有效的字母异位" class="headerlink" title="哈希表-有效的字母异位"></a>哈希表-有效的字母异位</h4><p><a target="_blank" rel="noopener" href="https://leetcode-cn.com/problems/valid-anagram/">题目链接</a></p>
-<p>遍历字符串s的时候，<strong>只需要将 s[i] - ‘a’ 所在的元素做+1 操作即可，</strong> 这样就将字符串s中字符出现的次数，统计出来了。</p>
-<p>那看一下如何检查字符串t中是否出现了这些字符，同样在遍历字符串t的时候，<strong>对t中出现的字符映射哈希表索引上的数值再做-1的操作。</strong></p>
-<p>那么最后检查一下，<strong>record数组如果有的元素不为零0，说明字符串s和t一定是谁多了字符或者谁少了字符，return false。</strong></p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">isAnagram</span><span class="params">(<span class="keyword">char</span> * s, <span class="keyword">char</span> * t)</span></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> record[<span class="number">26</span>] = &#123;<span class="number">0</span>&#125;;</span><br><span class="line">    <span class="keyword">int</span> len_s = <span class="built_in">strlen</span>(s);</span><br><span class="line">    <span class="keyword">int</span> <span class="keyword">len_t</span> = <span class="built_in">strlen</span>(t);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; len_s; i++)&#123;</span><br><span class="line">        record[s[i]-<span class="string">&#x27;a&#x27;</span>]++;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; <span class="keyword">len_t</span>; j++)&#123;</span><br><span class="line">        record[t[j]-<span class="string">&#x27;a&#x27;</span>]--;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> k = <span class="number">0</span>; k &lt; <span class="number">26</span>; k++)&#123;</span><br><span class="line">        <span class="keyword">if</span>(record[k] != <span class="number">0</span>)<span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">          </span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/03/23/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E5%8D%81%E4%B8%89%E5%A4%A9/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/03/23/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E5%8D%81%E4%B8%89%E5%A4%A9/" class="post-title-link" itemprop="url">代码随想录第十三天</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2022-03-23 00:00:00 / 修改时间：15:27:32" itemprop="dateCreated datePublished" datetime="2022-03-23T00:00:00+08:00">2022-03-23</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/leetcode/" itemprop="url" rel="index"><span itemprop="name">leetcode</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>680</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h4 id="链表-对链表进行插入排序"><a href="#链表-对链表进行插入排序" class="headerlink" title="链表-对链表进行插入排序"></a>链表-对链表进行插入排序</h4><p><a target="_blank" rel="noopener" href="https://leetcode-cn.com/problems/insertion-sort-list/">题目链接</a></p>
-<p>插入排序的基本思想是，维护一个有序序列，初始时有序序列只有一个元素，每次将一个新的元素插入到有序序列中，将有序序列的长度增加 1，直到全部元素都加入到有序序列中。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">struct ListNode* <span class="title">insertionSortList</span><span class="params">(struct ListNode* head)</span></span>&#123;</span><br><span class="line">    <span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">ListNode</span> <span class="title">ListNode</span>;</span></span><br><span class="line">    ListNode* dummyNode = (ListNode*)<span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(ListNode));</span><br><span class="line">    dummyNode-&gt;next = head;</span><br><span class="line">    ListNode* cur = head-&gt;next;</span><br><span class="line">    ListNode* LastStored = head;</span><br><span class="line">    <span class="keyword">while</span>(cur)&#123;</span><br><span class="line">        <span class="keyword">if</span>(cur-&gt;val &gt;= LastStored-&gt;val)LastStored = LastStored-&gt;next;</span><br><span class="line">        <span class="keyword">else</span>&#123;</span><br><span class="line">            ListNode* prev = dummyNode;</span><br><span class="line">            <span class="keyword">while</span>(prev-&gt;next-&gt;val &lt;= cur-&gt;val)prev = prev-&gt;next;</span><br><span class="line"></span><br><span class="line">            LastStored-&gt;next = cur-&gt;next;</span><br><span class="line">            cur-&gt;next = prev-&gt;next;</span><br><span class="line">            prev-&gt;next = cur;</span><br><span class="line">            </span><br><span class="line">        &#125;</span><br><span class="line">        cur = LastStored-&gt;next;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> dummyNode-&gt;next;</span><br><span class="line">        </span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/03/22/Cheese_point/ELF%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/03/22/Cheese_point/ELF%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84/" class="post-title-link" itemprop="url">ELF文件结构</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2022-03-22 00:00:00 / 修改时间：21:08:56" itemprop="dateCreated datePublished" datetime="2022-03-22T00:00:00+08:00">2022-03-22</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E7%9F%A5%E8%AF%86%E7%82%B9%E8%A1%A5%E5%85%85%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">知识点补充学习</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>4.1k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>4 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id=""><a href="#" class="headerlink" title=""></a></h2><p>参考文章：<a target="_blank" rel="noopener" href="https://luomuxiaoxiao.com/?p=139">详解ELF文件</a>、<a target="_blank" rel="noopener" href="http://chuquan.me/2018/05/21/elf-introduce/">ELF文件结构</a></p>
-<p>其实PE文件和ELF文件结构比较类似，学过PE文件后，ELF文件就很好懂。</p>
-<p>通俗点说由汇编器和链接器生成的文件都属于ELF文件。通常我们接触的ELF文件主要有以下三类：</p>
-<ul>
-<li><strong>可重定位文件</strong>（<code>relocatable file</code>） ，一般为<code>.o</code>文件。可以被链接成可执行文件或共享目标文件。静态链接库属于可重定位文件。</li>
-<li><strong>可执行文件</strong>（<code>excutable file</code>）它保存了适合直接加载到内存中执行的二进制程序。</li>
-<li><strong>共享库文件</strong>（<code>shared object file</code>）一般为<code>.so</code>文件。一种特殊的可重定位目标文件，可以在加载或者运行时被动态的加载进内存并链接。</li>
-</ul>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220322201522334.png" alt="image-20220322201522334"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220322203524439.png" alt="image-20220322203524439"></p>
-<p>Note:段（<code>Segment</code>）与节（<code>Section</code>）的区别。很多地方对两者有所混淆。段是程序执行的必要组成，当多个目标文件链接成一个可执行文件时，会将相同权限的节合并到一个段中。相比而言，节的粒度更小。</p>
-<p>ELF文件主要由四部分组成：</p>
-<ul>
-<li>ELF Header</li>
-<li>ELF Program Header Table(程序头)</li>
-<li>ELF Section Header Table(节头表)</li>
-<li>ELF sections</li>
-</ul>
-<h3 id="ELF-Header"><a href="#ELF-Header" class="headerlink" title="ELF Header"></a>ELF Header</h3><p>ELF Header其实对应的是一个结构体，该结构体定义如下：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> EI_NIDENT 16</span></span><br><span class="line"></span><br><span class="line">   <span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span>                     </span><br><span class="line">       <span class="keyword">unsigned</span> <span class="keyword">char</span> e_ident[EI_NIDENT];</span><br><span class="line">       <span class="keyword">uint16_t</span>      e_type;            </span><br><span class="line">       <span class="keyword">uint16_t</span>      e_machine;         </span><br><span class="line">       <span class="keyword">uint32_t</span>      e_version;         </span><br><span class="line">       ElfN_Addr     e_entry;           </span><br><span class="line">       ElfN_Off      e_phoff;           </span><br><span class="line">       ElfN_Off      e_shoff;           </span><br><span class="line">       <span class="keyword">uint32_t</span>      e_flags;           </span><br><span class="line">       <span class="keyword">uint16_t</span>      e_ehsize;          </span><br><span class="line">       <span class="keyword">uint16_t</span>      e_phentsize;       </span><br><span class="line">       <span class="keyword">uint16_t</span>      e_phnum;           </span><br><span class="line">       <span class="keyword">uint16_t</span>      e_shentsize;       </span><br><span class="line">       <span class="keyword">uint16_t</span>      e_shnum;           </span><br><span class="line">       <span class="keyword">uint16_t</span>      e_shstrndx;        </span><br><span class="line">   &#125; ElfN_Ehdr;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ElfN_Addr       Unsigned program address, uintN_t</span><br><span class="line">ElfN_Off        Unsigned file offset, uintN_t</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><code>e_ident</code>：包含一个magic number、ABI信息，该文件使用的平台、大小端规则</li>
-<li><code>e_type</code>：文件类型, 表示该文件属于可执行文件、可重定位文件、core dump文件或者共享库</li>
-<li><code>e_entry</code>: 表示程序执行的入口地址，<strong>规定ELF程序的入口虚拟地址，操作系统在加载完该程序后从这个地址开始执行进程的指令。可重定位指令一般没有入口地址，则该值为0</strong></li>
-<li><code>e_phoff</code>: 表示Program Header的入口偏移量（以字节为单位）</li>
-<li><code>e_shoff</code>: 表示Section Header的入口偏移量（以字节为单位）</li>
-<li><code>e_flags</code>: 保存了这个ELF文件相关的特定处理器的flag</li>
-<li><code>e_ehsize</code>: 表示ELF Header大小（以字节为单位）</li>
-<li><code>e_phentsize</code>: 表示Program Header大小（以字节为单位）</li>
-<li><code>e_phnum</code>: 表示Program Header的数量 （十进制数字）</li>
-<li><code>e_shentsize</code>: 表示单个Section Header大小（以字节为单位）</li>
-<li><code>e_shnum</code>: 表示Section Header的数量 （十进制数字）</li>
-<li><code>e_shstrndx</code>: 表示字符串表的索引，字符串表用来保存ELF文件中的字符串，比如段名、变量名。 然后通过字符串在表中的偏移访问字符串。</li>
-</ul>
-<p>magic：通过判断该字段可以确定文件格式和类型。如：ELF的可执行文件格式的头4个字节为<code>0x7F</code>、<code>e</code>、<code>l</code>、<code>f</code>；Java的可执行文件格式的头4个字节为<code>c</code>、<code>a</code>、<code>f</code>、<code>e</code>；如果被执行的是Shell脚本或perl、python等解释型语言的脚本，那么它的第一行往往是<code>#!/bin/sh</code>或<code>#!/usr/bin/perl</code>或<code>#!/usr/bin/python</code>，此时前两个字节<code>#</code>和<code>!</code>就构成了魔数，系统一旦判断到这两个字节，就对后面的字符串进行解析，以确定具体的解释程序路径。</p>
-<h3 id="ELF-Section-Header-Table"><a href="#ELF-Section-Header-Table" class="headerlink" title="ELF Section Header Table"></a>ELF Section Header Table</h3><p>ELF 节头表是一个节头数组。每一个节头都描述了其所对应的节的信息，如节名、节大小、在文件中的偏移、读写权限等。<strong>编译器、链接器、装载器都是通过节头表来定位和访问各个节的属性的。</strong></p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    <span class="keyword">uint32_t</span>   sh_name;</span><br><span class="line">    <span class="keyword">uint32_t</span>   sh_type;</span><br><span class="line">    <span class="keyword">uint64_t</span>   sh_flags;</span><br><span class="line">    Elf64_Addr sh_addr;</span><br><span class="line">    Elf64_Off  sh_offset;</span><br><span class="line">    <span class="keyword">uint64_t</span>   sh_size;</span><br><span class="line">    <span class="keyword">uint32_t</span>   sh_link;</span><br><span class="line">    <span class="keyword">uint32_t</span>   sh_info;</span><br><span class="line">    <span class="keyword">uint64_t</span>   sh_addralign;</span><br><span class="line">    <span class="keyword">uint64_t</span>   sh_entsize;</span><br><span class="line">&#125; Elf64_Shdr;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p><code>sh_name</code>：表示该section的名字,节名是一个字符串，保存在一个名为<code>.shstrtab</code>的字符串表（可通过Section Header索引到）。sh_name的值实际上是其节名字符串在<code>.shstrtab</code>中的偏移值。</p>
-</li>
-<li><p><code>sh_type</code>：表示该section中存放的内容类型，比如符号表，可重定位段等。</p>
-</li>
-<li><p><code>sh_flags</code>： 表示该section的一些属性，比如是否可写，可执行等。</p>
-</li>
-<li><p><code>sh_addr</code>： 表示该section在程序运行时的内存地址</p>
-</li>
-<li><p><code>sh_offset</code>： 如果该节存在于文件中，则表示该节在文件中的偏移；否则无意义，如sh_offset对于BSS 节来说是没有意义的</p>
-</li>
-<li><p><code>sh_size</code>： 表示该section的大小</p>
-</li>
-<li><p><code>sh_link</code>： 配合sh_info保存section的额外信息</p>
-</li>
-<li><p><code>sh_info</code>：保存该section相关的一些额外信息</p>
-</li>
-<li><p><code>sh_addralign</code>：表示该section需要的地址对齐信息</p>
-</li>
-<li><p><code>sh_entsize</code>：有些section里保存的是一些固定长度的条目，比如符号表。对于这些section来讲，sh_entsize里保存的就是条目的长度。</p>
-<h4 id="sh-type（节类型）"><a href="#sh-type（节类型）" class="headerlink" title="sh_type（节类型）"></a>sh_type（节类型）</h4></li>
-</ul>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220322205037066.png" alt="image-20220322205037066"></p>
-<h4 id="sh-link、sh-info-节链接信息"><a href="#sh-link、sh-info-节链接信息" class="headerlink" title="sh_link、sh_info(节链接信息)"></a>sh_link、sh_info(节链接信息)</h4><p>如果节的类型是与链接相关的（无论是动态链接还是静态链接），如<strong>重定位表、符号表、</strong>等，则<code>sh_link</code>、<code>sh_info</code>两个成员所包含的意义如下所示。其他类型的节，这两个成员没有意义。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220322205250620.png" alt="image-20220322205250620"></p>
-<h3 id="ELF-Sections"><a href="#ELF-Sections" class="headerlink" title="ELF Sections"></a>ELF Sections</h3><p>在ELF文件中，数据和代码分开存放的，这样可以按照其功能属性分成一些区域，比如程序、数据、符号表等。这些分离存放的区域在ELF文件中反映成<code>section</code>。ELF文件中典型的<code>section</code>如下：</p>
-<ul>
-<li><code>.text</code>: 已编译程序的二进制代码</li>
-<li><code>.rodata</code>: 只读数据段，比如常量</li>
-<li><code>.data</code>: 已初始化的全局变量和静态变量</li>
-<li><code>.bss</code>: 未初始化的全局变量和静态变量，所有被初始化成0的全局变量和静态变量(<strong>记得与PE文件区分开</strong>)</li>
-<li><code>.sysmtab</code>: 符号表，它存放了程序中定义和引用的函数和全局变量的信息</li>
-<li><code>.debug</code>: 调试符号表，它需要以<code>&#39;-g&#39;</code>选项编译才能得到，里面保存了程序中定义的局部变量和类型定义，程序中定义和引用的全局变量，以及原始的C文件</li>
-<li><code>.line</code>: 原始的C文件行号和<code>.text节</code>中机器指令之间的映射</li>
-<li><code>.strtab</code>: 字符串表，内容包括<code>.symtab</code>和<code>.debug</code>节中的符号表</li>
-</ul>
-<p>特殊的，<br>1）对于<strong>可重定位的文件</strong>，由于在编译时，并不能确定它引用的外部函数和变量的地址信息，因此，编译器在生成目标文件时，增加了两个section：</p>
-<ul>
-<li><code>.rel.text</code> 保存了程序中引用的外部函数的重定位信息，这些信息用于在链接时重定位其对应的符号。</li>
-<li><code>.rel.data</code> 保存了被模块引用或定义的所有全局变量的重定位信息，这些信息用于在链接时重定位其对应的全局变量。</li>
-</ul>
-<p>2）对于<strong>可执行文件</strong>，由于它已经全部完成了重定位工作，可以直接加载到内存中执行，所以它不存在<code>.rel.text</code>和<code>.rel.data</code>这两个section。但是，它增加了一个section：</p>
-<ul>
-<li><code>.init</code>: 这个section里面保存了程序运行前的初始化代码</li>
-</ul>
-<p>重定位表是一个<code>Elf_Rel</code>类型的数组结构，每一项对应一个需要进行重定位的项。<br>其成员含义如下表所示：</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220322205729738.png" alt="image-20220322205729738"></p>
-<h3 id="ELF-Program-Header-Table"><a href="#ELF-Program-Header-Table" class="headerlink" title="ELF Program Header Table"></a>ELF Program Header Table</h3><p>在可执行文件中，ELF header下面紧接着就是Program Header Table。它描述了各个segment在ELF文件中的位置以及在程序执行过程中系统需要准备的其他信息。它也是用一个结构体数组来表示的。具体代码如下：</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">uint64_t</span>  Elf64_Addr;</span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">uint64_t</span>  Elf64_Off;</span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">uint32_t</span>  Elf64_Word;</span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">uint64_t</span>  Elf64_Xword;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    Elf64_Word      p_type;         <span class="comment">// 4</span></span><br><span class="line">    Elf64_Word      p_flags;        <span class="comment">// 4</span></span><br><span class="line">    Elf64_Off       p_offset;       <span class="comment">// 8</span></span><br><span class="line">    Elf64_Addr      p_vaddr;        <span class="comment">// 8</span></span><br><span class="line">    Elf64_Addr      p_paddr;        <span class="comment">// 8</span></span><br><span class="line">    Elf64_Xword     p_filesz;       <span class="comment">// 8</span></span><br><span class="line">    Elf64_Xword     p_memsz;        <span class="comment">// 8</span></span><br><span class="line">    Elf64_Xword     p_align;        <span class="comment">// 8</span></span><br><span class="line">&#125; Elf64_Phdr;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><code>p_type</code>：描述了当前segment是何种类型的或者如何解释当前segment，比如是动态链接相关的或者可加载类型的等</li>
-<li><code>p_flags</code>：保存了该segment的flag</li>
-<li><code>p_offset</code>：表示从ELF文件到该segment第一个字节的偏移量</li>
-<li><code>p_vaddr</code>：表示该segment的第一个字节在内存中的虚拟地址</li>
-<li><code>p_paddr</code>：对于使用物理地址的系统来讲，这个成员表示该segment的物理地址</li>
-<li><code>p_filesz</code>：表示该segment的大小，以字节表示</li>
-<li><code>p_memsz</code>：表示该segment在内存中的大小，以字节表示</li>
-<li><code>p_align</code>：表示该segment在文件中或者内存中需要以多少字节对齐</li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/03/22/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E5%8D%81%E4%BA%8C%E5%A4%A9/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/03/22/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E5%8D%81%E4%BA%8C%E5%A4%A9/" class="post-title-link" itemprop="url">代码随想录第十二天</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2022-03-22 00:00:00 / 修改时间：11:10:09" itemprop="dateCreated datePublished" datetime="2022-03-22T00:00:00+08:00">2022-03-22</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/leetcode/" itemprop="url" rel="index"><span itemprop="name">leetcode</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>437</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h4 id="链表-环形链表II"><a href="#链表-环形链表II" class="headerlink" title="链表-环形链表II"></a>链表-环形链表II</h4><p><a target="_blank" rel="noopener" href="https://leetcode-cn.com/problems/linked-list-cycle-ii/">题目链接</a></p>
-<p>这道题感觉还是有点难，看了这篇<a target="_blank" rel="noopener" href="https://leetcode-cn.com/problems/linked-list-cycle-ii/solution/linked-list-cycle-ii-kuai-man-zhi-zhen-shuang-zhi-/">题解</a>觉得很清楚详细。其实代码很简单，理清楚逻辑很重要。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"> <span class="function">struct ListNode *<span class="title">detectCycle</span><span class="params">(struct ListNode *head)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">ListNode</span> <span class="title">ListNode</span>;</span></span><br><span class="line">    ListNode* fast = head;</span><br><span class="line">    ListNode* slow = head;</span><br><span class="line">   </span><br><span class="line">    <span class="keyword">while</span>(<span class="literal">true</span>)&#123;</span><br><span class="line">        <span class="keyword">if</span>(fast == <span class="literal">NULL</span> || fast-&gt;next == <span class="literal">NULL</span>)<span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">        fast =fast-&gt;next-&gt;next;</span><br><span class="line">        slow = slow-&gt;next;</span><br><span class="line">        <span class="keyword">if</span>(fast == slow)<span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    fast = head;</span><br><span class="line">    <span class="keyword">while</span>(fast != slow)&#123;</span><br><span class="line">        fast = fast-&gt;next;</span><br><span class="line">        slow = slow-&gt;next;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> fast;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/3/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/5/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/page/3/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/5/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1450,7 +1608,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">95</span>
+          <span class="site-state-item-count">101</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1463,7 +1621,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">96</span>
+        <span class="site-state-item-count">103</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1510,12 +1668,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">222k</span>
+    <span title="站点总字数">229k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">3:22</span>
+    <span title="站点阅读时长">3:28</span>
 </div>
 
         

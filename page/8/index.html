@@ -120,7 +120,7 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">96</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">103</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -130,7 +130,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">95</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">101</span></a>
 
   </li>
   </ul>
@@ -156,6 +156,791 @@
 
           <div class="content index posts-expand">
             
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/12/20/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/%E6%89%8B%E8%84%B1AsPack%E5%A3%B3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/12/20/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/%E6%89%8B%E8%84%B1AsPack%E5%A3%B3/" class="post-title-link" itemprop="url">手脱AsPack壳</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-12-20 00:00:00" itemprop="dateCreated datePublished" datetime="2021-12-20T00:00:00+08:00">2021-12-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 15:17:49" itemprop="dateModified" datetime="2021-12-22T15:17:49+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">脱壳学习</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>​    首先需要找到OEP，我们按照之前说的ESP定律来找，看到<code>PUSHAD</code>后按F7，各个寄存器的初始值被压入到堆栈中了，这里我们可以对这些初始值设置内存或者硬件访问断点,当解密例程读取这些初始值的时候就会断下来,断下来处基本上就在OEP附近了。</p>
+<p>​    在寄存器ESP处右键Follow in Dump，然后将第一个字节或前四个字节设置硬件访问断点，右键breakpoint-Hardware,on access-Dword，然后按F9</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220140915458.png" alt="image-20211220140915458"></p>
+<p>​    发现断在了<code>POPAD</code>指令的下一行，当壳的解密例程读取该值的时候断了下来，紧接着下面就是跳往OEP处</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220141025695.png" alt="image-20211220141025695"></p>
+<p>​    继续按F7单步，就到了OEP处,OD代码解析有误，将代码解析成了数据，右键Analysis-Remove analysis from module,删除掉OD的分析结果,这样就能正常解析了。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220141338534.png" alt="image-20211220141338534"></p>
+<p>解析还不够彻底，再次Analysis-analysis code</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220142249513.png" alt="image-20211220142249513"></p>
+<p>​    然后dump，保险起见我们使用imprec重构输入表</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220142411426.png" alt="image-20211220142411426"></p>
+<p>​    代码中直接有一个<code>GetModuleHandle</code>函数，右键Follow,我们可以看到直接来到了GetModuleHandleA的入口点处,并没有间接跳转(并不是所有的程序调用API函数都是通过间接跳转来实现的)。</p>
+<p>​    这里是通过一个间接CALL来调用API函数的。</p>
+<p>​    显然,4011F4是IAT其中的一项,该内存单元中保存了GetModuleHandleA的入口地址。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220144406702.png" alt="image-20211220144406702"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220144622020.png" alt="image-20211220144622020"></p>
+<p>​    如上图，Follow出来的跳转表和之间看到的有所出入，我们直接看M按钮</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220150021566.png" alt="image-20211220150021566"></p>
+<p>接着我们在数据窗口中定位到IAT，第二个图是最后一个Dll的IAT项，地址是771xxxxx,现在我们知道了IAT的结束地址是401218，再来看看起始地址</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220150352948.png" alt="image-20211220150352948"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220150432901.png" alt="image-20211220150432901"></p>
+<p>​    上图中标注起来的颜色前有一部分是10xx或者11xx的地址，明显不属于任何一个DLL,而且这些数值比当前进程空间中分配内存单元中的最小地址（M窗口中现实了最小地址为00010000）还要小。<strong>所以这些数值不属于任何一个DLL,也不属于任何一个区段,有可能是壳存放的一些垃圾数据</strong>,我们继续往下拉。</p>
+<p>​    我们可以看到一共调用了三个Dll，其余还有一些dll估计是被壳调用的，</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220153539586.png" alt="image-20211220153539586"></p>
+<p>​    我们看一下ntdll的调用，看到这一项的地址为401200,和Kernel32.dll的IAT项混在了一起。我们看看这个Dump窗口中的地址可以看到，kernel32.dll的地址是最靠前的，ntdll是最靠后的，往前拉可以看到，我们的IAT起始地址确实是40119c,与上图一致。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220153736685.png" alt="image-20211220153736685"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220154448259.png" alt="image-20211220154448259"></p>
+<p>好了,现在我们有了以下三条数据:</p>
+<p>OEP = 4000 (RVA)</p>
+<p>IAT的起始地址 = 119C (RVA)</p>
+<p>IAT的大小 = 401218 - 40119C = 7C。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220154632198.png" alt="image-20211220154632198"></p>
+<p>中间的是垃圾数据，不知道为什么和之前一样第一个userdll也显示No,但是点开＋号里面的数据又是对的。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220154903219.png" alt="image-20211220154903219"></p>
+<p>​    可以看到这里ntdll.dll中分配内存空间的两个函数用kernel32.dll中两个类似的函数HeapAlloc,HeapFree替换掉了。这里日志信息中也提示说这两个函数跟ntdll.dll中的RtlAllocateHeap,RtlFreeHeap完成的功能类似,壳也可以对这些IAT项进行修改和混淆。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220155159007.png" alt="image-20211220155159007"></p>
+<p>​    现在我们需要剔除掉垃圾数据,即valid显示为NO的项(无效数据),我们单击左边的+号将其展开。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wpsFCAA.tmp.jpg" alt="img"></p>
+<p>单击Show Invalid,显示无效的数据,然后单击鼠标右键选择-Cut thunk(s)(剪切掉)。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wpsFCAB.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211220155402523.png" alt="image-20211220155402523"></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/12/19/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/%E6%89%8B%E5%8A%A8%E8%84%B1UPX%E5%A3%B3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/12/19/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/%E6%89%8B%E5%8A%A8%E8%84%B1UPX%E5%A3%B3/" class="post-title-link" itemprop="url">手动脱UPX壳</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-12-19 00:00:00" itemprop="dateCreated datePublished" datetime="2021-12-19T00:00:00+08:00">2021-12-19</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 16:00:44" itemprop="dateModified" datetime="2021-12-22T16:00:44+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%84%B1%E5%A3%B3%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">脱壳学习</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="加壳脱壳对比"><a href="#加壳脱壳对比" class="headerlink" title="加壳脱壳对比"></a>加壳脱壳对比</h4><p>我们先看没有加壳的pe文件，PE文件入口是401000</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214162015301.png" alt="image-20211214162015301"></p>
+<p>加壳后入口地址如下，入口地址变成了409c80</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214170024538.png" alt="image-20211214170024538"></p>
+<p>查看401000位置，可见代码段是空的,即加壳程序将原程序代码段加密/压缩后保存到其他地方,并且将原程序代码段清空了。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214170853897.png" alt="image-20211214170853897"></p>
+<p>继续往下看，可以看到跳转到OEP的指令，设置一个断点运行起来。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214171034553.png" alt="image-20211214171034553"></p>
+<p>运行后如下，可看到原程序。加壳程序执行的整个流程如下</p>
+<p>1.执行解压/解密例程</p>
+<p>2.解压/解密原程序的各个区段的数据</p>
+<p>3.跳往OEP处</p>
+<p>4.执行原程序代码</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214173928228.png" alt="image-20211214173928228"></p>
+<p>原代码段是空的,在合适的时间,解压/解密程序会将解压/解密后的代码段数据重新写到这里,所以我们可以对这里设置<strong>内存访问断点</strong>,当解压/解密例程向这里写入数据的时候就会断下来。（点击M-&gt;如下图下断点）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wpsBF18.tmp.jpg" alt="img"></p>
+<p>断下来以后看到这里401000开始处内存单元第一个字节将被赋值为AL的值，此时AL值为6A,我们再来看看原程序401000处的第一个字节，可以看到也是6A</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214195748271.png" alt="image-20211214195748271"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214200245457.png" alt="image-20211214200245457"></p>
+<p>​    如果我们逐字节的跟踪,可以看到解密/解压例程将原程序代码恢复的整个过程。但是并不是所有的壳都是按照这个顺序来解密/解压原程序区段的,这里是最常规的情况。</p>
+<p>​    如果大家仔细跟踪这个流程的话,就会发现这是一个循环,逐字节读取加密过的字节,接着进行数学运算(例如说:加法,乘法,等等)来解密,运算完毕得到原始字节值,然后将其恢复到原处。</p>
+<p>​    接下来,我们清除掉前面设置的内存访问断点(<strong>右键breakpoint-&gt;remove memory breakpoint</strong>),单击菜单项中Animate into(自动步入<strong>ctrl+f7</strong>)选项,将能看到原程序代码段被逐字节还原的动画过程,原程序各个区段被还原后,就会断在我们前面设置的jmp OEP处的断点处。</p>
+<h4 id="脱壳"><a href="#脱壳" class="headerlink" title="脱壳"></a>脱壳</h4><h5 id="ESP定律"><a href="#ESP定律" class="headerlink" title="ESP定律"></a>ESP定律</h5><p>​    又称堆栈平衡定律**(如果要返回父程序，则当我们在堆栈中进行堆栈的操作的时候，一定要保证在RET这条指令之前，ESP指向的是我们压入栈中的地址)<strong>，是应用频率最高的脱壳方法之一。ESP（Extended Stack Pointer）为扩展栈指针寄存器，是指针寄存器的一种，用于存放</strong>函数栈顶指针<strong>。与之对应的是EBP（Extended Base Pointer），扩展基址指针寄存器，用于存放</strong>函数栈底指针**。<u>ESP为栈指针，用于指向栈的栈顶（下一个压入栈的活动记录的顶部），而EBP为帧指针，指向当前活动记录的底部。</u></p>
+<p>​    加壳后的程序入口点最开始是<code>pushad</code>,就是把所有寄存器压入栈，在壳的最后有一个<code>popad</code>将所有寄存器出栈，对ESP的0019FF54下硬件访问断点。也就是说当程序要访问这些堆栈，从而恢复原来寄存器的值，准备跳向苦苦寻觅的OEP的时候，OD帮助我们中断下来。</p>
+<p>​    <strong>总结：</strong>我们可以把壳假设为一个子程序，当壳把代码解压前和解压后，他必须要做的是遵循堆栈平衡的原理，让ESP执行到OEP的时候，使ESP=0019FF54。<strong>载入程序后只有esp寄存器内容发生变化，那么这个程序多半可以用ESP定律。</strong></p>
+<p>​    首先f7执行pushad,然后在ESP处选择Follow in dump，就可以在数据窗口中定位到刚刚PUSHAD指令保存到堆栈中的寄存器环境了,我们选中前4个字节,我们通过单击鼠标右键选择Breakpoint-Hardware,on access-Dword给这4个字节设置硬件访问断点。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214204923883.png" alt="image-20211214204923883"></p>
+<p>​    然后点击f9我们可以看到，有一个判断。如果不为0 那么就跳向 00409DFA,我们在这一行的下面一行按F4,直接跳过这个判断，然后继续按F8，就到了程序入口，或者直接在最后的jmp下断点，然后f7到OEP。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211214171034553.png" alt="image-20211214171034553"></p>
+<h5 id="dump"><a href="#dump" class="headerlink" title="dump"></a>dump</h5><p>​    然后使用工具PETools将程序dump出来,双击程序会显示不是一个有效的win32程序，这时候我们就需要修复IAT表了。</p>
+<p>​    下图中403238是IAT的其中一个元素，里面保存的是GetModuleHandleA这个API函数的入口地址，我们dump出来的程序的IAT部分跟这里是一样的，属于同一个动态库的API函数地址都是连续存放的,不同的动态库函数地址列表是<strong>用零隔开</strong>的。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211219110628313.png" alt="image-20211219110628313"></p>
+<p>​    上图中有三个77开头的地址，我们点击窗口M按钮，看看这个三个地址属于什么dll</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211219111016142.png" alt="image-20211219111016142"></p>
+<p>​    要修复IAT，我们需要知道的是开始地址和结束地址，IAT起始地址是403184，有些强壳可能会将IAT前后都填充上垃圾数据,让我们定位IAT的起始位置和结束位置更加困难。但是我们知道IAT中的数值都是属于某个动态库代码段范围内的,<strong>如果我们发现某数值不属于任何一个动态库的代码段的话,就说明该数值是垃圾数据。</strong></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211219111712077.png" alt="image-20211219111712077"></p>
+<p>我们看到最后一个元素地址是75xxxxxx，属于COMDLG32.DLL，所以40328c是IAT结束地址，</p>
+<p>begin:403184</p>
+<p>end:40328c</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211219112120480.png" alt="image-20211219112120480"></p>
+<p>1)IAT的起始地址,这里是403184,减去映像基址400000就得到了3184(RVA:相对虚拟地址)。</p>
+<p>2)IAT的大小</p>
+<p> IAT的大小 = 40328C - 403184 = 108(十六进制)</p>
+<p>3)OEP = 401000(虚拟地址)- 映像基址400000 = 1000(OEP的RVA)。</p>
+<p>然后点击Get Imports,不知道为啥userdll会显示无效，先点击fix dump，然后选择dumped.exe</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211219113450399.png" alt="image-20211219113450399"></p>
+<p>依然显示无效32文件，使用PEtools rebuildPE,就可以运行起来了。</p>
+<h4 id="最后一次异常法"><a href="#最后一次异常法" class="headerlink" title="最后一次异常法"></a>最后一次异常法</h4><p>​    新开一个例子,在debug options-exception，各个选项全部选择然后运行起来</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/image-20211216184247952.png" alt="image-20211216184247952"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps3267.tmp.jpg" alt="img"></p>
+<p>​    这里我们可以看到产生了好几处异常,但是都不是位于第一个区段,说明这些异常不是在原程序运行期间发生的,是在壳的解密例程执行期间产生的异常,最后一次是46e88f处的这个异常。</p>
+<p>​    好,现在我们重新启动OD,将EXCEPTIONS菜单项中忽略的异常选项的对勾都去掉,仅保留Ignore memory access violations in KERNEL32这个选项的对勾。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps3268.tmp.jpg" alt="img"> </p>
+<p>​    这里不是,我们按SHIFT + F9忽略异常继续运行,我们知道最后一次异常是46E88F处的INT 3指令引发的。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps326A.tmp.jpg" alt="img"> </p>
+<p>​    这里是壳的解密例程执行过程中产生的最后一次异常,接着就是执行原程序的代码了。</p>
+<p>​    接着我们可以对代码段设置<strong>内存访问断点</strong>,为什么不在一开始设置内存访问断点呢?<strong>原因是很多壳会检测程序在开始时是否自身被设置内存访问断点,如果执行到了最后一次异常处的话,很可能已经绕过了壳的检测时机</strong>,我们来试一试。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps327A.tmp.jpg" alt="img"> </p>
+<p>​        我们按SHIFT + F9忽略该异常运行起来。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps327B.tmp.jpg" alt="img"> </p>
+<p>​        我们可以看到断在了OEP处,下面我们来看看该壳在开始的时候是否有检测内存访问断点。</p>
+<p>​        我们重新加载该程序,将忽略的异常选项都勾选上,接着打开区段列表窗口,给第一个区段设置内存访问断点,过了很久断在了OEP处。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps327C.tmp.jpg" alt="img"> </p>
+<p>​        虽然这里我们直接给第一个区段设置内存访问断点直接定位到了OEP。</p>
+<h4 id="利用壳最常用的API函数来定位OEP"><a href="#利用壳最常用的API函数来定位OEP" class="headerlink" title="利用壳最常用的API函数来定位OEP"></a>利用壳最常用的API函数来定位OEP</h4><pre><code> 将忽略的异常选项都勾选上,我们来定位一下壳最常用的API函数,比如GetProcAddress,LoadLibrary。ExitThread有些壳会用。我们首先来看看GetProcAddress。
+</code></pre>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps3283.tmp.jpg" alt="img"> </p>
+<p>​    我们可以看到该壳使用了GetProcAddress,接着使用bp GetProcAddress命令给该API函数设置一个断点。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps3284.tmp.jpg" alt="img"> </p>
+<p>​    如果在命令栏中使用bp命令设置断点失败的话,可以尝试手工设置断点，运行起来。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps3285.tmp.jpg" alt="img"> </p>
+<p>​    这里我们并不需要其断下来,我们只需要知道壳在哪些地方调用GetProcAddress,所以我们在断下来的这一行上面单击鼠标右键选择-Breakpoint-Conditional log,来设置条件记录。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps3286.tmp.jpg" alt="img"> </p>
+<p>​    这里我们将Pause program这一项勾选上Never,记录的表达式设置为[ESP],也就是记录返回地址,这样我们就能知道哪些地方调用GetProcAddress。接着在日志窗口中单击鼠标右键选择-Clear Log(清空日志)。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A25.tmp.jpg" alt="img"> </p>
+<p>​    运行起来,我们可以看到程序的主窗口弹了出来,打开日志窗口,看看最后一次GetProcAddress(排除掉第一个区段中调用的位置)是在哪里被调用的。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A26.tmp.jpg" alt="img"> </p>
+<p>​    我们可以看到基本上GetProcAddress都是解密例程中调用的,除了428C2B这一处以外(这里是第一个区段中调用的,也就是原程序本身调用的)。所以我们要定位的应该是47009A这一处。接下来我们重新来编辑一下条件断点中断的条件,将中断条件设置为[ESP] == 47009A。</p>
+<p>​    并且将Pause program这一项勾选上On condition，重新启动OllyDbg。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A27.tmp.jpg" alt="img"> </p>
+<p>​    编辑条件断点，设置Condition为[ESP] == 47009A,接着将Pause program这一项勾选上On condition，运行起来。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A28.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A29.tmp.jpg" alt="img"> </p>
+<p>​    断了下来。<u>我们可以在对代码段设置内存访问断点之前尝试一下这种方法,这样就可以绕过很多壳对内存断点的检测,但是有一些壳也会对API函数断点进行检测,所以说我们需要各种方式都尝试一下,找到最合适的。</u></p>
+<p>​    对当前这个壳定位GetProcAddress的调用处是可行的,我们现在已经在OEP附近了。如果定位GetProcAddress的调用处失败的话,我们可以换其他的API函数,这里我们再来看看日志窗口,可以看到一处线程结束记录。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A2A.tmp.jpg" alt="img"> </p>
+<p>​    因此接下来给ExitThread设置断点,并且将菜单项Debugging options-Events中的Break on thread end(在线程结束位置中断下来)勾选上。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A2B.tmp.jpg" alt="img"> </p>
+<p>​        运行起来。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A2C.tmp.jpg" alt="img"> </p>
+<p>​        断在了线程结束的位置。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wps9A2D.tmp.jpg" alt="img"> </p>
+<p>​        接着我们给代码段设置内存访问断点就能够马上定位到OEP。</p>
+<h4 id="利用应用程序调用的第一个API函数来定位OEP"><a href="#利用应用程序调用的第一个API函数来定位OEP" class="headerlink" title="利用应用程序调用的第一个API函数来定位OEP"></a>利用应用程序调用的第一个API函数来定位OEP</h4><p>​    这种方法就是直接给应用程序调用的第一个API函数设置断点,比如说,很多程序(VC++)一开始会调用GetVersion,GetModuleHandleA,对于bitarts_evaluations.c来说我们可以断GetVersion,对于CRACKME UPX来说我们可以断GetModuleHandleA。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wpsD2F7.tmp.jpg" alt="img"></p>
+<p>运行起来。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wpsD2F8.tmp.jpg" alt="img"> </p>
+<p>这里我们断在了GetVersion的入口点处,从堆栈中我们可以看到返回地址位于第一个区段。我们直接在返回地址上面单击鼠标右键选择-Follow in Disassembler。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/tuoke/wpsD2F9.tmp.jpg" alt="img"> </p>
+<p>​    这里我们又定位到了OEP。以上就给大家演示的如何利用应用程序调用的第一个API函数来定位OEP了。如果我们遇到有的壳检测GetVersion入口处的INT 3断点的话,我们可以尝试在该API函数的返回指令RET处下断。</p>
+<p>​    其实还有很多适用于特定壳定位OEP的方法,基本上也是根据上面的这些基本方法变通来的。</p>
+<p>​    如果壳检测INT 3断点或者硬件断点的话,使用ESP定律给堆栈中的寄存器初始值设置硬件断点也是不起作用的,只能换其他方法。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/11/24/paper/Malware%20Variant%20Identification%20Using%20Incremental%20Clustering/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/11/24/paper/Malware%20Variant%20Identification%20Using%20Incremental%20Clustering/" class="post-title-link" itemprop="url">Malware Variant Identification Using Incremental Clustering</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-11-24 00:00:00" itemprop="dateCreated datePublished" datetime="2021-11-24T00:00:00+08:00">2021-11-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 15:39:47" itemprop="dateModified" datetime="2021-12-22T15:39:47+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper-reading/" itemprop="url" rel="index"><span itemprop="name">paper reading</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>871</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>Yara是一种模式匹配(模式匹配是数据结构中字符串的一种基本运算，给定一个子串，要求在某个字符串中找出与该子串相同的所有子串)技术，它可以使用沙箱内存转储来识别恶意软件家族。然而，由于微小的代码变化，模式匹配技术会悄然失败，从而导致未知的恶意软件样本。<strong>本文提出了一种利用增量聚类(MVIIC)过程的两层恶意软件变异识别方法，并提出了未知恶意软件样本的聚类方法，以识别恶意软件变异和新的恶意软件家族。</strong>该新的增量聚类算法被用于从未知的恶意软件样本中识别新的恶意软件变体。本研究表明，聚类可以提供比Yara规则更高层次的性能，并且聚类可以抵抗恶意软件变体引入的小变化。本文提出了一种混合的方法，利用Yara扫描来消除已知的恶意软件，然后进行聚类，协同作用，以允许识别新的恶意软件变体。</p>
+<p>Yara是一种模式匹配技术，它可以使用沙箱内存转储来识别恶意软件家族。Yara规则包含正则表达式和字符串。</p>
+<p>方法分为两层，在第一层中，先前开发的Yara规则用于拒绝已知恶意软件家族的样本。在第二层采用了一种新的增量聚类算法。与传统的对启动聚类中心的选择很敏感的聚类算法不同，增量聚类能够找到或近似最佳的聚类分布，并检测到小规模的聚类。</p>
+<p>从每个集群中随机选择的恶意软件样本中包含的新的恶意软件家族（6）和恶意软件变体（6）被识别出来，并使用集群恶意软件样本的内存转储（7）创建新的Yara规则（8）。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps9757.tmp.jpg" alt="img"> </p>
+<p>提供了一种新的增量聚类算法的一个用例；</p>
+<p>提供从实时获取的恶意软件样本的动态分析日志的特征的特征工程；</p>
+<p>开发了一个两层的动态分析系统，该系统使用Yara规则来拒绝已知的恶意软件，并使用一种新的聚类算法和特征工程来对未知样本进行聚类，以识别新的恶意软件家族、变体和Yara规则中的缺陷。</p>
+<p>由于现有恶意软件家族的软件开发和新的恶意软件家族的创建，恶意软件源中的样本会受到持续的<strong>概念漂移</strong>的影响。传统的聚类算法被设计为使用静态地面真实值。为了处理概念漂移，传统的聚类算法要求对整个数据集进行定期的重新聚类，以合并更新后的地面真相。传统聚类算法的执行时间随数据集大小的增加成比例而增加。T</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/11/14/sample/APT29%20%20Cozy%20Bear%E4%BD%BF%E7%94%A8%E7%9A%84Miniduke/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/11/14/sample/APT29%20%20Cozy%20Bear%E4%BD%BF%E7%94%A8%E7%9A%84Miniduke/" class="post-title-link" itemprop="url">APT29 / Cozy Bear使用的Miniduke</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-11-14 00:00:00" itemprop="dateCreated datePublished" datetime="2021-11-14T00:00:00+08:00">2021-11-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 14:57:22" itemprop="dateModified" datetime="2021-12-22T14:57:22+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%A0%B7%E6%9C%AC%E5%88%86%E6%9E%90/" itemprop="url" rel="index"><span itemprop="name">样本分析</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>这篇文章详细分析了APT29使用的Miniduke，Minicuke是纯汇编编写的一个后门 ，该恶意软件采用了<strong>控制流整平迷惑</strong>并且实现了多种数据泄露的方法，比如用POST和PUT HTTP方法发送数据给C2服务器，或者在无网络连接的情况下用一个命名管道。后门实现37种不同的功能，如下图。</p>
+<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373D.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373D.tmp.jpg</a>) </p>
+<h2 id="技术分析"><a href="#技术分析" class="headerlink" title="技术分析"></a>技术分析</h2><p>首先用IDA打开文件，看到第一个函数setunhandledexceptionfilter，恶意软件将异常过滤器函数设置为特定函数。</p>
+<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373E.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373E.tmp.jpg</a>) </p>
+<p>前面的函数有点看不出来是个啥，我们注意看最后一个函数，可以看到用了GetStartupInfo获取STARTUPINFO结构的内容。Sub_4030A4如下图，可见是创建了一个线程。我们点进StartAddress看看</p>
+<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373F.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373F.tmp.jpg</a>) </p>
+<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3740.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3740.tmp.jpg</a>) </p>
+<p>StartAddress函数前部分非常多的Switch case函数，即使是后半段的这些函数也有非常多的switch case结构，<strong>非常多的无用的计算，</strong>并且加载了三个dll。</p>
+<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3741.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3741.tmp.jpg</a>) </p>
+<p>在IDA的图中可以看到startAddress如下，这就是前面说的控制流整平诱惑。StartAddress中的loc_4036F2中就实现了30个case,我们将该跳转用nop替换掉，因为该命令占6字节，nop一个字节，所以要用6个nop。</p>
+<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3742.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3742.tmp.jpg</a>) </p>
+<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3753.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3753.tmp.jpg</a>) </p>
+<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3754.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3754.tmp.jpg</a>) </p>
+<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3755.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3755.tmp.jpg</a>) </p>
+<p>SetErrorCode函数参数为2，作用是让系统不显示Windows错误报告对话框 （0x2 = <strong>SEM_NOGPFAULTERRORBOX</strong>）。加载的三个dll后的sub_407B60中有一个函数sub_417DCC，将在执行期间运行，并使用哈希机制定位。基本上，对于DLL中的每个函数名，恶意软件计算一个4字节的值，并与硬编码的值进行比较。这些函数都是目标：GetProcAddress, GetLongPathNameA, GetLastError, CreateProcessWithLogonW, CryptAcquireContextW, CryptGenRandom, InternetOpenA, InternetConnectA, InternetSetOptionA, HttpOpenRequestA, HttpSendRequestA, HttpQueryInfoA, InternetReadFile, InternetCloseHandle, HttpAddRequestHeadersA。</p>
+<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3756.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3756.tmp.jpg</a>) </p>
+<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3757.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3757.tmp.jpg</a>) </p>
+<p>在该函数中有一个sub_423FC8函数，红框圈起来的函数就是hashing函数</p>
+<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3758.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3758.tmp.jpg</a>) </p>
+<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3759.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3759.tmp.jpg</a>) </p>
+<p>现在回到加载dll的目标函数中，下图中的API用于连接CSP，获得指定CSP（真正实行加密的独立模块）的密钥容器的句柄（0x1 = <strong>PROV_RSA_FULL</strong>, 0xF0000040 = <strong>CRYPT_VERIFYCONTEXT</strong> | <strong>CRYPT_SILENT****）</strong></p>
+<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375A.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375A.tmp.jpg</a>) </p>
+<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375B.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375B.tmp.jpg</a>) </p>
+<p>下图函数使用一个子权限分配和初始化安全标识符(SID)</p>
+<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375C.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375C.tmp.jpg</a>) </p>
+<p>通过将新的访问控制或审核控制信息合并到现有的ACL结构中来创建新的访问控制列表（ACL）</p>
+<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375D.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375D.tmp.jpg</a>) </p>
+<p>通过恶意进程初始化新的安全描述符</p>
+<p>(0x1 = <strong>SECURITY_DESCRIPTOR_REVISION</strong>)，并使用setseCurityDescriptordACL API设置DACL（自定义访问控制列表）中的信息</p>
+<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375E.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375E.tmp.jpg</a>) </p>
+<p>进程创建了一个Software\Microsoft\ApplicationManager注册键值</p>
+<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375F.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375F.tmp.jpg</a>) </p>
+<p>一个新的值AppId被创建，使用GetTickCount函数调用的输出计算此值，它检索自系统启动以来经过的毫秒数</p>
+<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3760.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3760.tmp.jpg</a>) </p>
+<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3761.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3761.tmp.jpg</a>) </p>
+<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3762.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3762.tmp.jpg</a>) </p>
+<p>继续查看下一个函数sub_41CD30,</p>
+<p>从上面的一个输出被转换并写入缓冲区，以及“AppID”值。将使用传统算法加密此缓冲区，该算法还包括XOR运算符（sub_420200）：</p>
+<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3772.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3772.tmp.jpg</a>) </p>
+<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3773.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3773.tmp.jpg</a>) </p>
+<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3774.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3774.tmp.jpg</a>) </p>
+<h3 id="控制流整平"><a href="#控制流整平" class="headerlink" title="控制流整平"></a>控制流整平</h3><p>if-else、while、for具有典型的跳转等结构，即使通过多层嵌套、拓展条件等方法，依然可以通过“切片技术”来判断。有了这些依据，就给程序分析带来很多便利。<br>  正是这个原因，为了增加程序逆向的难度，我们得使得这些特征结构变得模糊，并且能让类似“切片技术”这样基于具体语义分析的方法失效，迫使逆向分析人员进行完整的抽象语义分析，斩断所谓的“捷径”。<br>  控制流整平的策略是这样的，它把所有的典型控制流以及其衍生结构“统而为一”，各种控制流的区别只是语义方面的，增加了理解控制流转换关系的难度。</p>
+<p> 控制流整平迷惑，是通过打破程序原有的控制流之间的嵌套和顺序关系，使得变换后的程序控制流扁平化的混淆方法，其基本思想是令程序中所有的基本块拥有共同的前驱和后继代码块。如下图</p>
+<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3775.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3775.tmp.jpg</a>) </p>
+<p> 进行控制流整平后，使得面向过程的代码片段，原来比较清晰的控制流向混杂在一起，同时这也比较好的并行图形态，也有利于进一步的迷惑处理。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/11/13/reverse/EasyRE_REvenge/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/11/13/reverse/EasyRE_REvenge/" class="post-title-link" itemprop="url">buuctf_EasyRE_REvenge</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-11-13 00:00:00" itemprop="dateCreated datePublished" datetime="2021-11-13T00:00:00+08:00">2021-11-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 15:57:13" itemprop="dateModified" datetime="2021-12-22T15:57:13+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/buuctf/" itemprop="url" rel="index"><span itemprop="name">buuctf</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>220</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="EasyRE-REvenge"><a href="#EasyRE-REvenge" class="headerlink" title="EasyRE_REvenge"></a>EasyRE_REvenge</h3><p>这道题和前面那道easyre结构一样如下，函数中有花指令</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse7/image-20211115101010954.png" alt="image-20211115101010954"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse7/image-20211115110634542.png" alt="image-20211115110634542"></p>
+<p>我们edit-patch-changebyte(不是assemble)。0B前面那个00也要改成90</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse7/image-20211115112905196.png" alt="image-20211115112905196"></p>
+<p>可以看到还要修改一个地方，全部nop</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse7/image-20211115113230271.png" alt="image-20211115113230271"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse7/image-20211115113438466.png" alt="image-20211115113438466"></p>
+<p>发现还是不行，往下一直看会发现全是一样的代码（花指令），写个py脚本全部nop掉（IDA7.0自带IDAPython，但是需要安装python27）,File-Scripts Files就ok</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse7/image-20211115202819745.png" alt="image-20211115202819745"></p>
+<p>反汇编后如图,我们自己写个代码</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse7/image-20211115203400188.png" alt="image-20211115203400188"></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/11/06/paper/A%20Comprehensive%20Study%20on%20Learning-Based%20PE%20Malware%20Family%20Classification%20Methods/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/11/06/paper/A%20Comprehensive%20Study%20on%20Learning-Based%20PE%20Malware%20Family%20Classification%20Methods/" class="post-title-link" itemprop="url">A Comprehensive Study on Learning-Based PE Malware FamilyClassification Methods</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-11-06 00:00:00" itemprop="dateCreated datePublished" datetime="2021-11-06T00:00:00+08:00">2021-11-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-31 15:44:02" itemprop="dateModified" datetime="2021-12-31T15:44:02+08:00">2021-12-31</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper-reading/" itemprop="url" rel="index"><span itemprop="name">paper reading</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>文章将主流的基于学习的算法按照其出入格式分为了三类，分别是<strong>基于图像的、基于二进制的和基于反汇编</strong>的。文章基于现在很多放大都没有一个一致的比较，特别是从实际应用场景来看以及在<strong>概念漂移</strong>（指的是数据流中的潜在数据分布随时间发生不可预测的变化,使原有的分类器分类不准确或决策系统无法正确决策）的场景中也没有进行比较。文章的工作主要是在4个不同的数据集和一致的实验设置上对基于学习的PE恶意软件分类方法进行了全面的<strong>实证研究</strong>。根据实验结果发现（1）没有哪类方法明显优于其他方法；（2）所有类型的方法在概念漂移上都表现出性能下降(平均f1分32.23%)；（3）的预测时间和高内存消耗阻碍了现有方法被用于行业使用。</p>
+<h3 id="相关工作"><a href="#相关工作" class="headerlink" title="相关工作"></a>相关工作</h3><p>基于图像的分类方法，在2011年首次被提出，最初采用的是机器学习的方法，但是由于提取复杂纹理特征的开销很高，这些方法通常效率低下。随着深度学习模型在图像分类任务中的不断发展，它逐渐地被运用到恶意软件家族分类场景，表现出了比机器学习方法更好的性能。当然基于图像的方法也有缺点，例如将恶意软件转换为图像会引入新的超参数（例如，图像宽度），并施加不同行中像素之间不存在的空间相关性，这可能是错误的。</p>
+<p>基于二进制的方法，以恶意软件的二进制代码为输入，通常采用现有的序列模型，特别是来自自然语言处理(NLP)领域进行分类。最初一般是n-gram算法提取特征然就用算法进行分类检测，但是随着n的增大，计算开销会非常大；随后提出了端到端的浅层CNN模型，但是接收整个二进制文件作为输入需要非常大的内存。为了解决这个问题，提出了只关注PE头的方法。</p>
+<p>基于二进制文件的方法不需要领域知识，而是考虑恶意软件二进制文件中的上下文信息。然而，与其他类别的方法相比，将恶意软件样本表示为字节序列可能会带来一些挑战。首先，通过将每个字节作为一个字节序列中的一个单元，恶意软件字节序列的大小可能达到数百万个时间步长，这是相当消耗资源的。其次，相邻的字节在空间上是相关的，但是由于跳转和函数调用，这样的情况可能并不总是保持，因此二进制文件中的信息可能存在不连续性。</p>
+<p>基于反汇编的方法，首先将二进制文件分解成汇编代码，并根据函数调用图(FCG)和控制流程图(CFG)等特征执行恶意软件分类，这些特征是从汇编代码中提取的。提出计算图之间的相似性，然后用其作为恶意代码聚类的距离度量。计算图之间的相似性属于计算密集型，会带来很大的性能开销。</p>
+<p>也有一些方法从程序代码中提取操作码序列，与其他方法相比，基于反汇编的技术可以更好地捕获代码结构特征，但它们通常需要领域知识，如汇编语言及其相应的分析方法。</p>
+<h3 id="实证研究"><a href="#实证研究" class="headerlink" title="实证研究"></a>实证研究</h3><p>首先论文提出了三个研究问题，分别是：</p>
+<ul>
+<li>1.不同的PE恶意软件族分类方法在不同的数据集上如何执行？</li>
+</ul>
+<p>指出目前缺乏系统的研究来评估在多个数据集的同一实验设置上一致的不同方法的性能。</p>
+<ul>
+<li>2.恶意软件概念漂移如何影响各种模型的分类性能？</li>
+</ul>
+<p>指出概念漂移是PE恶意软件建组分类任务中一个关键的现实问题，评估概念漂移应用场景中不同方法的性能非常重要。</p>
+<ul>
+<li>3.是什么因素阻碍了当前基于学习的PE恶意软件分类方法在行业中的部署和相应的改进方向？</li>
+</ul>
+<p>由于之前的研究问题所发现的差距，论文最终目标是为如何使当前基于学习的PE恶意软件分类方法适用于真实的行业场景提供建议。</p>
+<p>基于图像的测试模型选了VGG-16、ResNet-50、Inception-V3、IMCFN.</p>
+<p>VGG-16通过减少卷积层的参数来提高训练时间，它包含了13个卷积层、5个最大池化层、三个全连接层。所有隐藏层都是用ReLU，输出层使用softmax，优点是结构简单，参数多，拟合能力高。</p>
+<p>ResNet的提出是为了解决传统CNN网络在深层信息传输中普遍存在的信息丢失、梯度消失和梯度爆等问题。通过在一个称为跳过连接的结构中将输入直接带到输出中来保护信息的完整性。由于该设计，ResNet-50可以训练一个包含50个隐藏层的更深的网络。ResNet-50使用全局平均池，然后使用最终预测层的softmax。相比VGG-16更有效，因为它的参数要少得多。</p>
+<p>InceptionNet目的是找出如何用密集成分来近似最优的局部稀疏结。与ResNet-50一样，Inception-V3最终也使用了一个全局平均池，然后使用softmax作为最终的预测层。与VGG-16相比，它更有效，其参数数量甚至比ResNet-50更少。</p>
+<p>IMCFN是使用微调卷积神经网络的基于图像的恶意软件分类，它是针对恶意软件族分类的任务而定制的。它是VGG-16的变种，将前两个FCs中的神经元从4096减少到2048，并增加了一个dropout层来减少过拟合的影响。</p>
+<p>基于二进制的测试模型选了Word2Vec+MLP、MalConv.</p>
+<p>Word2Vec+MLP的关键思想是，<strong>来自同一族的样本中的字节关系相似，且与不同族的样本明显不同</strong>。因此，<strong>原始字节的向量矩阵</strong>是恶意软件分类的有效特征。首先对原始二进制文件进行预处理，删除5个或更多连续的0x00或0xCC（无意义的字节）。然后将每个文件作为一个语料库，看作由从0x00到0xFF的256个单词组成的。使用Word2Vec中的连续字袋模型(CBOW)获得文件中256字节的嵌入向量，每个文件用一个字节向量升序矩阵表示。MLP将这些矩阵作为输入，并输出相应的族类别。MLP由3个FCs组成，其中由预测类的数量决定，对于前两个FCs，添加一个dropout层。MLP是最直观、最简单的深度神经网络。与VGG-16类似，虽然结构相对简单，但参数较多，可以很好地拟合训练数据。</p>
+<p>MalConv是第一个允许将整个恶意软件作为输入的端到端恶意软件检测模型。首先使用嵌入层将原始字节映射到一个固定的8维向量。通过这种方式，它可以通过同时考虑本地和全局上下文来捕获原始二进制文件中的高级位置不变性。然后，使用一个浅层CNN，大滤波器宽度为500字节，结合500步幅。这使得模型能够使用PyTorch以数据并行的方式更好地平衡计算工作负载，从而可以缓解第一个卷积层的GPU内存消耗问题。</p>
+<p>作为一个浅层的CNN架构，MalConv克服了一个主要的实际限制，即读取整个恶意软件字节是消耗内存的，它还捕获了原始二进制文件中的全局位置不变性。它允许将嵌入层与卷积层联合训练，以便更好地提取特征。</p>
+<p>基于反汇编测试模型选了MAGIC、Word2Vec+KNN、MCSC.</p>
+<p>MAGIC是一种端到端的恶意软件检测方法，通过使用深度图卷积神经网络(DGCNN)的属性控制流图（ACFG）。首先将ACFG（将CFG的顶点抽象为离散的数值向量）转换，从恶意软件反汇编文件中提取为一个数值向量。然后，DGCNN将这些不同大小的无序ACFG转换为固定大小和顺序的张量，用于恶意软件家族分类。</p>
+<p>Word2Vec+KNN将反汇编文件建模为恶意软件语言，将其操作码序列提取为恶意软件文档，并使用Word2Vec模型生成此类文档的计算表示。这篇论文选择WMD作为KNN分类中文档之间语义紧密度的度量，计算将文档A的所有嵌入单词传输到文档B的所有嵌入单词的成本。</p>
+<p>MCSC首先从拆反汇编件中提取操作码序列，并根据SimHash将其编码为相同长度的序列。然后，它将每个SimHash值作为一个二进制像素，并将SimHash位转换为灰度图像。它训练了一个由LeNet-5修改后的CNN结构来对这些灰度图像进行分类。在训练CNN分类器时，采用多哈列和双线性插值来提高模型的精度，并采用主要的块选择来减少图像生成时间。</p>
+<p>实验采用了四个数据集，分别是BIG-15,Malimg,MalwareBazaar和MalwareDrift.（前两个开源）</p>
+<h3 id="发现"><a href="#发现" class="headerlink" title="发现"></a>发现</h3><p>论文通过实验发现</p>
+<ul>
+<li><p>1.在所有方法中，基于二进制的模型CBOW+MLP在不同的数据集上表现最好，而没有单个类别的性能显著优于其他类别。</p>
+</li>
+<li><p>2.迁移学习有可能进一步提高基于图像的PE恶意软件分类方法的有效性，并打开模型内部特征提取层进行微调，以获得更好的迁移学习性能。</p>
+</li>
+<li><p>3.所有现有的方法在面对现实工业场景的概念漂移时都存在性能较差，因此在评估PE恶意软件族分类方法时应认真考虑。</p>
+</li>
+</ul>
+<p>并且实验结果表明，不同方法的稳定性也差异很大。CBOW+MLP方法虽然在普通机器学习场景中表现最好，但在概念漂移场景中下降幅度最大，这主要是由于其结构简单。相反，MCSC和Word2Vec+KNN的下降率最小。原因是它们都从拆卸文件中提取视码序列，并专注于在恶意软件进化过程中往往被保留的视码序列的本地上下文连接，因此这些方法在概念漂移上表现出稳定的性能。一个有趣的发现是，尽管Word2Vec+KNN也有简单的结构，但在概念漂移下，它的表现比CBOW+MLP更好，这归功于KNN算法，该算法计算未来的样本与所有其他样本之间的相似性距离。因此，它通常需要更长的预测时间。</p>
+<ul>
+<li>4.CBOW+MLP对概念漂移的性能最差，而MCSC对概念漂移的性能最稳健。结果表明，操作码序列保留了PE恶意软件的家族特征，是概念漂移下分类的有效和鲁棒特征。</li>
+</ul>
+<p>论文作者向实际应用场景种的合作伙伴提出问题：公司目前采用了哪种分类方法以及原因；在实际适用的场景中，影响合适方法选择的因素是什么？概念漂移在实际应用场景中很常见吗？处理概念漂移的当前状态如何？</p>
+<p><strong>目前，在行业应用场景中采用了两种主流方法，即沙箱和基于模式的方法。</strong>基于模式的方法是基于模式/特征数据库的静态检测方法。它在时间和资源消耗方面是有效的，但对噪声、混淆和概念漂移是脆弱的。</p>
+<p><strong>PE恶意软件分类方法的行业使用主要受到三个因素的限制，即预测精度和召回率、预测时间和资源消耗，主要资源关注的是运行时内存和CPU使用情况。</strong></p>
+<p>作为一个具体的例子，在他们的一个包含基于学习的恶意软件分类模型的产品中，他们要求运行时内存低于1gb，这是我们所有研究的方法都无法满足的。另一个要求是能够在0.1秒内预测一个恶意软件，准确率超过93%，这过滤掉了大多数基于二进制和基于反汇编的方法。</p>
+<p><strong>概念漂移通常是由于恶意软件的进化</strong>。例如，在现有的恶意软件想要逃避检测的情况下，可能会有新的非内核功能，如通信和消息传递技术正在改变。这种情况经常发生，并对恶意软件家族分类提出了挑战。目前缺乏特定的机制来处理这种情况，目前的实践通常使用沙箱方法来处理这种场景。另一个观察结果是，除了概念漂移之外，它们还需要应对快速发展的新恶意软件家族和特性的挑战。除了现有学术数据集定义的细粒度家族分类外，行业合作伙伴更感兴趣的是基于恶意软件家族的恶意行为的检测，即特洛伊、Rootkit或勒索软件。<strong>然而，目前还缺乏关于这一方向的研究，很可能是因为没有这样的可用的数据集。</strong></p>
+<ul>
+<li>5.（1）如何处理快速发展的恶意软件家族，而不是只使用一个或几个数据集进行评估；（2）一个预测精度更高、重量更轻的模型（3）从恶意行为的角度进行恶意软件家族分类。</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -801,1004 +1586,10 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/10/14/paper/2020%E9%BB%91%E5%B8%BDDetecting%20Access%20Token%20Manipulate%E5%AD%A6%E4%B9%A0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/10/14/paper/2020%E9%BB%91%E5%B8%BDDetecting%20Access%20Token%20Manipulate%E5%AD%A6%E4%B9%A0/" class="post-title-link" itemprop="url">2020黑帽Detecting Access Token Manipulate学习</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-10-14 00:00:00" itemprop="dateCreated datePublished" datetime="2021-10-14T00:00:00+08:00">2021-10-14</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-22 15:49:57" itemprop="dateModified" datetime="2021-12-22T15:49:57+08:00">2021-12-22</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/paper-reading/" itemprop="url" rel="index"><span itemprop="name">paper reading</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>4.2k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>4 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>这篇文章主要目的是帮助安全从业人员理解：Windows下访问令牌是怎么工作的；攻击者是如何利用合法的Windows功能来横向移动并损害整个ActiveDirectory域信；他们检测和响应其环境中的访问令牌操作的能力。</p>
-<h3 id="Windows-Security-Internals"><a href="#Windows-Security-Internals" class="headerlink" title="Windows Security Internals"></a>Windows Security Internals</h3><h4 id="Logon-Sessions-and-Access-Tokens"><a href="#Logon-Sessions-and-Access-Tokens" class="headerlink" title="Logon Sessions and Access Tokens"></a>Logon Sessions and Access Tokens</h4><p>简单的说，用户登陆到windows系统之后，不管该用户是本地登陆的，还是远程登陆，系统都会为这个用户分配一个新的**会话ID(SID)**。也就是说会话与用户的登录是相关连的，没有用户登录就不存在会话。因此，会话的含义是指用户登录之后的一种运行的环境。会话管理器(\Windows\System32\Smss.exe)是系统中第一个创建的用户态模式进程，负责完成执行体和内核的初始化工作的内核模式系统线程在最后阶段创建了实际的Smss进程。</p>
-<p>会话(session)是由进程和其他的系统对象(比如窗口站、桌面和窗口)构成的，它们代表了一个用户的工作站登录会话。会话具体是由如下几个部分组成的：</p>
-<p>   \1. 每个会话包含一个单独的win32k.sys</p>
-<p>   \2. 专门的换页池区域</p>
-<p>   \3. 私有windows子系统和登陆进程的拷贝</p>
-<p>   \4. 系统空间中被映射的空间,被称为会话空间的区域</p>
-<p>现在会话同进程做一个比较，发现他们之间有一些相似之处：</p>
-<p>   \1. 都提供一个执行的环境</p>
-<p>   \2. 都有一个私有空间</p>
-<p>   进程是为了内部的执行的线程提供一个空间和环境，而会话则是为内部所有的进程提供一个执行的空间和环境。当用户登陆到系统中之后，用户下所有的进程都属于这个会话空间，在每个进程的PEB当中就有SessionID。Windows创建的第一个会话被称为会话0，是系统用户SYSTEM的会话通常称为会话0，服务就是运行在此会话中。而令牌就像是一个标识符，标识该账号的一切应用和操作。</p>
-<p><a target="_blank" rel="noopener" href="https://docs.microsoft.com/zh-cn/windows/desktop/SecAuthZ/access-tokens"><strong>访问令牌</strong></a>是用来描述进程或线程安全上下文的对象，令牌所包含的信息是与该 user 账户相关的进程或线程的身份和权限信息。当 user 登录时，系统通过将 user 输入的密码与储存在安全数据库中的密码进行对比。若密码正确，系统此时会为 user 生成一个访问令牌。之后，该 user 执行的每个进程都会拥有一个该访问令牌的副本。每个线程默认直接继承进程的token，线程还可以通过模拟，改变自己的token，让自己拥有别的用户的token。</p>
-<p>令牌产生过程：使用凭据(用户密码)进行认证；</p>
-<p>登录Session创建；</p>
-<p>Windows返回用户sid和用户组sid；</p>
-<p>LSA(Local Security Authority)创建一个Token；</p>
-<p>依据该token创建进程、线程(如果CreaetProcess时自己指定了 Token, LSA会用该Token， 否则就继承父进程Token进行运行)</p>
-<p>首先了解下令牌的四个模拟级别，分别是：Anonymous，Identification，Impersonation，Delegation</p>
-<p>Anonymous：服务器无法模拟或识别客户端。</p>
-<p>Identification：服务器可以获取客户端的身份和特权，但不能模拟客户端。</p>
-<p>Impersonation：服务器可以在本地系统上模拟客户端的安全上下文。</p>
-<p>Delegation：服务器可以在远程系统上模拟客户端的安全上下文。</p>
-<p>所以当令牌具有Impersonation和Delegation级别的时候才可以进行模拟。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wpsD52E.tmp.jpg" alt="img"><br>    言而总之，只要我们有SeAssignPrimaryToken或者SeImpersonate权限，就可以通过模拟Primary令牌来提升权限，而Primary令牌可以通过DuplicateTokenEx调用一个Impersonation令牌来转换。</p>
-<p>所以一个模拟令牌的过程大概是：OpenProcess(获取目标进程上下文)-&gt;OpenProcessToken(获得进程访问令牌的句柄)–&gt;DuplicateTokenEx(创建一个主/模拟令牌)–&gt;CreateProcessWithTokenW(创建进程)</p>
-<h4 id="How-Attackers-Abuse-Access-Token"><a href="#How-Attackers-Abuse-Access-Token" class="headerlink" title="How Attackers Abuse Access Token"></a>How Attackers Abuse Access Token</h4><p>攻击者可以使用内置的Windows API函数从现有进程复制访问令牌，这就是所谓的令牌窃取。然后可以将这些令牌应用于现有进程（即Token Impersonation/Theft）或用于生成新进程（即Create Process with Token）。攻击者必须已经处于特权用户上下文（即管理员）中才能窃取令牌。然而，攻击者通常使用令牌窃取将其安全上下文从管理员级别提升到系统级别。然后，如果帐户在远程系统上具有适当的权限，则攻击者可以使用令牌向远程系统进行身份验证，作为该令牌的帐户。</p>
-<p>在ATT&amp;CK框架中，对于令牌操作有五种技术介绍：</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wpsD53E.tmp.jpg" alt="img"> </p>
-<h4 id="Token-Impersonation-Theft"><a href="#Token-Impersonation-Theft" class="headerlink" title="Token Impersonation/Theft"></a>Token Impersonation/Theft</h4><p>攻击者可以使用DuplicateToken（Ex）创建一个新的访问令牌来复制现有令牌。然后，该令牌可与ImpersonalLoggedOnUser一起使用，以允许调用线程模拟登录用户的安全上下文，或与SetThreadToken一起将模拟令牌分配给线程。</p>
-<p><strong>检测：</strong></p>
-<p>如果攻击者使用标准命令行shell，分析人员可以通过审核命令行活动来检测令牌操纵。具体来说，分析人员应该寻找runas命令的使用。默认情况下，Windows中未启用详细的命令行日志记录。</p>
-<p>分析人员还可以监视Windows API（如DuplicateToken（Ex）、ImpersonalLoggeDonUser和SetThreadToken）的使用情况，并将活动与其他可疑行为关联起来，以减少由于用户和管理员正常的良性使用而导致的误报。 </p>
-<h4 id="Create-Process-with-Token"><a href="#Create-Process-with-Token" class="headerlink" title="Create Process with Token"></a>Create Process with Token</h4><p>攻击者可能会使用重复的令牌创建一个新进程，以升级权限并绕过访问控制。攻击者可以使用DuplicateToken（Ex）复制所需的访问令牌，并将其与CreateProcessWithTokenW一起使用，以创建在模拟用户的安全上下文下运行的新进程。这对于在不同用户的安全上下文下创建新进程非常有用。</p>
-<p><strong>检测：</strong></p>
-<p>如果攻击者使用标准命令行shell，同上。</p>
-<p>如果攻击者使用直接调用Windows令牌API的有效负载，分析人员只能通过仔细分析用户网络活动、检查正在运行的进程以及与其他端点和网络行为的关联来检测令牌操纵。 </p>
-<p>分析人员还可以监视Windows API，同上。</p>
-<h4 id="Make-and-Impersonate-Token"><a href="#Make-and-Impersonate-Token" class="headerlink" title="Make and Impersonate Token"></a>Make and Impersonate Token</h4><p> 攻击者可以制作和模拟令牌以提升权限并绕过访问控制。如果攻击者拥有用户名和密码，但用户未登录系统，则攻击者可以使用LogonUser功能为用户创建登录会话。该函数将返回新会话的访问令牌的副本，攻击者可以使用SetThreadToken将令牌分配给线程。</p>
-<p><strong>检测：</strong></p>
-<p>同上</p>
-<h4 id="Parent-PID-Spoofing"><a href="#Parent-PID-Spoofing" class="headerlink" title="Parent PID Spoofing"></a>Parent PID Spoofing</h4><p>攻击者可以欺骗新进程的父进程标识符（PPID），以逃避进程监视防御或提升权限。除非明确指定，否则新进程通常直接从其父进程或调用进程派生。显式分配新进程的PPID的一种方法是通过CreateProcess API调用，该调用支持定义要使用的PPID的参数。此功能由Windows功能（如用户帐户控制（UAC））使用，以便在系统生成请求的提升进程后正确设置PPID（通常通过svchost.exe或approve.exe）而不是当前用户上下文。</p>
-<p>攻击者可能会利用这些机制来逃避防御，例如阻止直接从Office文档生成的进程，以及针对异常/潜在恶意父子进程关系的分析，例如将PowerShell/Rundll32的PPID欺骗为explorer.exe，而不是将Office文档作为Spearphishing Attachment的一部分。此欺骗可以通过Visual Basic在恶意Office文档或任何可以执行本机API的代码中执行。</p>
-<p>显式分配PPID还可以启用提升的权限，赋予父进程适当的访问权限。例如，特权用户上下文（即管理员）中的攻击者可能会生成一个新进程，并将父进程分配为作为系统运行的进程（如lsass.exe），导致新进程通过继承的访问令牌提升。</p>
-<p><strong>检测：</strong></p>
-<p>查找存储PPID信息的各个字段之间的不一致性，例如通过Windows事件跟踪（ETW）收集的数据中的EventHeader ProcessId、Windows事件日志中的创建者进程ID/名称以及ProcessId和ParentProcessID（也由ETW和其他实用程序（如任务管理器和Process Explorer）生成）。ETW提供的EventHeader ProcessId标识实际的父进程。</p>
-<p>监视和分析对CreateProcess/CreateProcessA的API调用，特别是来自用户/潜在恶意进程的API调用，并使用显式分配PPID的参数（例如：进程创建标志0x8XXX，表示正在使用扩展启动信息创建进程）。恶意使用CreateProcess/CreateProcessA也可能通过调用UpdateProctThreadAttribute进行，这可能是更新进程创建属性所必需的。这可能会从正常UAC提升行为中产生误报，因此如果可能，请与系统基线/对正常系统活动的理解进行比较。</p>
-<h4 id="SID-History-Injection"><a href="#SID-History-Injection" class="headerlink" title="SID-History Injection"></a>SID-History Injection</h4><p>对手可以使用SID历史记录注入来升级权限和绕过访问控制。Windows安全标识符（SID）是标识用户或组帐户的唯一值。Windows security在安全描述符和访问令牌中都使用SID。帐户可以在SID-History Active Directory属性中保存其他SID，从而允许在域之间进行可互操作的帐户迁移（例如，SID-History中的所有值都包含在访问令牌中）。</p>
-<p>使用域管理员（或同等）权限，可以将获取的或已知的SID值插入到SID历史记录中，以启用对任意用户/组（如企业管理员）的模拟。此操作可能会导致通过横向移动技术（如远程服务、SMB/Windows管理员共享或Windows远程管理）提升对本地资源的访问和/或访问无法访问的域。</p>
-<p><strong>检测：</strong></p>
-<p>使用PowerShell Get-ADUser 命令行工具检查用户SID历史记录属性中的数据，尤其是具有来自同一域的SID历史记录值的用户。还可以监视域控制器上的帐户管理事件，以查看SID历史记录的成功更改和失败更改。</p>
-<p>监视对DsAddSidHistory函数的Windows API调用。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/10/11/paper/2020%E9%BB%91%E5%B8%BDDemystifying%20Modern%20Windows%20Rootkits%E5%AD%A6%E4%B9%A0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/10/11/paper/2020%E9%BB%91%E5%B8%BDDemystifying%20Modern%20Windows%20Rootkits%E5%AD%A6%E4%B9%A0/" class="post-title-link" itemprop="url">2020黑帽Demystifying Modern Windows Rootkits学习</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-10-11 00:00:00" itemprop="dateCreated datePublished" datetime="2021-10-11T00:00:00+08:00">2021-10-11</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-04-14 17:11:52" itemprop="dateModified" datetime="2022-04-14T17:11:52+08:00">2022-04-14</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/paper-reading/" itemprop="url" rel="index"><span itemprop="name">paper reading</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>5.2k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>5 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <pre><code>1.加载一个rootkit
-
-2.与rootkit通信
-
-3.采用合法的网络通信
-
-4.作者写的一个示例rootkit以及其背后的设计选择
-
-5.执行来自内核的命令
-
-6.掩盖你的rootkit的文件系统踪迹的技巧
-</code></pre>
-<p>Rootkit是一种特殊的恶意软件，它的功能是在安装目标上隐藏自身及指定的文件、进程和网络连接等信息，比较多见到的是Rootkit一般都和木马、后门等其他恶意程序结合使用。Rootkit通过加载特殊的驱动，修改系统内核，进而达到隐藏信息的目的。</p>
-<h3 id="Loading-a-Rootkit"><a href="#Loading-a-Rootkit" class="headerlink" title="Loading a Rootkit"></a>Loading a Rootkit</h3><p>1.利用合法的驱动。有很多脆弱的驱动，利用逆向知识，找到一个驱动的0day漏洞是很容易的。并且只需要几句原语即可提升权限，找到一个脆弱的驱动相对来说是简单的，因为兼容性的问题很难被检测。</p>
-<p>缺点：跨操作系统版本的兼容性的主要问题取决于所拥有的原语；最有可能的是稳定性问题；最后一件事是你的恶意软件使得受害者蓝屏。</p>
-<p>2.买证书。买一个合法的证书就没有稳定性的问题了，但是可能会揭露自己的身份以及会被拉进黑名单。</p>
-<p>3.利用已经泄露的证书。这种方式相比购买证书来说更安全，但是在未来可能被检测，并且根据证书发布时间是有操作系统版本限制的。</p>
-<h3 id="Communicating-with-a-Rootkit"><a href="#Communicating-with-a-Rootkit" class="headerlink" title="Communicating with a Rootkit"></a>Communicating with a Rootkit</h3><p>1.发给C2服务器。防火墙可以阻止或标记对未知/可疑IP地址或端口的传出请求，先进的网络检查可以捕捉到一些试图“融入噪音”的外渗技术。</p>
-<p>2.打开一个端口。一些恶意软件通过C2直接连接到受害者主机来控制它。这样设置相对简单。但是可能会被防火墙发现，并且很难融入噪声。</p>
-<p>3.应用程序Hooking技术。更高级的恶意软件可能会选择hook一个特定的应用程序的通信作为一个通信通道。这样就很难被检测，特别是如果用的是合法的协议，但是这样不是特别灵活，机器可能没有暴露出该服务。</p>
-<p>我们想要的是有限的检测向量，各种环境下的灵活性，假设受害主机会有一些已经揭露出来的服务，入站和出站访问可能被监控。那么第三种方法非常符合我们的需求，除了灵活性。现在要考虑的是如何不依赖一个应用程序。</p>
-<p>如果不直接hook一个应用程序，那么我们hook像wireshark这样的工具的网络通信；在恶意数据包中放置一个特殊的指示器（一个”magic”常数）；将这些恶意数据包发送到受害者机器上的合法端口；搜索这个常数的数据包，以将数据传递给我们的恶意软件.</p>
-<h3 id="Hooking-the-User-Mode-Network-Stack"><a href="#Hooking-the-User-Mode-Network-Stack" class="headerlink" title="Hooking the User-Mode Network Stack"></a>Hooking the User-Mode Network Stack</h3><h4 id="hook-Windows-Winsock-driver"><a href="#hook-Windows-Winsock-driver" class="headerlink" title="hook Windows Winsock driver"></a>hook Windows Winsock driver</h4><p>在用户模式下windows上的许多服务都可以被发现，但是如何全面地获取这些流量是一个问题。与winsock相关的网络是由Afd.sys（<strong>该驱动负责将PC连接到网络服务，特别是TCP/IP协议</strong>）处理的，mswsock.dll用<code>NtDeviceIoControlFiles</code>实现与Afd.sys驱动的通信。逆向分析在mswsock.dll中的一些函数显示大量的通信是由IOCTLs完成的，如果我们可以拦截到这些请求，我们可以窥探所收到的数据。</p>
-<ol>
-<li><strong>在拦截之前要知道IRPs是怎么走的，当对一个设备调用文件句柄上的<code>NtDeviceIoControlFile</code>函数时，内核如何确定要调用什么函数？</strong></li>
-</ol>
-<p>首先通过<code>IoGetRelatedDeviceObject</code>检索与Afd驱动程序相关联的设备(检索FILE_OBJECT结构中的DeviceObject成员)，然后判断驱动是否支持FastIo（在进行基于IRP 为基础的接口调用前, IO MANAGER 会尝试使用FAST IO 接口来加速各种IO 操作），如果支持那么就调用<code>DriverObject-&gt;FastIoDispatch</code>，如果不支持，那么就分配并填写IRP，然后调用<code>IoCallDriver</code>来发送IRP，对于<code>IoCallDriver</code>，内核将通过在DRIVER_OBJECT结构的MajorFunction数组中查找IRP内部指定的“Major function Code”来确定调用哪个函数</p>
-<ol start="2">
-<li><p>拦截IRPs的两种常见方法。替换掉驱动对象中你想hook的主函数；直接对调度处理程序执行代码hook。</p>
-</li>
-<li><p>要选择hooking最好的方法，要考虑的问题（可能有的检测向量有多少种，方法如何可用，检测这种方法昂贵吗）</p>
-</li>
-</ol>
-<p><strong>Hook驱动对象</strong>：memory artifacts；对于稳定性，通过用互锁交换替换单个函数，这种方法应该是稳定的。对于兼容性，驱动程序对象有很好的文档记录，并且易于找到；但是检测起很便宜，所有的防病毒软件都需要枚举已加载的驱动程序，并检查主要功能是否在驱动程序的范围内。</p>
-<p><strong>Hook驱动程序的调度函数</strong>：memory artifacts；除非函数被导出，否则需要自己找到函数，由于补丁保护程序，并不是所有的驱动程序都与此方法兼容，HVCI不兼容的；检测也比较便宜。</p>
-<p><strong>Hook文件对象：</strong>没有被文档化；稳定；检测成本相对昂贵，反病毒软件必须复制我们的连接过程，并枚举文件对象，以确定设备/驱动程序对象是否被交换。。</p>
-<p><strong>Hook文件对象</strong></p>
-<p>1.创建我们自己的设备对象和驱动程序对象。<br>2.修补驱动程序对象的副本。<br>3.用我们自己的设备替换我们文件对象的DeviceObject指针</p>
-<p><strong>首先</strong>我们需要获得Afd设备的文件对象，我们可以通过<code>ZwQuerySystemInformation</code>函数，特别是使用SystemHandleInformation信息类来查询系统上的每个打开句柄。此信息类将为每个句柄返回以下结构：</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414112600750.png" alt="image-20220414112600750"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D3A.tmp.jpg" alt="img"> </p>
-<p>有了这些信息我们需要判断句柄是否是Afd设备的。首先通过比较<code>ObjectTypeNumber</code>成员与已知的文件对象类型索引来判断该句柄是否是一个文件对象的，然后我们再将FILE_OBJECT结构的DeviceObject成员与一致的Afd设备比较。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414112713704.png" alt="image-20220414112713704"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414112803340.png" alt="image-20220414112803340"></p>
-<p><strong>然后</strong>我们需要创建我们自己的假的驱动或者设备对象。创建之前先判断是否已经hook过了，Windows内核使用<code>ObCreateObject</code>函数来创建对象，内核大概是为了允许其他Windows驱动创建他们自己的对象，导出了该函数。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414113235946.png" alt="image-20220414113235946"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414114728584.png" alt="image-20220414114728584"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414114639854.png" alt="image-20220414114639854"></p>
-<p><strong>最后</strong>我们需要hook我们的假的驱动对象，可以用前面提到过的方法，将DRIVER_OBJECT结构中的MajorFunctions数组部分替换为我们的hook函数，（<strong>要注意我们要hook的是我们自己创建的驱动对象，而不是真正的驱动对象</strong>）</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414141558734.png" alt="image-20220414141558734"></p>
-<p>最后一步就是将FILE_OBJECT的DeviceObject成员替换成我们自己的设备。</p>
-<p>现在文件对象被Hook了，对<code>IoGetRelatedDeviceObject</code>的任何调用都将返回我们的假设备，<code>IoCallDriver</code>将使用该设备调用我们的修补过的MajorFunctions数组。</p>
-<p>剩下的工作：检查我们是否正在hook被调用的MajorFunction，如果是，则调用为该主函数传递原始设备对象和原始调度函数的hook函数；确保当MajorFunction是IRP_MJ_CLEANUP时保存了原始的DeviceObject。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414143143109.png" alt="image-20220414143143109"></p>
-<h3 id="How-the-Spectre-Rootkit-Abuses-the-User-Mode-Network-Stack"><a href="#How-the-Spectre-Rootkit-Abuses-the-User-Mode-Network-Stack" class="headerlink" title="How the Spectre Rootkit Abuses the User-Mode Network Stack"></a>How the Spectre Rootkit Abuses the User-Mode Network Stack</h3><h4 id="Abusing-the-Network"><a href="#Abusing-the-Network" class="headerlink" title="Abusing the Network"></a>Abusing the Network</h4><p>有了前一步的hook，现在我们已经可以拦截Afd驱动的IRPs了。并且我们可以拦截所有用户模式的网络流量，通过任何套接字发送和接收我们自己的数据。</p>
-<h4 id="Packet-Structure"><a href="#Packet-Structure" class="headerlink" title="Packet Structure"></a>Packet Structure</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D4A.tmp.jpg" alt="img"> </p>
-<h4 id="Processing"><a href="#Processing" class="headerlink" title="Processing"></a>Processing</h4><p>收到数据包后先对数据包的magic constant部分进行判断。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D4B.tmp.jpg" alt="img"> </p>
-<p>在发出包之前，我们需要创建一个完整的数据包</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D4C.tmp.jpg" alt="img"> </p>
-<h4 id="Packet-Handlers"><a href="#Packet-Handlers" class="headerlink" title="Packet Handlers"></a>Packet Handlers</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D4D.tmp.jpg" alt="img"> </p>
-<p>其他数据包处理程序继承这个基类。在上面的类中需要注意的两个关键问题是，调度器不仅会在处理程序的构造函数中传递指向自身的指针，而且实际的数据包将被传递给数据包处理程序的ProcessPacket函数。</p>
-<p>一旦数据包被填充完，process handler会采取以下步骤</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D4E.tmp.jpg" alt="img"> </p>
-<p>通过将一个指针传递给相关的包处理程序，该包处理程序可以递归地处理一个新的包。示例XorPacketHandler：</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D4F.tmp.jpg" alt="img"> </p>
-<p>此XOR_PACKET实际上并不执行恶意操作。相反，它充当了一个封装的数据包。当Xor软件包处理程序收到一个数据包时，它将使用XorKey消除XorContent；递归地将XorContent分派为一个新的数据包。</p>
-<p>该模型允许您创建无限的封装层。</p>
-<h4 id="Executing-the-Commands"><a href="#Executing-the-Commands" class="headerlink" title="Executing the Commands"></a>Executing the Commands</h4><p>首先我们需要了解从用户模式上下文执行命令的过程</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D50.tmp.jpg" alt="img"> </p>
-<p>关于内核模式，让我们从创建获取输出所需的管道开始，下面是创建管道在后台所做的事情。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D51.tmp.jpg" alt="img"> </p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414150937355.png" alt="image-20220414150937355"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414151108045.png" alt="image-20220414151108045"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414151134723.png" alt="image-20220414151134723"></p>
-<p>现在我们有了管道，我们需要创建实际的流程。我们将使用<code>ZwCreateUserProcess</code>，因为这是kernelbase.dll使用自己来创建进程的方法。（这一部分在后面详细说）</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414152129288.png" alt="image-20220414152129288"></p>
-<p>我们需要从从进程的属性列表开始，我们必须设置的最重要的属性是<code>PsAttributeImageName</code>。这将指定新进程的映像文件名。</p>
-<p>接下来我们需要为进程填充<code>RTL_USER_PROCESS_PARAMETERS</code>结构，主要填充参数有窗口标志和输出到我们的管道的句柄，当前目录、命令行参数、进程映像路径和默认的桌面名称。这些都封装在函数<code>StartProcess</code>中。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414151508016.png" alt="image-20220414151508016"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414152501417.png" alt="image-20220414152501417"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414151937052.png" alt="image-20220414151937052"></p>
-<p>然后我们就可以用<code>ZwCreateUserProcess</code>开启进程了，一旦进程退出，类似于我们在用户模式下所做的事情，我们可以调用<code>ZwReadFile</code>来从未命名的管道中读取输出。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414152615260.png" alt="image-20220414152615260"></p>
-<h3 id="Finding-Unexported-ZwXx-Functions-Reliably"><a href="#Finding-Unexported-ZwXx-Functions-Reliably" class="headerlink" title="Finding Unexported ZwXx Functions Reliably"></a>Finding Unexported ZwXx Functions Reliably</h3><p>如<code> ZwCreateUserProcess</code>这样的函数，不能被 Windows 内核可靠导出。需要有一种稳定性的方法去寻找到这养的函数。<code> ZwCreateUserProcess</code>函数设置的系统调用号与<code>Ntxx</code>（用户模式下）中的相同，因此可以用后者的系统调用号寻找<code>Zwxx</code>。几乎所有的<code>NtXx</code>实现都惊人的一致，在参数传入后，把系统调用号(在内核寻找真正的处理函数使用)保存至eax内，之后判断cpu是否支持快速调用，<strong>如果支持使用syscall进入内核，反之使用中断门进入内核</strong>，这两种方式除了使用不同的堆栈切换方式和效率外并未有其他本质区别。（还可以看一下这篇<a target="_blank" rel="noopener" href="https://idiotc4t.com/defense-evasion/dynamic-get-syscallid">动态获取系统调用</a>）</p>
-<p>系统调用号在不同的 Windows 版本之间会发生变化; 硬编码系统调用不是一个好的方法。相反，可以选择自己解析 ntll.dll 来提取系统调用号。</p>
-<p>1.rootkit先加载ntdll.dll</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414153415044.png" alt="image-20220414153415044"></p>
-<p>2.我们通过枚举 ntdll.dll 模块的导出地址表(EAT)来找到 NtCreateUserProcess 函数。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414153531952.png" alt="image-20220414153531952"></p>
-<p>3.因为<code>Ntxx</code>函数都是按照以<code>mov r10, rcx``mov eax,[system call number]</code>这样的汇编代码开始的，所以我们很容易提取其系统调用号。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414154142166.png" alt="image-20220414154142166"></p>
-<p><code>Zwxx</code>函数采用的是下列的格式：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">push rax</span><br><span class="line">mov eax, [system call number]</span><br><span class="line">jmp KiServiceInternal</span><br></pre></td></tr></table></figure>
-
-<p>要找到<code>ZwXx</code>函数，我们需要在<code>ntoskrnl.exe</code>的可执行节中搜索上述格式</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414154856315.png" alt="image-20220414154856315"></p>
-<h3 id="Hiding-a-Rootkit"><a href="#Hiding-a-Rootkit" class="headerlink" title="Hiding a Rootkit"></a>Hiding a Rootkit</h3><h4 id="MiniFilter"><a href="#MiniFilter" class="headerlink" title="MiniFilter"></a>MiniFilter</h4><p>微过滤驱动通过过滤管理驱动进行注册来实现拦截特定文件I/O.</p>
-<p>Minifilter可以用于掩盖我们的根工具包在文件系统上的存在。它可以将某一文件的所有文件访问权限定向到另一个文件。我们可以使用此功能将对驱动程序文件的访问重定向到另一个合法的驱动程序。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D52.tmp.jpg" alt="img"> </p>
-<p>利用MiniFilter最简单的方法就是自己成为一个MiniFilter,这个方法的检测向量主要是注册表和内存痕迹，不用担心稳定性和实用性，但是检测比较便宜，除了注册表工件之外，注册为MiniFillter的驱动程序也可以通过<code>FltEnumerateFilters</code>等API轻松枚举。</p>
-<p>第二个方法是Hook一个MiniFilter，有三种方式，第一种是代码Hook现有的过滤器的回调；第二种是在受害驱动程序使用FLT_REFISTRATION结构体获得你自己的回调之前重写该结构；第三种是DKOM（直接<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/%E5%86%85%E6%A0%B8%E5%AF%B9%E8%B1%A1">内核对象</a>操作技术）一个现有的过滤器实例，并用您的替换原始回调。第一种方式虽然简单，但是有很多缺点。对于第三种方式，这是一种半文档化的方法，可以通过<code>FltEnumerateFilters</code>和<code>FltEnumerateInstances</code>这两个API枚举过滤器和实例，为某个操作调用的函数在<code>FLT_INSTANCE</code>结构中的<code>CallBackNodes</code>数组中指定。这种方式会有内存痕迹，对于稳定性来说，虽然获得一个FLT_INSTANCE结构是文档化的，但是FLT_INSTANCE结构它自己不是文档化的，并且检测并不昂贵，反病毒软件需要偶尔枚举注册的过滤器在<code>CallBackNodes</code>数组中的钩子及其实例。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/wps2D53.tmp.jpg" alt="img"> </p>
-<p>在代码中没有找到利用通过微过滤驱动的部分，只看到inf文件中有以下内容，猜测采用的是第一种方法们也就是自己成为一个MiniFilter.</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414164650059.png" alt="image-20220414164650059"></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/10/11/reverse/Maze/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/10/11/reverse/Maze/" class="post-title-link" itemprop="url">buuctf_Maze</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-10-11 00:00:00" itemprop="dateCreated datePublished" datetime="2021-10-11T00:00:00+08:00">2021-10-11</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-22 10:23:35" itemprop="dateModified" datetime="2021-12-22T10:23:35+08:00">2021-12-22</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/buuctf/" itemprop="url" rel="index"><span itemprop="name">buuctf</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>558</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h4 id="Maze"><a href="#Maze" class="headerlink" title="Maze"></a>Maze</h4><p>1.首先PEid查壳，查到是UPX的壳</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse5/image-20211011192051606.png" alt="image-20211011192051606"></p>
-<p>2.UPX脱壳，之前在网上找脱壳工具，但是其实UPX是开源的，在github上下载后，在cmd下执行upx -d yourfile.exe就可以脱壳，拖进IDA是下面的样子，发现f5不能查看伪代码，再看左边的函数栏，没有main函数。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse5/image-20211011195316028.png" alt="image-20211011195316028"></p>
-<p>网上搜索后发现是加了<strong>花程序</strong></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse5/image-20211011195716680.png" alt="image-20211011195716680"></p>
-<p>查看上图的jnz跳转到了下一行代码。相当于没有跳转，接下来的call调用的一个不是地址的地址，网上的方法是将jnz指令nop掉（<u>nop指令也就是控指令，执行的时候不做任何事，有时候可用于短接某些触点或用nop指令将不要的指令覆盖掉</u>）</p>
-<p>3.先将jnz指令nop掉（Edit-&gt;Patch program-&gt;Assemble），因为call后面很有可能事有用的数据，所以用d先转换为数据,jnz后面的也是花指令，所以应该把该数据包的高字节部分也nop掉，但是IDA总是不成功，所以用OD,修改后右键复制到可执行文件，然后右键保存</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse5/image-20211011201009496.png" alt="image-20211011201009496"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse5/image-20211011203812041.png" alt="image-20211011203812041"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse5/image-20211011203847749.png" alt="image-20211011203847749"></p>
-<p>4.拖进IDA反汇编,这个代码逻辑比较简单，wsad其实就是玩游戏的上下左右，</p>
-<p>初始dword_408078=7,dword_40807c = 0,需要经过十四次移动修改两个变量为5和-4，按照迷宫题目的经验应该有地图或者字符。提取出来自己排列一下</p>
-<p>flag{ssaaasaassdddw}</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse5/image-20211012094241147.png" alt="image-20211012094241147"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse5/image-20211012154856963.png" alt="image-20211012154856963"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse5/image-20211012154814391.png" alt="image-20211012154814391"></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/10/10/sample/Dissecting%20APT21%20samples%20using%20a%20step-by-step%20approach/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/10/10/sample/Dissecting%20APT21%20samples%20using%20a%20step-by-step%20approach/" class="post-title-link" itemprop="url">Dissecting APT21 samples using a step-by-step approach</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-10-10 00:00:00" itemprop="dateCreated datePublished" datetime="2021-10-10T00:00:00+08:00">2021-10-10</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-22 14:56:51" itemprop="dateModified" datetime="2021-12-22T14:56:51+08:00">2021-12-22</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%A0%B7%E6%9C%AC%E5%88%86%E6%9E%90/" itemprop="url" rel="index"><span itemprop="name">样本分析</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>6.2k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>6 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>在这篇博文中，详细分析了与名为 APT21 的 APT（高级持续威胁）攻击者相关联的恶意文件（称为“Travelnet”的后门）。 </p>
-<h3 id="Travelnet"><a href="#Travelnet" class="headerlink" title="Travelnet"></a>Travelnet</h3><p>第一个文件是用于将恶意 DLL（NetTraveler 木马）注册为服务的投放程序。 该木马的主要目的是收集有关环境的信息，例如用户名、主机名、主机的 IP 地址、Windows 操作系统版本、CPU 的不同配置、有关内存消耗的信息、进程列表。 </p>
-<p>恶意进程对磁盘以及 USB 驱动器和网络共享上的.doc/.docx/.xls/.xlsx/.txt/.rtf/.pdf 文件感兴趣，以便渗漏它们。在整个感染过程中，会创建多个.ini 配置文件，并且恶意软件还能够在受感染的机器上下载和执行其他文件。数据使用基于Lempel-Ziv的自定义算法进行压缩，并使用修改后的 Base64 算法进行编码，然后再将其泄露到命令和控制服务器。</p>
-<h3 id="1-Dropper"><a href="#1-Dropper" class="headerlink" title="1.Dropper"></a>1.Dropper</h3><p>恶意软件执行的第一步包括创建名为“立即安装服务”的互斥锁（注意空格）。互斥锁用于避免已感染的计算机再次感染</p>
-<pre><code>API:CreateMutexA
-</code></pre>
-<p>创建一个配置文件config_t.dat，配置文件由WritePrivateProfileStringA填充</p>
-<pre><code>API:CreateFileA
-
-    WritePrivateProfileStringA
-</code></pre>
-<p>在恶意代码的精确位置发现加密字节，加密包含了XOR操作，解密结束后发现是URL（C2服务器）</p>
-<p>注意在文件0x334偏移处有一字节表示恶意软件是否用代理，如果是0，配置文件中UP=0,如果是1，UP=1，并且还有PS (proxy address), PP (proxy port), PU (proxy user), PW (proxy password), PF (unknown)</p>
-<p>RegQueryValueExA该函数用来搜索与“HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows NT\CurrentVersion\Svchost”相关联的netsvcs(svchost.exe)的类型和数据</p>
-<pre><code>API:RegQueryValueExA
-</code></pre>
-<p>恶意文件枚举主机上所有可用的服务，将其与硬编码列表中的进行比较，第一个系统上没有的服务便被用来当作恶意目的。策略：枚举所有服务相对应的键值，查看服务是否被安装。第一个没被安装的服务是FastUserSwitchingCompatibility, RegOpenKeyExA 用于检查服务是否存在。</p>
-<p>与该服务相关联的dll将被删除，然后一个同名服务将被创建冒充为合法服务，服务的二进制路径为%SystemRoot%\System32\svchost.exe-k netsvcs，可以在网址<a target="_blank" rel="noopener" href="https://lolbas-project.github.io/%E6%9F%A5%E7%9C%8B%E5%88%B0%E6%9B%B4%E5%A4%9A%E7%9A%84%E5%90%88%E6%B3%95%E8%BF%9B%E7%A8%8B%E5%92%8Cdll%E3%80%82">https://lolbas-project.github.io/查看到更多的合法进程和dll。</a></p>
-<pre><code>API:RegOpenKeyExA
-
-    DeleteFileA
-
-    CreateServiceA
-</code></pre>
-<p>在该服务下方一个新的键值parameters被创建，这个键值被用来将恶意dll注册为一个服务.</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample4/wpsEE81.tmp.png">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample4/wpsEE81.tmp.png</a>) </p>
-<p>进程创建一个temp.bat的空文件作为初始可执行文件，该文件的目的是通过添加ServiceDll条目，将前面恶意程序删除后重新创建的dll注册为服务。因为文件时重新创建的，所以为了不引起怀疑，<strong>修改时间戳是一种规避技术。</strong></p>
-<p>现在这个dll中都是恶意代码，甚至路径看起来都是合法的。<strong>将DLL文件注册为服务是一种持久性机制。</strong>使用StartServiceA启动新创建的服务，并将执行流传递给DLL导出函数ServiceMain：</p>
-<pre><code>API:RegCreateKeyA
-
-    WriteFileA
-
-    StartServiceA
-</code></pre>
-<h3 id="2-DLL-File"><a href="#2-DLL-File" class="headerlink" title="2.DLL File"></a>2.DLL File</h3><p>恶意软件执行的第一个步骤之一是调用GetProcessWindowsStation，该API返回当前窗口的句柄，然后使用OpenWindowsStationA打开交互式窗口Winsta0。进程使用setProcessWindowsStation函数将指定的窗口Winsta0分配给调用进程，该窗口是唯一的交互式窗口（服务应该是交互式的）。与之前一样，这个进程也会创建一个互斥锁，如果存在，将会退出而不重新感染主机。</p>
-<pre><code>API:GetProcessWindowsStation
-
-    OpenWindowsStationA
-
-    setProcessWindowsStation
-
-    CreateMutexA
-</code></pre>
-<p>它从由第一个进程创建的配置文件config_t.dat中检索几个元素：WebPage、DownCmdTime、UploadRate、AutoCheck、UP和CheckedSuccess（此时不存在，因此函数返回0）。使用GetPrivateProfileString和GetPrivateProfileInt提取所有值。</p>
-<pre><code>API:GetPrivateProfileString
-
-    GetPrivateProfileInt
-</code></pre>
-<p>进程会创建一个与执行文件同名的log文件，该文件会枚举C:\ProgramFile(x86) 下的路径，并将输出复制到新创建的文件中</p>
-<pre><code>API:CreateFileA
-</code></pre>
-<p>恶意软件正在查找名为“C:\Users&lt;Username&gt;\AppData\Local\Microsoft\Windows\History\History.IE5\index.dat”的文件，该文件包含Internet浏览历史活动，包括基于Internet的搜索和打开的文件.故恶意软件打开注册键Shell Folders并提取History值，以及从Internet Explorer键中提取Version值，获得的信息附加到log文件中（包括操作系统版本）</p>
-<pre><code>API:RegOpenKeyExA
-
-    RegQueryValueExA
-
-    GetVersionExA
-</code></pre>
-<p>网络通信中使用的用户代理始终设置为“Mozilla/4.0（compatible; MSIE 6.0）”。还有一个Accept 请求HTTP标头。该进程尝试连接到<a target="_blank" rel="noopener" href="http://www.microsoft.com/info/privacy_security.htm">http://www.microsoft.com/info/privacy_security.htm</a> （此URL过去可用）以验证是否存在网络连接，如果成功，也会把相应的信息输出到log文件。</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample4/wpsEE82.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample4/wpsEE82.tmp.jpg</a>) </p>
-<pre><code>API:InternetOpenA
-
-    HttpOpenRequestA
-</code></pre>
-<p>如果连接不成功，进程会找到explorer.exe并试图打开。基本上，攻击者的目的是<strong>通过调用OpenProcessToken来窃取explorer.exe进程令牌，以打开与explorer.exe关联的访问令牌，然后使用ImpersonateLoggedOnUser函数模拟用户的安全上下文</strong>。</p>
-<pre><code>API:Process32First 
-
-    Process32Next
-
-    OpenProcess
-
-    OpenProcessToken
-
-    ImpersonateLoggedOnUser
-</code></pre>
-<p>该进程使用RegOpenKeyExA打开“HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Internet Settings”注册表项，然后提取ProxyEnable值以查看计算机是否使用代理服务器，并且提取ProxyServer(网络上代理服务器的主机名/IP)和ProxyOverride(绕过代理服务器的主机名/IP)。收集到这些信息后，再次连接同样地URL，成功后会将信息输出到log文件。</p>
-<pre><code>API:RegOpenKeyExA
-</code></pre>
-<p>如果该方法奏效，恶意程序会修改config_t.dat文件中地值，如果失败就会将失败信息记录在log文件，一共会尝试四次方法。如果所有方法都失败了，感染就会停止，并且会执行一些自我删除操作。</p>
-<p>如果有一个方法奏效，那么恶意软件会休眠一分钟，然后创建一个线程1，再休眠十秒创建一个线程2</p>
-<h4 id="2-1-Thread1"><a href="#2-1-Thread1" class="headerlink" title="2.1 Thread1"></a>2.1 Thread1</h4><p>首先，线程检索与“C:\”目录关联的卷序列号（“A2C9-AD2F”）。该序列号将用作与C2服务器通信时的主机id。此外，它还查找计算机的NETBIOS名称，与当前线程关联的用户名，检索计算机的主机名，使用gethostbyname/inet\n函数打印计算机的IP地址。枚举可用的磁盘驱动器，它感兴趣的是类型3。获取系统物理和虚拟内存，除此以外还获取了其他的键值信息，并将目前为止提取地信息存储在system_t.dll中，以便对其进行过滤。</p>
-<p>下一步是<strong>创建管道，用作进程间通信机制，创建一个新的进程“ipconfig/all”,输出将通过管道传输回原始流程。</strong></p>
-<pre><code>API:getVolumeInformation
-
-    GetComputerNameA
-
-    GetUserNameA
-
-    gethostname
-
-    GetLogicalDrivers
-
-    GetDriverTypeA
-
-    GlobalMemoryStatus
-
-    CreatePipe
-
-    CreateProcessA
-
-    ......
-</code></pre>
-<p>恶意软件使用GetPrivateProfileInt函数检查config_t.dat中的UP值。根据卡巴斯基报告，system_t.dll文件的内容将使用基于Lempel-Ziv的自定义算法进行压缩，并使用修改后的Base64算法进行编码。</p>
-<p>编码后地数据通过一个向vipmailru[.]com（C2服务器）的GET请求进行过滤。如果服务器返回成功，那么就过滤成功，恶意程序会删除system_t.dll文件，进程会执行另一个GET请求（参数包含action = getcmd），请求的结果有相应的开头和结束的格式，在开头结束中间的数据会被保存在stat_t.ini。进程会再执行一个GET请求（参数包含action = gotcmd）</p>
-<p>如前所述，如果一切正常，则文件需要包含“Success”字符串的HTTP响应。进程正在删除一个名为“C:\Windows\SysWOW64\dnlist.ini”的文件，该文件目前不存在。该文件将创建，并使用以下数据填充该文件：</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample4/wpsEE83.tmp.png">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample4/wpsEE83.tmp.png</a>) </p>
-<p>删除文件stat_t.ini，然后调用GetACP，该API返回操作系统的当前Windows ANSI代码页标识符。因为在dnlist.ini中ScanAll的值为True，所以恶意软件扫描所有可用的磁盘驱动器，然后将它们的类型与3（固定驱动器）或4（远程驱动器）进行比较。枚举所有文件以及路径，路径记录命名为dn，文件命名为fn，如下图，保存在enumfs.ini。这样针对c:\的操作是递归的，并应用于每个目录。枚举完成后发送给服务器。</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample4/wpsEE84.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample4/wpsEE84.tmp.jpg</a>) </p>
-<pre><code>API:GetLogicalDrivers
-
-    GetDriverTypeA
-</code></pre>
-<p>恶意进程试图打开目前不存在的uenumfs.ini，然后枚举在“C:\User<Username>\AppData\Local\Temp\ntvba00.tmp\”中找到的文件。此特定目录将由Thread2创建，并包含已选择要导出到C2服务器的所有文件。现在该进程再次使用参数“action=getdata”联系 C2 服务器。 它需要以下响应之一：“A2C9AD2F:UNINSTALL”、“A2C9AD2F:UPDATE”、“A2C9AD2F:RESET”或“A2C9AD2F:UPLOAD”（注意“A2C9AD2F”是之前提取的卷序列号）</p>
-<p><strong>Case1：UNINSTALL</strong></p>
-<p>删除相应键值，并且删掉enumfs.ini、dnlist.ini、udidx.ini、uenumfs.ini、stat_t.ini文件，C2服务器通过执行带有“action=updated”参数的GET请求得知操作已完成。</p>
-<p><strong>Case2：UPDATE</strong></p>
-<p>删除上述的同样的键值以及文件，使用“action=datasize”参数向C2服务器发出GET请求，如果一切正常,HTTP响应应包括“Success:”.恶意软件会下载一个update.exe的文件。</p>
-<p>下载文件的字节与“MZ”（Windows中可执行文件、DLL文件的格式）进行比较，并且它还查找特定偏移量处的“PE”字符串。下载的文件保存为“C:\Windows\install.exe”，并由恶意进程运行。然后执行同样的GET请求表示操作已完成。</p>
-<p><strong>Case3：RESET</strong></p>
-<p>同样删除ini文件，然后执行同样的GET请求表示操作已完成。</p>
-<p><strong>Case4：UPLOAD</strong></p>
-<p>此情况与UPDATE相同，不同之处在于未删除任何文件/注册表项。</p>
-<p>在执行流通过所有案例后，流程休眠60秒，然后返回到循环中。</p>
-<h4 id="2-2-Thread2"><a href="#2-2-Thread2" class="headerlink" title="2.2 Thread2"></a>2.2 Thread2</h4><p>主要是一些窗口的操作，恶意软件对参数为DBT_DEVICEARRIVAL（0x8000）的WM_DEVICECHANGE（0x219）消息感兴趣，<strong>这意味着有插入了新的USB驱动器或系统上安装了网络共享文件夹这样的事件</strong>。</p>
-<p>从dnlist.ini解析的USearch和UTypeLimit值应设置为True，dnlist.ini中的UAuto值也应设置为False（这可能表明是否应自动过滤目标文件）。攻击者还对Types参数（目标扩展）感兴趣，稍后我们将了解原因。其想法是<strong>扫描插入的每个设备以及主机上安装的网络共享，并在uenumfs.ini文件中创建一个“文件系统”结构（就像在Thread1中所做的那样）</strong></p>
-<p>与第一种情况一样，此搜索将递归地应用于驱动器上找到的每个目录。该进程创建一个“C:\Users&lt;Username&gt;\AppData\Local\Temp\ntvba00.tmp\”目录，其属性设置为hidden。还将创建以下文件：“C:\Windows\SysWOW64\uenumfs.ini”（其内容将类似于enumfs.ini）。进程还会比较文件的后缀，并且为符合文件格式的文件计算一个HASH值（文件名和最后修改时间）。文件会被复制到tmp的文件夹下，并以新的文件名命名（hidden file–year-month-day-hour-minute-5f7a78e7927532ba2a930ec8d47e252a）</p>
-<p>该进程将创建“C:\Windows\SysWOW64\udidx.ini”文件，并将添加所有按照前面说明计算的哈希，新文件的最后修改时间戳设置为从初始文件提取的值。</p>
-<p>最后，该文件使用DefWindowProcA API来确保应用程序不处理的窗口消息具有默认处理功能。</p>
-<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><p><a target="_blank" rel="noopener" href="https://cybergeeks.tech/dissecting-apt21-samples-using-a-step-by-step-approach/">https://cybergeeks.tech/dissecting-apt21-samples-using-a-step-by-step-approach/</a></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/09/15/wkp/Chapter%206%20kernel%20Mechanisms/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/09/15/wkp/Chapter%206%20kernel%20Mechanisms/" class="post-title-link" itemprop="url">Chapter 6 kernel Mechanisms</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-09-15 00:00:00" itemprop="dateCreated datePublished" datetime="2021-09-15T00:00:00+08:00">2021-09-15</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-05-16 17:23:14" itemprop="dateModified" datetime="2022-05-16T17:23:14+08:00">2022-05-16</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">驱动开发</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>9.4k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>9 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h3 id="中断请求级别（IRQL）"><a href="#中断请求级别（IRQL）" class="headerlink" title="中断请求级别（IRQL）"></a>中断请求级别（IRQL）</h3><p>前面提到了线程和线程的优先级，当想要执行的线程比可用的处理器更多时，就会考虑到这些优先级。同时，硬件设备需要通知系统有什么事情需要注意。一个简单的例子是由磁盘驱动器执行的I/O操作。一旦操作完成，磁盘驱动器将通过请求中断来通知完成。此中断连接到中断控制器硬件，该硬件随后将请求发送到处理器进行处理。下一个问题是，哪个线程应该执行关联的中断服务例程(ISR)？</p>
-<p>每个硬件中断都与一个优先级相关，称为中断请求级(IRQL)。每个处理器的上下文都有自己的IRQL，就像任何寄存器一样。IRQL应该像任何其他CPU寄存器一样被处理。</p>
-<p>其基本规则是，处理器要执行具有最高IRQL的代码。例如，如果一个CPU的IRQL在某个点为零，并且会出现一个相关IRQL为5的中断；将其状态（上下文）保存在当前线程的内核堆栈中，将其IRQL提升到5，然后执行与中断关联的ISR；一旦ISR完成，IRQL将降到它以前的级别，恢复之前执行的代码，就好像中断不存在一样。当ISR正在执行时，其他IRQL为5或更少的中断不能中断该处理器。但是，如果新中断的IRQL高于5，CPU将再次保存其状态，将IRQL提升到新级别，执行与第二个中断相关的第二个ISR，完成后，将回落到IRQL5，恢复其状态并继续执行原始ISR。本质上，只是暂时提高与IRQL相等或较低的IRQL块代码。中断发生时事件的基本序列。</p>
-<p><strong>一句话概括就是，当优先级别高的中断来临时，处在优先级低的中断处理程序会被打断，进入到更高级别的中断处理函数。</strong></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps697F.tmp.jpg" alt="img"> </p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6980.tmp.jpg" alt="img"> </p>
-<p>上面两个图描述的场景中，所有ISR的执行都是由首先被中断的同一线程完成的。Windows没有一个特殊的线程来处理中断；它们都由当时在被中断的处理器上运行的任何线程来处理。当处理器的IRQL为2或更高时，上下文切换是不可能的，所以在这些ISR执行时，其他线程无法偷偷溜进来。</p>
-<p>下面有一些重要的IRQL（<strong>0-2为软件中断，3-31为硬件中断</strong>）:</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6991.tmp.jpg" alt="img"> </p>
-<p>其中Device IRQL用于硬件中断的一系列级别（x64/ARM/ARM64为3至11，x86为3至26）。最高级别HIGH_LEVEL被处理链表操作的一些API所使用。实际值分别为15（x64/ARM/ARM64）和31（x86）。</p>
-<p>用户模式的代码是运行在最低优先级的PASSIVE_LEVEL级别。驱动程序的DiverEntry、派遣函数等也是运行在该级别，他们可以在必要时申请进入DISPATCH_LEVEL。驱动程序的StartIO函数和DPC函数以及windows负责线程调度的组件都是运行在DISPATCH_LEVEL。</p>
-<p>当处理器的IRQL被提高到2或更高时，都会对执行代码施加某些限制：</p>
-<ul>
-<li><p>分页内存随之可能会从物理内存交换到磁盘文件。访问非物理内存中的内存，会引发一个页故障，从而执行这个异常的处理函数。说明从非分页池访问数据总是安全的，而从分页池或用户提供的缓冲区访问数据则不安全，应该避免。</p>
-</li>
-<li><p>等待任何调度程序内核对象（例如互斥锁或事件）会导致系统崩溃，除非等待超时为零，这仍然是允许的。</p>
-</li>
-</ul>
-<p>如果在高于缺页中断的中断优先级上再发生缺页中断，内核就会崩溃。<strong>所以在DISPATCH_LEVEL级别以上，绝对不能使用分页内存</strong>，一旦使用分页内存，就有发生缺页中断的可能，这样会导致内核崩溃。</p>
-<p><strong>提一下分页和非分页内存：</strong>分页内存是指，暂时不会被用到的虚拟内存页面的内容，可以存储在磁盘倒换文件中，在需要时，可以将磁盘文件中的内容导入到物理内存中，暂时不用时，可以倒换到磁盘文件中。非分页内存是指虚拟内存映射到的物理内存是常驻在物理内存中，不可以被交换到磁盘文件中。</p>
-<h4 id="提升或降低IRQL"><a href="#提升或降低IRQL" class="headerlink" title="提升或降低IRQL"></a>提升或降低IRQL</h4><p>在内核模式下，IRQL可以用<code>KeRaiseIrql</code>函数来提高，然后用<code>KeLowerIrql</code>来降低。下面是一个代码片段，它将IRQL提升到DISPATCH_LEVEL（2），然后在这个IRQL上执行一些指令后将其降低回来。(**note:**如果提高了IRQL，请确保在相同的函数中降低它。此外，确保KeRaiseIrql与KeLowerIrql是否真的实现了IRQL的提升与降低否则，系统就会崩溃。)</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6992.tmp.jpg" alt="img"> </p>
-<h4 id="线程优先级vsIRQL"><a href="#线程优先级vsIRQL" class="headerlink" title="线程优先级vsIRQL"></a>线程优先级vsIRQL</h4><p>IRQL是一个处理器的一个属性。优先级是一个线程的一个属性。线程优先级只针对应用程序而言，是指某线程是否有更多的机会运行在CPU上，所以仅在IRQL&lt;2上有意义。一旦一个正在执行的线程将IRQL提高到2或更高，它的优先级就不再意味着任何东西。理论上它将继续执行，直到它将IRQL降低到2以下。</p>
-<h4 id="延迟过程调用"><a href="#延迟过程调用" class="headerlink" title="延迟过程调用"></a>延迟过程调用</h4><p>延迟过程调用(DPC)是Windows的机制，允许高优先级任务如中断处理程序延迟所需的低优先级任务稍后执行。这使得设备驱动程序与其他低层事件消费者更快地执行其处理的高优先级部分，调度非关键的附件处理稍后以较低优先级执行。</p>
-<p>用一个实例说明一下</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6993.tmp.jpg" alt="img"> </p>
-<p>用户模式线程将打开一个文件的句柄，并使用ReadFile函数执行读取操作。由于该线程可以进行异步调用，因此它几乎会立即恢复控制，并可以执行其他工作。接收此请求的驱动程序调用文件系统驱动程序(例如NTFS)，它可以调用它下面的其他驱动程序，直到请求到达磁盘驱动程序，该驱动程序在实际的磁盘硬件上启动操作。</p>
-<p>当硬件完成读取操作时，它会发出一个中断。这将导致与该中断相关联的ISR在Device IRQL上执行（请注意，处理该请求的线程是任意的，因为该中断是异步到达的）。一个典型的ISR会访问设备的硬件，以获得操作的结果。它的最后操作应该是完成最初的请求。</p>
-<p>完成请求是通过调用IoCompleteRequest。但是有一个问题是该函数只能在IRQL&lt;= DISPATCH_LEVEL(2)的情况下被调用，这一位置ISR不能调用该函数，那么ISR做什么呢？</p>
-<p>允许ISR尽快调用IoCompleteRequest（以及其他具有类似限制的函数）的机制是<strong>延迟过程调用(DPC)。DPC是一个用于封装函数的对象，封装的函数函数在DISPATCH_LEVEL调用。</strong>在这个IRQL中，允许调用IoCompleteRequest。</p>
-<p>DPC是通过DPC对象实现的。当设备驱动程序或其他内核态程序发出DPC请求时，操作系统内核创建DPC对象，投寄到DPC队列尾部。当Windows操作系统的<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/IRQL">IRQL</a>降低到Dispatch/DPC级，操作系统检查DPC队列，逐个执行挂起的DPC，直至队列为空或者发生IRQL更高的中断。</p>
-<p>注册了ISR的驱动程序提前准备了一个DPC(从非分页池分配KDPC结构，并使用回调函数KeInitializeDpc初始化它)；然后，当调用ISR时，就在退出该函数之前，ISR请求DPC通过KeInsertQueueDpc排队来尽快执行它。当DPC函数执行时，它会调用IoCompleteRequest。所以DPC作为一种妥协——它运行在IRQL DISPATCH_LEVEL(2)上，这意味着不会发生调度，没有分页内存访问，等等。</p>
-<p>Note:默认情况下，KeInsertQueueDpc将DPC排队到当前处理器的DPC队列。<strong>当ISR返回时</strong>，在IRQL可以降回到零之前，将检查在处理器的队列中是否存在DPC。如果有，处理器下降到IRQLDISPATCH_LEVEL（2），然后以FirstInFirstOut(FIFO)的方式处理队列中的DPC，调用各自的函数，直到队列为空。只有这样，处理器的IRQL才能降至零，并恢复执行在中断到达时被干扰的原始代码。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6994.tmp.jpg" alt="img"> </p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6995.tmp.png" alt="img"> </p>
-<h4 id="异步过程调用"><a href="#异步过程调用" class="headerlink" title="异步过程调用"></a>异步过程调用</h4><p>APCs也是封装要调用的函数的数据结构，但是与DPC相反，APC的目标是特定的线程，因此只有该线程才能执行该函数。这意味着每个线程都有一个与其关联的APC队列。</p>
-<p>有几种类型的APC:</p>
-<p>用户模式APCs:只有当线程进入可警报状态时，这些操作才会在PASSIVE_LEVEL的用户模式下执行。这通常是通过调用一个API来实现的，如SleepEx,WaitForSingleObjectEx, WaitForMultipleObjectsEx和类似的API。可以将这些函数的最后一个参数设置为TRUE，以使线程处于可警报状态（等待状态）。在这种状态下，它会查看它的APC队列，如果不是空的，则APC执行，直到队列为空。</p>
-<p>正常的内核模式APCs:这些操作在PASSIVE_LEVEL（0）的内核模式下执行，抢占用户模式代码和用户模式APCs。</p>
-<p>特殊的内核APCs：这些操作在APC_LEVEL（1）的内核模式下执行，并抢占用户模式代码、普通内核APCs和用户模式APCs。I/O系统使用这些APCs来完成I/O操作。</p>
-<h5 id="Critical-Regions-and-Guarded-Regions"><a href="#Critical-Regions-and-Guarded-Regions" class="headerlink" title="Critical Regions and Guarded Regions"></a>Critical Regions and Guarded Regions</h5><p>Critical Region阻止用户模式和正常的内核APC执行（特殊的内核APC仍然可以执行）。线程通过KeEnterCriticalRegion\KeLeaveCriticalRegion进入\离开一个关键区域。内核中的一些函数需要在一个关键区域内，特别是在使用执行资源时（请参阅本章后面的“执行资源”一节）。</p>
-<p>Guarded Region可阻止所有APCs的执行。线程通过KeEnterGuardedRegion\KeLeaveGuardedRegion进入\离开一个保护区域。两个函数调用数量必须相同。</p>
-<p>**note:**将IRQL提高到APC_LEVEL将禁用所有apc的交付。</p>
-<h3 id="结构化异常处理（SEH）"><a href="#结构化异常处理（SEH）" class="headerlink" title="结构化异常处理（SEH）"></a>结构化异常处理（SEH）</h3><p>异常与中断有些相似，主要的区别是异常是同步的，并且在技术上具有可重复性。如果发生异常，内核会捕获此异常，并允许如有可能的代码处理异常。这种机制称为**结构化异常处理(SEH)**，可用于用户模式代码和内核模式代码。</p>
-<p>内核异常处理程序是基于**中断调度表(IDT)**调用的，该表还支持中断向量和ISR之间的映射。</p>
-<p>常见的异常：</p>
-<p>Division by zero (0) ;</p>
-<p>Breakpoint (3):内核透明地处理它，将控制件传递给附加的调试器;</p>
-<p>Invalid opcode (6):如果CPU遇到未知指令，则会引发此故障;</p>
-<p>Pagefault(14):如果用于将虚拟地址转换为物理地址的页面表条目将有效位设置为零，这表示(就CPU而言)该页面没有驻留在物理内存中，则CPU会引发此故障。</p>
-<p>由于以前的CPU故障，内核还引发了其他一些异常。例如，如果引发了页面故障，则内存管理器的页面故障处理程序将尝试找到未驻留在RAM中的页面—如果该页面根本不存在，则内存管理器将引发访问冲突异常—一旦引发异常，内核将为处理程序搜索发生异常的函数（除了它透明处理的一些异常，如断点（3））—如果没有找到，它将向上搜索<strong>调用堆栈</strong>，直到找到这样的处理程序—如果调用堆栈已耗尽，则系统将会崩溃。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6996.tmp.jpg" alt="img"> </p>
-<h4 id="try-except"><a href="#try-except" class="headerlink" title="__try/__except"></a>__try/__except</h4><p>下图是关于第四章的读取用户模式缓冲区的部分，如果因为缓冲区没有数据这样的错误，造成系统崩溃就不好了。Except中的EXCEPTION_EXECUTE_HANDLER表明任何一场都会被处理，也可以调用GetExceptionCode函数查看实际的异常，如果不能，可以告诉内核继续寻找调用堆栈上的处理程序：</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6997.tmp.jpg" alt="img"> </p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6998.tmp.jpg" alt="img"> </p>
-<p>非法访问是只有当被禁止访问的地址在用户空间中时才能被捕获。如果它位于内核空间中，那么它将不会被捕获，并且仍然会导致系统崩溃。这应该是有意义的，因为已经发生了一些不好的事情，而且内核不会让驱动程序侥幸逃脱惩罚。另一方面，用户模式地址不受驱动程序的控制，因此可以捕获和处理这种异常。</p>
-<p>驱动程序（和用户模式代码）也可以使用SEH机制来抛出自定义异常。内核提供了泛型函数ExRaiseStatus，以引发任何异常和一些特定的函数如ExRaiseAccessViolation。</p>
-<h4 id="try-finally"><a href="#try-finally" class="headerlink" title="__try/__finally"></a>__try/__finally</h4><p>这是关于确保某些代码无论如何都能执行——代码是干净地退出还是由于异常而中途退出。SEH的异常结束处理模型主要由try-finally语句来完成。终止处理就是保证应用程序在一段被保护的代码发生中断后（无论是异常还是其他）还能够执行清理工作，清理工作包括关闭文件、清理内存等。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps6999.tmp.jpg" alt="img"> </p>
-<p>如上面的例子，如果在分配和释放之间由return语句或者有异常，那么资源将不会被释放，这个时候就需要用到__try/__finally，确保能执行释放操作。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps699A.tmp.jpg" alt="img"> </p>
-<p>这样的话即使__try结构中有return语句，也会在__finally区块调用完再返回。如果发生异常，__finally块首先运行，然后内核在调用堆栈中搜索处理程序。</p>
-<h4 id="用c-RAII替代-try-finally"><a href="#用c-RAII替代-try-finally" class="headerlink" title="用c++ RAII替代__try/__finally"></a>用c++ RAII替代__try/__finally</h4><p>RAII（资源获取就是初始化），是C++语言的一种管理资源、避免泄漏的惯用法。C++标准保证任何情况下，已构造的对象最终会销毁，即它的析构函数最终会被调用。</p>
-<h4 id="系统崩溃"><a href="#系统崩溃" class="headerlink" title="系统崩溃"></a>系统崩溃</h4><p>我们已经知道，如果在内核模式下发生未处理的异常，系统就会崩溃，通常是“死亡蓝屏”。在本节中，我们将讨论当系统崩溃时会发生什么，以及如何处理它。</p>
-<p>BSOD是一种保护机制，如果泵应该被信任的内核代码做了一些无法预料的坏事，那么停止一切，避免一些重要的文件或者注册表项损坏，是最安全的方法。</p>
-<p>如果系统崩溃，则可以将事件条目写入事件日志。<strong>最重要的设置是生成转储文件。</strong>转储文件会捕获崩溃时的系统状态，因此以后可以通过将转储文件加载到调试器中来进行分析。转储不是在崩溃时写入目标文件的，而是写入第一页文件的。只有当系统重新启动内核时，当系统注意到页面文件中存在转储信息时，它才会将数据复制到目标文件中。其原因与在系统崩溃时，将某些东西写入一个新文件可能太危险有关；系统可能不够稳定。最好的办法是将数据写入已经以任何方式打开的页面文件。缺点是，页面文件必须足够大，才能包含转储，否则将不会写入转储文件。内存转储主要有：小内存转储、内核内存转储、完整内存转储</p>
-<p>、自动内存转储、灵活内存转储（win10+：这类似于一个完整的内存转储，除了如果崩溃的系统托管客户虚拟机，它们当时使用的内存不会被捕获。这有助于减少可能托管许多虚拟机的服务器系统上的转储文件大小。）</p>
-<h5 id="崩溃dump信息"><a href="#崩溃dump信息" class="headerlink" title="崩溃dump信息"></a>崩溃dump信息</h5><p>一旦您有了崩溃转储，您可以通过选择文件/打开转储文件并导航到该文件，在WinDbg中打开它。</p>
-<h5 id="分析一个dump文件"><a href="#分析一个dump文件" class="headerlink" title="分析一个dump文件"></a>分析一个dump文件</h5><p>~ns命令用来切换处理器，!running列出崩溃时在所有处理器上运行的线程,添加-t作为一个选项，将显示每个线程的调用堆栈。</p>
-<p>!stacks命令列出了所有线程的所有线程堆栈。一个更有用的变体是一个搜索字符串，它只列出了包含该字符串的模块或函数出现的线程。这允许在整个系统中定位驱动程序的代码（因为它在崩溃时可能还没有运行，但它在某些线程的调用堆栈上）。</p>
-<h4 id="系统挂起"><a href="#系统挂起" class="headerlink" title="系统挂起"></a>系统挂起</h4><p>系统崩溃是通常被调查的最常见的转储类型。但是，您可能需要使用另一种类型的转储文件：一个挂起的系统。一个挂起的系统是一个无响应的或接近无响应的系统。事情似乎在某种程度上被停止或被锁定——系统不会崩溃，所以我们要处理的第一个问题是如何转储系统？</p>
-<p>Note：转储文件包含某些系统状态，它不必与崩溃或任何其他坏状态相关。有一些工具（包括内核调试器）可以随时生成转储文件。</p>
-<h5 id="线程同步"><a href="#线程同步" class="headerlink" title="线程同步"></a>线程同步</h5><p>一个比较好的例子是一个驱动用链接列表去收集数据列表，因为该驱动程序可以被来自一个或多个进程中的多个线程的多个客户端调用，所以对于数据的访问操作涉及到了线程之间的同步互锁操作。</p>
-<h5 id="互锁操作"><a href="#互锁操作" class="headerlink" title="互锁操作"></a>互锁操作</h5><p>互锁函数集提供了利用硬件原子执行的方便操作，这意味着不涉及软件对象。如果使用这些函数可以完成工作，那么应该使用它们，因为它们可以尽可能有效。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps699B.tmp.jpg" alt="img"> </p>
-<h5 id="调度对象"><a href="#调度对象" class="headerlink" title="调度对象"></a>调度对象</h5><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps699C.tmp.jpg" alt="img"> </p>
-<p>Objects：指定要等待的对象。请注意，这些函数适用于对象，而不是句柄。如果您有一个句柄（可能由用户模式提供），请调用对象对象句柄以获取指向该对象的指针。</p>
-<p>WaitReason：等待原因的列表很长，但是驱动程序通常应该将其设置为Executive，除非它因为用户请求而等待，如果是这样，请指定UserRequest。</p>
-<p>WaitMode：大多数驱动程序应该指定KernelMode。</p>
-<p>Alertable：指示线程是否处于可警报状态。可警报状态允许传递用户模式异步过程调用(APC)。如果等待模式为用户模式，则可以交付用户模式apc。大多数驱动程序都应该指定false。</p>
-<p>Timeout：指定要等待的时间。如果指定了NULL，等待是无限的，只要对象成为信号。</p>
-<p>Count：要等待运行的对象数。</p>
-<p>Object[]：要等待的对象指针数组。</p>
-<p>WaitType：指定是等待所有对象同时发出信号(WaitAll)还是仅等待一个对象(WaitAny)。</p>
-<p>WaitBlockArray：内部用于管理等待操作的结构数组。如果对象的数量是&lt;=THREAD_WAIT_OBJECTS（当前为3），那么这是可选的——内核将使用每个线程中存在的内置数组。如果对象数量较高，驱动程序必须从非分页池中分配正确的结构大小，并在等待结束后解除它们。</p>
-<p>KeWaitForSingleObject返回值：</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps699D.tmp.jpg" alt="img"> </p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps699E.tmp.jpg" alt="img"> </p>
-<h5 id="Mutex"><a href="#Mutex" class="headerlink" title="Mutex"></a>Mutex</h5><p>互斥锁是许多可以随时访问共享资源的一个线程中的一个典型问题的经典对象。互斥锁在空闲时就会发出信号。一旦线程调用等待函数并满足等待，互斥锁就会变成无信号，线程就会成为互斥锁的所有者。</p>
-<p>Note： 如果线程是互斥的所有者，它是唯一可以释放互斥的线程。</p>
-<p>互斥锁可以通过同一线程多次获取。第二次尝试会自动成功，因为该线程是互斥锁的当前所有者。这也意味着线程需要以它所获得的相同的次数来释放互斥锁；只有这样，互斥锁才会再次获得自由（发出信号）。</p>
-<p>使用互斥锁需要从非页面池中分配一个KMUTEX结构。</p>
-<p>KeInitializeMutex必须调用一次初始化mutex；</p>
-<p>等待函数之一传递已分配的KMUTEX结构的地址；</p>
-<p>KeReleaseMutex：当作为互斥锁的所有者的一个线程想要释放它时，就会调用它。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps69AF.tmp.jpg" alt="img"> </p>
-<p>因为无论什么时候释放互斥锁都很重要，所以最好使用__tay/__finally，更方便的方式是c++的RAII。</p>
-<h5 id="Fast-Mutex"><a href="#Fast-Mutex" class="headerlink" title="Fast Mutex"></a>Fast Mutex</h5><p>快速互斥体是典型的互斥锁的替代品，提供更好的性能。它不是一个调度对象，所以它有自己的获取和释放互斥锁的API。<strong>只能用于内核模式。</strong>与常规的互斥锁相比，它具有以下特征：</p>
-<p>不能递归地获取一个Fast Mutex，这样做会导致死锁；</p>
-<p>当获得Fast Mutex时，CPU IRQL被提升到APC_LEVEL（1），这将阻止任何APC传递到该线程；</p>
-<p>Fast Mutex只能无限期地等待-没有办法指定超时。</p>
-<p>Fast Mutex比常规Mutex速度稍快。<strong>事实上，大多数需要互斥锁的驱动程序使用</strong>Fast Mutex<strong>，除非有令人信服的理由使用常规</strong>Mutex.</p>
-<p>结构体：FAST_MUTEX，函数：ExInitializeFastMutex、ExAcquireFastMutex、ExAcquireFastMutexUnsafe、ExReleaseFastMutex、ExReleaseFastMutexUnsafe。</p>
-<h5 id="信号量"><a href="#信号量" class="headerlink" title="信号量"></a>信号量</h5><p>通常KeInitializeSemaphore初始化为最大值，当值大于零时，信号量为有信号。</p>
-<h5 id="事件"><a href="#事件" class="headerlink" title="事件"></a>事件</h5><p>事件主要分为两种：需要手动重置的以及自动重置的。</p>
-<p>通知事件（手动重置）—设置此事件时，将释放任意数量的等待线程，并且事件状态保持设置（信号），直到明确重置。</p>
-<p>同步事件（自动重置）—设置此事件时，最多释放一个线程（无论有多少线程等待事件），一旦释放，事件将自动返回重置（无信号）状态。</p>
-<p>操作和用户模式雷同，不过函数需要加Ke前缀。</p>
-<h5 id="执行资源"><a href="#执行资源" class="headerlink" title="执行资源"></a>执行资源</h5><p>互斥锁虽然保证的资源不被破坏，但是是以牺牲并发性为代价，遇上只需要进行读取的线程操作，这样效率就降低了很多。</p>
-<p>内核提供了另一个面向此场景的同步原语，称为单个写入器、多个阅读器。此对象是<strong>执行资源</strong>，它是另一个特殊对象，它不是调度程序对象。</p>
-<p>结构：ERESOURCE</p>
-<p>函数：ExInitializeResourceLite、ExAcquireResourceExclusiveLite、ExAcquireResourceSharedLite、ExReleaseResourceLite</p>
-<p>要用acquire以及release函数需要禁用正常的内核APCs。Acquire之前可以调用KeEnterCtriticalRegion，释放之后可以用KeLeaveCtriticalRegion.</p>
-<h5 id="High-IRQL-同步"><a href="#High-IRQL-同步" class="headerlink" title="High IRQL 同步"></a>High IRQL 同步</h5><p>线程在有些情况下是不能等待的，特别是，当处理器的IRQL是DISPATCH_LEVEL(2或者更高)。</p>
-<p>当只有一个CPU时，可以如下图操作，但是现实情况往往不止一个CPU</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps69B0.tmp.jpg" alt="img"> </p>
-<p>如果一个CPU的IRQL提高到2，如果一个DPC需要执行，它可能会干扰另一个IRQL可能为零的CPU。在这种情况下，这两个函数可能同时执行，访问共享资源。</p>
-<p>为了解决上述问题，需要像互斥锁这样的东西，但它可以在处理器之间同步，而不是线程。这是因为当CPU的IRQL为2或更高时，线程本身就会失去了意义，因为调度程序不能在该CPU上工作。这种对象实际上确实存在，即 Spin Lock。</p>
-<h5 id="Spin-Lock-自旋锁"><a href="#Spin-Lock-自旋锁" class="headerlink" title="Spin Lock(自旋锁)"></a>Spin Lock(自旋锁)</h5><p>自旋锁是内存中的一个简单位，它通过API提供原子测试和修改操作。当一个CPU试图获得一个自旋锁，但它目前并未被释放，CPU继续在自旋锁上“自旋”（就是不停的询问是否可以获取自旋锁），忙着等待它被另一个CPU释放(记住，使线程进入等待状态不能在&gt;=DISPATCH_LEVEL地方完成)。</p>
-<p><strong>驱动程序必须在=&lt;DISPATCH_LEVEL的级别中使用自旋锁。</strong></p>
-<p>在前面说的场景中，需要分配和初始化一个自旋锁。每个需要访问共享数据的函数都需要将IRQL提高到2（如果还没有），获取自旋锁，对共享数据执行工作，最后释放自旋锁并降低IRQL（如果适用；不适用于DPC）。</p>
-<p>结构：KSPIN_LOCK</p>
-<p>函数：KeInitializeSpinLock</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps69B1.tmp.jpg" alt="img"> </p>
-<p>获取自旋锁总是一个分两步进行的过程：首先，将IRQL提高到适当的级别，这是任何试图同步访问共享资源的函数的最高级别。在前面的示例中，此关联的IRQL为2。第二，获取自旋锁。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps69B2.tmp.jpg" alt="img"> </p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps69B3.tmp.jpg" alt="img"> </p>
-<h5 id="Work-Items"><a href="#Work-Items" class="headerlink" title="Work Items"></a>Work Items</h5><p>work items是用来描述系统线程池的函数的术语。驱动程序可以分配和初始化工作项，指向驱动程序希望执行的函数，然后工作项可以排队到池中。这与DPC非常相似，主要的区别是工作项总是在IRQLPASSIVE_LEVEL上执行，这意味着该机制可以用于从在IRQL2上运行的函数在IRQL0上执行操作。例如，如果DPC例程需要执行IRQL2中不允许的操作（例如打开文件），那么它可以使用工作项来执行这些操作。</p>
-<p>内核提供了两个函数允许驱动创建线程：PsCreateSystemThread、</p>
-<p>IoCreateSystemThread。</p>
-<p>函数IoAllocateWorkItem初始化工作项，函数会返回一个指向不透明的IO_WORKITEM指针。完成后必须用IoFreeWorkItem释放。</p>
-<p>如果需要动态地分配相应大小的IO_WORITEM，使用IoSizeofWorkItem，然后调用IoInitializeWorkItem，完成后用IoUninitializeWorkItem.</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps69B4.tmp.jpg" alt="img"> </p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp6/wps69B5.tmp.jpg" alt="img"> </p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/09/09/reverse/joker1/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/09/09/reverse/joker1/" class="post-title-link" itemprop="url">buuctf_joker</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-09-09 00:00:00" itemprop="dateCreated datePublished" datetime="2021-09-09T00:00:00+08:00">2021-09-09</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-22 10:23:04" itemprop="dateModified" datetime="2021-12-22T10:23:04+08:00">2021-12-22</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/buuctf/" itemprop="url" rel="index"><span itemprop="name">buuctf</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.2k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h4 id="joker1"><a href="#joker1" class="headerlink" title="joker1"></a>joker1</h4><p>没有加壳</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909150331784.png" alt="image-20210909150331784"></p>
-<p><code>F5</code>发现不能反汇编（确定不是IDA的问题，网上说是堆栈市镇偏移出错，选项-常规-点击堆栈指针，快捷键alt+k,值改为0【PS:堆栈不平衡笔记在最后】</p>
-<p>在最后一个AC处修改位0</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909162139584.png" alt="image-20210909162139584"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909162010697.png" alt="image-20210909162010697"></p>
-<p>反汇编后伪代码如下，首先是输入长度为24，然后主要函数为<code>wrong</code> <code>omg</code> <code>encrypt</code>三个函数</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909162739475.png" alt="image-20210909162739475"></p>
-<p><code>wrong</code>是加密</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909163728424.png" alt="image-20210909163728424"></p>
-<p><code>omg</code>是比较<code>wrong</code>加密结果和unk_4030C0地址的值是否相同</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909164135177.png" alt="image-20210909164135177"></p>
-<p>写个脚本,得出来的flag{fak3_alw35_sp_me!!}是个假的</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">import string</span><br><span class="line">s=[102, 107, 99, 100, 127, 97, 103, 100, 59, 86, 107, 97, 123, 38, 59, 80, 99, 95, 77, 90, 113, 12, 55, 102]</span><br><span class="line">out=[]</span><br><span class="line">for i in range(0,24):</span><br><span class="line">    if i&amp;1 :</span><br><span class="line">        s[i]+=i</span><br><span class="line">        out.append(s[i])</span><br><span class="line">    else:</span><br><span class="line">        s[i]^=i</span><br><span class="line">        out.append(s[i])</span><br><span class="line">for i in out:</span><br><span class="line">    print(chr(i),end=&#x27;&#x27;)</span><br></pre></td></tr></table></figure>
-
-<p>注意一下还有一个<code>Encrypt</code>函数，这个函数也是不能反汇编的</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909172356488.png" alt="image-20210909172356488"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909172621478.png" alt="image-20210909172621478"></p>
-<p>动态OD调试试试，进加密函数看看</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909182844710.png" alt="image-20210909182844710"></p>
-<p>（或者OllyDump脱壳）IDA动态调试,看到原来的data数据变成了汇编代码，从encrypt函数的起始地址0x401500开始选取，选取所有没有编译的text段数据，按c，点击force</p>
-<p><a target="_blank" rel="noopener" href="https://www.leadroyal.cn/p/370/">https://www.leadroyal.cn/p/370/</a></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L21jbXV5YW5nYQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述"></p>
-<p>然后在0x401500处右击创建函数，现在就能看到encrpty函数里的内容了,大概就是将带入的数据与Buffer进行异或操作，然后得到unk_403040地址上的值</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909192327017.png" alt="image-20210909192327017"></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">import string</span><br><span class="line"></span><br><span class="line">result=[0xe,0xd,0x9,0x6,0x13,0x5,0x58,0x56,0x3e,0x6,0xc,0x3c,0x1f,0x57,0x14,0x6b,0x57,0x59,0xd]</span><br><span class="line">flag=&quot;&quot;</span><br><span class="line">haha=&quot;hahahaha_do_you_find_me?&quot;</span><br><span class="line">for i in range(19):</span><br><span class="line">    flag+=chr(ord(haha[i])^(result[i]))</span><br><span class="line">print(flag)</span><br></pre></td></tr></table></figure>
-
-<p>flag不全</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909193101144.png" alt="image-20210909193101144"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909193617976.png" alt="image-20210909193617976"></p>
-<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/CSNN2019/article/details/115328038">https://blog.csdn.net/CSNN2019/article/details/115328038</a></p>
-<h4 id="堆栈不平衡"><a href="#堆栈不平衡" class="headerlink" title="堆栈不平衡"></a>堆栈不平衡</h4><p>IDA f5无法反汇编，出现如图错误一般是因为程序代码有一些干扰代码，比如用push + n条指令 + retn来实际跳转，而IDA会以为是retn是函数要结束，结果分析后发现调用栈不平衡</p>
-<p>简单来说就是调用函数后。使用完堆栈esp要回到ebp的位置（大概这么理解</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909153157763.png" alt="image-20210909153157763"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/reverse4/image-20210909155612149.png" alt="image-20210909155612149"></p>
-<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/saintlas/p/7093561.html">https://www.cnblogs.com/saintlas/p/7093561.html</a></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/7/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><span class="page-number current">8</span><a class="page-number" href="/page/9/">9</a><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/9/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <a class="extend prev" rel="prev" href="/page/7/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><span class="page-number current">8</span><a class="page-number" href="/page/9/">9</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/9/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1866,7 +1657,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">95</span>
+          <span class="site-state-item-count">101</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1879,7 +1670,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">96</span>
+        <span class="site-state-item-count">103</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1926,12 +1717,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">222k</span>
+    <span title="站点总字数">229k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">3:22</span>
+    <span title="站点阅读时长">3:28</span>
 </div>
 
         

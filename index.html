@@ -120,7 +120,7 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">96</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">103</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -130,7 +130,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">95</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">101</span></a>
 
   </li>
   </ul>
@@ -156,6 +156,606 @@
 
           <div class="content index posts-expand">
             
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/06/07/Cheese_point/PELoader/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/06/07/Cheese_point/PELoader/" class="post-title-link" itemprop="url">PE Loader实现</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-06-07 00:00:00 / 修改时间：21:07:33" itemprop="dateCreated datePublished" datetime="2022-06-07T00:00:00+08:00">2022-06-07</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%98%B2%E5%BE%A1%E7%BB%95%E8%BF%87/" itemprop="url" rel="index"><span itemprop="name">防御绕过</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><p>打开文件，得到文件大小 ——&gt; 申请相应的内存空间 ——&gt; 加载exe到内存——&gt; 修复重定位表——&gt; 填写导入表</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">SERVICE_DESCRIPTOR_TABLE</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    PULONG ServiceTableBase;			<span class="comment">// 指针，指向函数地址，每个成员占4字节</span></span><br><span class="line">    PULONG ServiceCounterTableBase;		<span class="comment">// 当前系统服务表被调用的次数</span></span><br><span class="line">    ULONG  NumberOfService;				<span class="comment">// 服务函数的总数</span></span><br><span class="line">    PUCHAR ParamTableBase;				<span class="comment">// 服务函数的参数总长度，以字节为单位，每个成员占一个字节</span></span><br><span class="line">    									<span class="comment">// 如：服务函数有两个参数，每个参数占四字节，那么对应参数总长度为8</span></span><br><span class="line">    									<span class="comment">// 函数地址成员 与 参数总长度成员 一一对应</span></span><br><span class="line">&#125; SSDTEntry, *PSSDTEntry;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>用本地内核调试查看SSDT表，第一个参数指向的地址存储的是全部内核函数</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513101524872.png" alt="image-20220513101524872"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513101808757.png" alt="image-20220513101808757"></p>
+<p>第二个参数代表ssdt表里面有多少个内核函数</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513101659232.png" alt="image-20220513101659232"></p>
+<p>第三个参数是一个指针指向一个地址，这里表示的是与上面的内核函数相对应的参数个数，例如第一个为10，参数个数就为0x10/4 = 4</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513101831019.png" alt="image-20220513101831019"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513101934441.png" alt="image-20220513101934441"></p>
+<p>系统中一共存在两个系统服务描述表，<code>KeServiceDescriptorTable</code> 和 <code>KeServiceDescriptorTableShadow</code>，其中 <code>KeServiceDescriptorTable</code> 主要是处理来自 Ring3 层 Kernel32.dll 中的系统调用，而 <code>KeServiceDescriptorTableShadow</code> 则主要处理来自 User32.dll 和 GDI32.dll 中的系统调用，并且<code>KeServiceDescriptorTable</code> 在ntoskrnl.exe(Windows 操作系统内核文件，包括内核和执行体层)是导出的，而 <code>KeServiceDescriptorTableShadow</code> 则是没有被 Windows 操作系统所导出。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513102906581.png" alt="image-20220513102906581"></p>
+<h3 id="CR0寄存器"><a href="#CR0寄存器" class="headerlink" title="CR0寄存器"></a>CR0寄存器</h3><p>SSDT表所在的内存页属性是只读，没有写入的权限，所以需要把该地址设置为可写入，这样才能写入自己的函数，使用的是CR0寄存器关闭只读属性，开关在CR0寄存器的第16位。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513110615404.png" alt="image-20220513110615404"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513110650432.png" alt="image-20220513110650432"></p>
+<p>可以看到这里使用32位寄存器，而在CR0寄存器中，我们重点关注的是3个标志位：</p>
+<p>PE ­ 是否启用保护模式,置1则启用。<br>PG ­ 是否使用分页模式, 置1则开启分页模式, 此标志置1时, PE 标志也必须置1,否则CPU报异常。<br>WP WP为1时, 不能修改只读的内存页 , WP为0时, 可以修改只读的内存页。</p>
+<h3 id="驱动"><a href="#驱动" class="headerlink" title="驱动"></a>驱动</h3><p>原作者写了个简单驱动，其主要代码部分如下，就是替换SSDT表中相应函数地址。自己写的函数地址就是将相应进程设为拒绝访问，最后调用原函数。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513111120329.png" alt="image-20220513111120329"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513110923377.png" alt="image-20220513110923377"></p>
+<p><strong>不过，x64需要绕过PatchGuard保护，困难较大</strong>。</p>
+<p>参考文章：<a target="_blank" rel="noopener" href="https://drunkmars.top/2022/02/15/ssdt%20hook/">https://drunkmars.top/2022/02/15/ssdt%20hook/</a></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/06/06/wkp/Chapter8%20%E8%BF%87%E6%BB%A4%E9%A9%B1%E5%8A%A8%E7%A8%8B%E5%BA%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/06/06/wkp/Chapter8%20%E8%BF%87%E6%BB%A4%E9%A9%B1%E5%8A%A8%E7%A8%8B%E5%BA%8F/" class="post-title-link" itemprop="url">Chapter 10 文件系统微过滤器</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-06-06 00:00:00" itemprop="dateCreated datePublished" datetime="2022-06-06T00:00:00+08:00">2022-06-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-06-07 15:25:54" itemprop="dateModified" datetime="2022-06-07T15:25:54+08:00">2022-06-07</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">驱动开发</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.7k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>过滤驱动开发程序可以修改已有驱动程序功能，也可以对数据进行过滤加密。上层过滤驱动是指附加在FDO下面的过滤驱动程序，下层反之。</p>
+<p>文件过滤驱动将挂载在磁盘驱动之上，将所有发往磁盘驱动的IRP拦截，并有选择的过滤这些IRP。</p>
+<p>文件系统是访问文件的I/O操作的目标。Windows支持多个文件系统，最著名的是NTFS，其本机文件系统。文件系统过滤是驱动程序可以拦截发送到文件系统的调用的机制。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220606210155856.png" alt="image-20220606210155856"></p>
+<h3 id="加载和卸载"><a href="#加载和卸载" class="headerlink" title="加载和卸载"></a>加载和卸载</h3><p>微过滤驱动的加载与加载一个标准的微软驱动一样，但是卸载不同。加载使用用户模式下的<strong>FilterLoad</strong>函数，将驱动名字作为参数传递，内部调用的是内核<strong>FltLoadFilter</strong>函数。</p>
+<p>下载操作调用的函数用户模式下是<strong>FilterUnload</strong>，内核模式下<strong>FltUnloadFilter</strong>，此操作需要与加载驱动有用样的权限，但不能保证成功，因为调用了微过滤器的过滤器卸载回调函数，这可能会使请求失败，从而使驱动程序保留在系统中。</p>
+<p>在开发的时候一般采用fltmc.exe实现过滤驱动的加载与卸载（<strong>fltmc load/unload myfilter</strong>）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220607095246931.png" alt="image-20220607095246931"></p>
+<p>除此之外，还包括很多的命令，比如fltmc instances可以查看每个驱动的实例详情</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220607095703336.png" alt="image-20220607095703336"></p>
+<h3 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h3><p>文件系统微过滤驱动同样有一个<code>DriverEntry</code>，驱动需要调用<code>FltRegisterFilter</code>注册为一个微过滤驱动，然后调用<code>FltStartFiltering</code>启动过滤操作。<strong>该驱动是不需要设置自己的派遣函数的，因为驱动程序不是直接在I/O路径中。</strong></p>
+<p>下面是<code>FltRegisterFilter</code>这个函数的详细信息，其中参数二详细结构如第二张图（这里只截取了前三个参数，其余的具体使用的时候再找资料）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220607104559411.png" alt="image-20220607104559411"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220607104638920.png" alt="image-20220607104638920"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220607104705085.png" alt="image-20220607104705085"></p>
+<p>还有一个参数很重要。这是一个指向<code>FLT_OPERATION_REGISTRATION</code>结构数组的指针，每个结构都指定感兴趣的操作以及驱动程序希望调用的前/后回调。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220607145341769.png" alt="image-20220607145341769"></p>
+<h5 id="管道和邮件槽"><a href="#管道和邮件槽" class="headerlink" title="管道和邮件槽"></a>管道和邮件槽</h5><p>命名管道是一种从服务器到一个或多个客户端的单向或双向通信机制，它被实现为一个文件系统(npfs.sys)。WindowsAPI提供了创建管道服务器和客户端的特定功能。<code>CreateNamedPipe</code>函数可用于创建一个命名的管道服务器，客户端可以使用普通的<code>CreateFile</code>API以这个形式：<code>\\&lt;server&gt;\pipe\&lt;管道名&gt;</code>的文件名进行连接。</p>
+<h5 id="直接访问卷（DAS-DAX）"><a href="#直接访问卷（DAS-DAX）" class="headerlink" title="直接访问卷（DAS/DAX）"></a>直接访问卷（DAS/DAX）</h5><p>直接访问卷是windows10 1607添加的一个新特性，它提供了对一种基于直接访问底层字节数据的新型存储的支持。这被被称为存储类内存的新型存储硬件所支持——这是一种具有类似RAM性能的非易失性存储介质。</p>
+<h4 id="操作回调注册-Operation-callback-register"><a href="#操作回调注册-Operation-callback-register" class="headerlink" title="操作回调注册(Operation callback register)"></a>操作回调注册(Operation callback register)</h4><p>一个微过滤器驱动程序必须指示它想要执行的操作。这是在微过滤器注册时间提供的，带有一个<code>FLT_OPERATION_REGISTRATION</code>结构的数组，定义如下：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220607111509648.png" alt="image-20220607111509648"></p>
+<p>该操作本身就被定义为一个Major Function(和IRP_MJ_CREATE等一样)，但是它并没有一个真正的Major Function的派遣函数。过滤器管理器提供的这个抽象有助于将微过滤器与知道操作的确切来源隔离开来。它可以是一个真正的IRP，也可以是另一个被抽象为IRP的操作。此外，文件系统还支持另一种接收请求的机制，称为<strong>Fast I/O</strong>。快速I/O用于具有缓存文件的同步I/O。<strong>快速I/O请求直接在用户缓冲区和系统缓存之间传输数据，从而绕过了文件系统和存储驱动程序堆栈，从而避免了不必要的开销。</strong>例如，NTFS文件系统驱动程序支持快速I/O。</p>
+<p>快速I/O的初始化方法是通过分配一个<code>FAST_IO_DISPATCH</code>结构（包含一长串回调），填充它，然后将<code>DRIVER_OBJECT</code>的<code>FastIoDispatch</code>成员设置为这个结构。</p>
+<h4 id="高度"><a href="#高度" class="headerlink" title="高度"></a>高度</h4><p>文件系统微过滤器必须有一个高度，指示它们在文件系统过滤器层次结构中的相对“位置”。一个微过滤器的高度值是非常重要的。首先，高度的值不是作为微过滤器注册的一部分提供的，而是从注册表中读取的。安装驱动程序时，其高度被写入注册表的适当位置。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/05/24/paper/Cryptomining%20Malware%20Detection%20Based%20on%20Edge/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/05/24/paper/Cryptomining%20Malware%20Detection%20Based%20on%20Edge/" class="post-title-link" itemprop="url">Cryptomining Malware Detection Based on Edge Computing-Oriented Multi-Modal Features Deep Learning</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-05-24 00:00:00 / 修改时间：16:15:23" itemprop="dateCreated datePublished" datetime="2022-05-24T00:00:00+08:00">2022-05-24</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper-reading/" itemprop="url" rel="index"><span itemprop="name">paper reading</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>近年来，随着加密货币价格的上涨，恶意加密挖矿软件的数量显著增加。凭借其强大的传播能力，加密挖矿恶意软件可以在不知不觉中占据我们的资源，损害我们的利益，并损害更多的合法资产。然而，虽然目前传统的基于规则的恶意软件检测方法的误报率较低，但在面对大量新出现的恶意软件时，其检出率相对较低。尽管常见的基于机器学习或基于深度学习的方法具有一定的学习和检测未知恶意软件的能力，<strong>但它们所学习的特征是单一的和独立的，不能自适应地学习</strong>。针对上述问题，提出了一种具有<strong>多模态特征多输入</strong>的深度学习模型，该模型可以同时接受不同维度上的数字特征和图像特征。该模型依次包括三个子模型的并行学习和另一个特定子模型的集成学习。这四个子模型可以在不同的设备上并行处理，并可以进一步应用于边缘计算环境。该模型可以自适应地学习多模态特征并输出预测结果。该模型的检出率高达97.01%，误报率仅为0.63%。实验结果证明了该方法的优点和有效性。</p>
+<h3 id="论文贡献"><a href="#论文贡献" class="headerlink" title="论文贡献"></a>论文贡献</h3><ul>
+<li>提取了软件在不同模式下的特征，使样本信息描述更加全面。</li>
+<li>所提出的模型分别学习不同模式的特征，并优化各模型的效果。</li>
+<li>可以将单个模型作为一个块纳入整体模型，每个块的输出可以进行拼接和变形，并可以输出下一阶段的深度学习模型进行进一步的学习和预测</li>
+</ul>
+<p>特征主要有<strong>灰度图像特征、字节/熵直方图，传统特征工程</strong>。使用三种深度学习子模型来接受这三种模式的特征，并使用另一个深度学习子模型来学习和预测上述三个子模型的输出。换句话说，整体的深度学习模型实际上包含了四个具有不同功能的深度学习模块，可以单独或同时执行。</p>
+<h3 id="方法模型"><a href="#方法模型" class="headerlink" title="方法模型"></a>方法模型</h3><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220524155818502.png" alt="image-20220524155818502"></p>
+<p>对于灰度图像的特征，作者使用EfficientNet，这是一个集成尺度方法的多维模型，是图像图像分类任务的最佳模型之一。通过简单的设计理念，它可以达到良好的最终效果。缩放方法和神经结构搜索(NAS)是EfficientNet的核心思想。</p>
+<p>在字节直方图和熵直方图的学习模块中，作者设计了一个基于CNN的基本模型。通过卷积、批处理归一化、池化等函数，了解了直方图的特征。</p>
+<p>对于利用专业领域知识提取的特征工程向量，作者使用基于Bi-GRU的深度学习模型进行学习。将特征向量视为序列数据。Bi-GRU可以同时从两个方向上学习序列特征。</p>
+<h4 id="集成学习块"><a href="#集成学习块" class="headerlink" title="集成学习块"></a>集成学习块</h4><p>在获得三种特征提取模型提取的特征后，需要对它们进行拼接和变换。首先，将三个维数为（512,1）、（256,1）和（256,1）的向量连接起来，得到一个维数为（1024,1）的向量。然后，将获得的向量重塑为一个大小为（32,32）的类图像向量。最后，将其输入到基于效率网-b0的模型中，得到最终的预测结果。</p>
+<h4 id="边缘计算"><a href="#边缘计算" class="headerlink" title="边缘计算"></a>边缘计算</h4><p>该模型由四个部分组成，每个部分都有不同的计算成本和所需的资源。边缘计算与云技术相结合，可以大大提高模型的效率。从挖矿恶意软件到这三个功能的过程可以通过边缘设备独立完成，然后将这些功能上传到云端。对于硬件配置较高的设备，甚至可以在边缘设备上完成第一阶段的模型预测任务。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>本文采用静态分析方法提取了三种不同的特征：灰度图像特征、字节/熵直方图特征和特征工程。通过对特征的集成学习，在控制误报率的情况下，取得了良好的效果。该方法得益于对不同模态特征的同时处理和自适应处理，避免了传统手工评分的盲目性。在恶意挖掘样本的检测任务中，基于多模态特征的深度学习模型的性能为未来的多场景应用提供了一种新的解决方案。结合边缘计算和云计算等技术可以实现模型在部署和服务上更有效。</p>
+<p>然而，静态分析也有其固有的缺点。它很难处理混淆和去壳的样本，程序的执行甚至可以产生额外的行为和特征。动态分析既可以更好地提取混淆部分或潜在部分，又可以检测程序的特殊行为和资源占用。静态分析和动态分析并不是相互排斥的，而是互补的。因此，当条件允许时，两者的结合将会更好</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/05/24/paper/UMVD-FSL%20Unseen%20Malware%20Variants%20Detection%20Using%20Few-Shot%20Learning/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/05/24/paper/UMVD-FSL%20Unseen%20Malware%20Variants%20Detection%20Using%20Few-Shot%20Learning/" class="post-title-link" itemprop="url">UMVD-FSL Unseen Malware Variants Detection Using Few-Shot Learning</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-05-24 00:00:00 / 修改时间：19:16:05" itemprop="dateCreated datePublished" datetime="2022-05-24T00:00:00+08:00">2022-05-24</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper-reading/" itemprop="url" rel="index"><span itemprop="name">paper reading</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>作为发起网络攻击的工具，不断增加的恶意软件变体对互联网络社区构成了重大威胁。基于传统机器学习技术的检测方法需要大量的样本来进行训练。然而，在现实世界中，如在新攻击出现的早期阶段，只能获得少量的恶意样本。在上述场景中应用数据密集型的传统方法会导致严重的过拟合问题。因此，需要进行少样本检测。在论文中，提出了UMVD-FSL，一个基于少样本学习的框架，用小的数据检测不可见的恶意软件变体。我们<strong>从由恶意软件变体和良性应用程序生成的网络流量数据</strong>开始，然后将它们转换为灰度图像。基于原型的少样本学习模型以灰度图像作为输入，利用元训练来推广元学习器，以适应新的任务。当出现一个新的样本时，该模型通过计算到每个类的原型表示的距离来执行分类。</p>
+<h3 id="论文贡献"><a href="#论文贡献" class="headerlink" title="论文贡献"></a>论文贡献</h3><ul>
+<li>提出了一种基于少样本学习的方法，在不断变化的网络环境中检测看不见的恶意软件变体。方法结合了网络流量数据的图形表示和基于原型的少样本学习框架。据作者所知，这是通过分析不同恶意软件的网络流量数据，来解决在新的恶意软件出现的初始阶段缺乏训练样本的问题的第一个解决方案</li>
+<li>所提出的方法不使用与内容相关的信息，因此它不仅适用于未加密的流量分析场景，而且可以满足当前日益增长的对加密流量分析的需求。同时，它满足了网络安全领域的一个典型和实际案例的要求，即当难以或不可能获得足够的带有监督信息的例子时，需要避免模型的过拟合问题。</li>
+<li>该方法在所有子任务上的性能最好。当用于检测来自同一网络环境的恶意软件变异时，每个类只有5个训练样本，该方法可以达到高达97.68%的准确率和97.10%的f1值。当用于检测来自不同网络环境的恶意软件变异时，我们的方法的最高精度和相应的f1值分别为97.65%和96.95%。</li>
+</ul>
+<p>特征主要有<strong>灰度图像特征、字节/熵直方图，传统特征工程</strong>。使用三种深度学习子模型来接受这三种模式的特征，并使用另一个深度学习子模型来学习和预测上述三个子模型的输出。换句话说，整体的深度学习模型实际上包含了四个具有不同功能的深度学习模块，可以单独或同时执行。</p>
+<h3 id="方法模型"><a href="#方法模型" class="headerlink" title="方法模型"></a>方法模型</h3><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220524172026647.png" alt="image-20220524172026647"></p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>该文采用了一种基于少样本学习的方法，UMVD-FSL，用于在给定有限数量的恶意样本时进行看不见的恶意软件变异检测。我们将由恶意软件变体和良性应用程序生成的网络流量数据的图形表示与一个基于原型的少样本学习框架相结合。我们首先使用数据预处理，将原始流量数据转换为灰度图像，作为我们的少样本学习模型的输入。之后，该模型采用元学习作为训练策略。接下来，它使用神经网络自动从灰度图像中提取特征，并将嵌入空间中来自同一类的样本的平均值作为相应类的原型。</p>
+<p>论文认为认为一个新的样本属于对应类的原型与样本之间距离最小的类。为了验证测框架和比较方法的普遍性和鲁棒性，传统互联网和机器人移动平台等两个典型场景的真实数据集上进行了一系列实验。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/05/23/pwn/pwn%E5%A0%86%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/05/23/pwn/pwn%E5%A0%86%E5%88%A9%E7%94%A8%E5%A7%BF%E5%8A%BF/" class="post-title-link" itemprop="url">pwn堆的利用姿势-malloc_hook</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-05-23 00:00:00" itemprop="dateCreated datePublished" datetime="2022-05-23T00:00:00+08:00">2022-05-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-05-24 14:17:54" itemprop="dateModified" datetime="2022-05-24T14:17:54+08:00">2022-05-24</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/pwn/" itemprop="url" rel="index"><span itemprop="name">pwn</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>289</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="保护机制"><a href="#保护机制" class="headerlink" title="保护机制"></a>保护机制</h3><p>一般来说遇到的题目保护机制都是全开，其中针对堆利用的主要是PIE(ALSR)和Full Relro，针对前者，需要泄露代码段基址才能利用存储在bss段上的堆指针；针对后者，意味着我们无法修改got表来让其他函数got表指向system。got表无法修改的情况下，往往利用一些hook+onegadget来进行利用。</p>
+<h3 id="malloc-hook"><a href="#malloc-hook" class="headerlink" title="malloc_hook"></a>malloc_hook</h3><p>该函数是在malloc函数调用前会执行的钩子函数。在程序中，通常malloc_hook的函数地址对应值为0，也就是不会执行任何东西，我们在利用过程中将其覆盖为onegadget地址，这样再执行一次malloc就会执行onegadget。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/05/21/pwn/scuctf-pwn/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/05/21/pwn/scuctf-pwn/" class="post-title-link" itemprop="url">SCUxOPPO-CTF</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-05-21 00:00:00" itemprop="dateCreated datePublished" datetime="2022-05-21T00:00:00+08:00">2022-05-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-06-06 17:38:04" itemprop="dateModified" datetime="2022-06-06T17:38:04+08:00">2022-06-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/pwn/" itemprop="url" rel="index"><span itemprop="name">pwn</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>503</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="bof"><a href="#bof" class="headerlink" title="bof"></a>bof</h3><p>一道64位的简单栈溢出，system()和bin/sh都有</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220521123054003.png" alt="image-20220521123054003"></p>
+<h4 id="exp"><a href="#exp" class="headerlink" title="exp"></a>exp</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220521123139709.png" alt="image-20220521123139709"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220521123229884.png" alt="image-20220521123229884"></p>
+<h3 id="old-school"><a href="#old-school" class="headerlink" title="old school"></a>old school</h3><p>漏洞点在下图，off-by-null</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220521133005119.png" alt="image-20220521133005119"></p>
+<p>因为add函数中最多申请8个堆块，所以不能采取传统的填充tcache的方式。</p>
+<p>总结一下程序功能，最多分配9个chunk，chunk大小不能超过0x500,申请大小小于等于0x410的时候，统一分配0x108大小的堆</p>
+<h4 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h4><p>先利用off-by-null修改C堆块的<code>Prev_size</code>以及<code>Prev_inuse</code></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220606143854660.png" alt="image-20220606143854660"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220606143839980.png" alt="image-20220606143839980"></p>
+<p>free A和C堆块，会触发堆合并机制，合并后放入unsorted bin中</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220606144229563.png" alt="image-20220606144229563"></p>
+<p>此时可以通过分割unsorted bin来泄露libc（通过前面的步骤我们可以控制还在unsorted中的堆块B）</p>
+<p>用IDA分析libc-2.27.so文件获得main_arena与libc偏移，在malloc_trim中即可获得</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220606155503187.png" alt="image-20220606155503187"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220606155615765.png" alt="image-20220606155615765"></p>
+<p>再通过tcache的fd指针引入<code>__free_hook</code>。最后写system到<code>__free_hook</code>。释放有/bin/sh字符串的chunk</p>
+<p>free后tcache:2-&gt;4,申请后tacahe：free_hook -&gt; 4，然后申请2次，就可以申请到指向free hook的内存</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220606170138492.png" alt="image-20220606170138492"></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -594,621 +1194,10 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/05/13/paper/A%20few-shot%20meta-learning%20based%20siamese%20neural%20network%20using/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/05/13/paper/A%20few-shot%20meta-learning%20based%20siamese%20neural%20network%20using/" class="post-title-link" itemprop="url">A few-shot meta-learning based siamese neural network using entropy features for ransomware classification</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2022-05-13 00:00:00" itemprop="dateCreated datePublished" datetime="2022-05-13T00:00:00+08:00">2022-05-13</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-05-16 14:39:10" itemprop="dateModified" datetime="2022-05-16T14:39:10+08:00">2022-05-16</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/paper-reading/" itemprop="url" rel="index"><span itemprop="name">paper reading</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.5k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>可以快速检测和分类不同的勒索软件类别，以制定快速响应方案的勒索软件防御解决方案，一直是近年来的高需求。尽管采用深度学习技术提供自动化和自我学习的适用性已经在许多应用领域得到证明，但缺乏勒索软件（和其他恶意软件）样本的数据已经成为开发有效的基于深度学习的解决方案的障碍。为了解决这个问题，论文提出了一个基于少量元学习的孪生神经网络（<u>孪生网络是一种特殊类型的神经网络架构。与一个学习对其输入进行分类的模型不同，该神经网络是学习在两个输入中进行区分。它学习了两个输入之间的相似之处。</u>），它不仅可以检测勒索软件攻击，而且能够将它们划分为不同的类别。</p>
-<p>该篇论文提出的模型利用直接从勒索软件二进制文件中获得的<strong>熵特征</strong>来保留与不同勒索软件签名相关的更细粒度的特征。这些熵特征被以元学习的方式使用一个预先训练过的网络（比如VGG-16）进一步用于训练和优化模型。与使用特征图像相比，这种方法产生更准确的权重因子，以避免通常与训练样本有限的模型的偏差。实验结果表明，与其他类似的方法相比，该模型的加权f1分数超过86%。</p>
-<h3 id="论文贡献"><a href="#论文贡献" class="headerlink" title="论文贡献"></a>论文贡献</h3><ul>
-<li>即使在每一类样本数量非常小的情况下，也可以从不同的勒索软件类别中学习到其特征。</li>
-<li>由于图像特征在进行转换的时候通常导致信息丢失，该方法采用了熵特征</li>
-<li>使用预先训练好的VGG-16网络作为元学习过程的一部分，以生成权重，更准确地捕获每个勒索软件样本的特征。这不仅有助于提高分类精度，而且还避免了与在深度学习模型中使用有限数量的训练样本相关的潜在偏差。</li>
-<li>使用了两个中心损失和一个softmax损失的组合，以准确地捕获属于同一类的勒索软件样本之间的相似性（即类内方差）和跨不同勒索软件类的勒索软件样本之间的<code>di-similarity</code>（即类间方差）。</li>
-<li>实验对11个不同类别的1046个勒索软件样本进行了测试，结果表明，该模型的加权f1分数超过86%，对不同的勒索软件样本进行了正确分类，优于现有的基准方法。</li>
-</ul>
-<h3 id="方法模型"><a href="#方法模型" class="headerlink" title="方法模型"></a>方法模型</h3><p>孪生神经网络(SNN)其核心功能是评估由特征嵌入空间表示的两幅图像之间的相似度，并生成相似度评分。一个通用的SNN由两个子网络组成，如图所示，其中的权值和超参数设置被共享。两个子网络都以一个属于同一类的一幅图像（即正对）作为输入和输出它所学习到的特征。将这些特征映射到全连接层的特征嵌入中，同时使用损失函数来预测两个子网络处理后的图像是否属于同一类。它还可以预测学习到的不同特征是否与同一类中的不同实例互补。例如，它可以正确地预测不同的勒索软件实例仍然属于同一个勒索软件家族，因为它们共享唯一的勒索软件签名。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513170335827.png" alt="image-20220513170335827"></p>
-<h4 id="熵特征"><a href="#熵特征" class="headerlink" title="熵特征"></a>熵特征</h4><p>熵特征是直接从二进制勒索软件文件中计算出来的。图像特征很容易被白噪声和复杂纹理特征影响，熵特征则不会。并且论文对基于熵特征和灰度图的模型计算了训练时间，来比较计算开销。发现基于熵特征的模型训练时间要少十分钟，并且前者基于新测试样本的执行时间要少两秒。</p>
-<h4 id="模型"><a href="#模型" class="headerlink" title="模型"></a>模型</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513172428996.png" alt="image-20220513172428996"></p>
-<p>每个熵图的熵值被输入到SNN的每个子网络，在每个子网络中，采用一个预训练的VGG-16模型（该模型权重和参数都在ImageNet熵训练的），并以元学习的方式使用它。（预训练的模型有助于提出的模型的训练）</p>
-<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>虽然所提出的模型总体上表现良好，但它有几个局限性。首先，该模型仍然不能对Bitman勒索软件家族或Teslacrtpt勒索软件家族进行分类。其原因如图所示，在训练后，Bitman和Teslacrtpt家族的集群仍然重叠。没有一个围绕这两个家族的一个明确的集群，该模型倾向于产生mi-classification结果，特别是跨属于这两个家族的恶意软件实例。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220516143653869.png" alt="image-20220516143653869"></p>
-<p>其次，提出的模型还没有对零日攻击进行测试，而只提供了训练样本中包含的已知攻击的分类结果。最后，与其他方法相比，该模型需要更长的训练时间，因为需要训练的参数数量更多。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/05/13/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%B8%89%E5%8D%81%E4%BA%8C%E5%A4%A9/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/05/13/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%B8%89%E5%8D%81%E4%BA%8C%E5%A4%A9/" class="post-title-link" itemprop="url">代码随想录第三十二天</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2022-05-13 00:00:00 / 修改时间：15:04:49" itemprop="dateCreated datePublished" datetime="2022-05-13T00:00:00+08:00">2022-05-13</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/leetcode/" itemprop="url" rel="index"><span itemprop="name">leetcode</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h4 id="字符串-滑动窗口最大值"><a href="#字符串-滑动窗口最大值" class="headerlink" title="字符串-滑动窗口最大值"></a>字符串-滑动窗口最大值</h4><p><a target="_blank" rel="noopener" href="https://leetcode.cn/problems/sliding-window-maximum/">题目链接</a></p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">MyQueue</span>&#123;</span></span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">        deque&lt;<span class="keyword">int</span>&gt; que;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">pop</span><span class="params">(<span class="keyword">int</span> val)</span></span>&#123;   </span><br><span class="line">            <span class="keyword">if</span>(!que.<span class="built_in">empty</span>() &amp;&amp; que.<span class="built_in">front</span>() == val)</span><br><span class="line">                que.<span class="built_in">pop_front</span>();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">push</span><span class="params">(<span class="keyword">int</span> val)</span></span>&#123;</span><br><span class="line">            <span class="keyword">while</span>(!que.<span class="built_in">empty</span>() &amp;&amp; val &gt; que.<span class="built_in">back</span>())&#123;</span><br><span class="line">                que.<span class="built_in">pop_back</span>();</span><br><span class="line">            &#125;</span><br><span class="line">            que.<span class="built_in">push_back</span>(val);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="function"><span class="keyword">int</span> <span class="title">front</span><span class="params">()</span></span>&#123;</span><br><span class="line">            <span class="keyword">return</span> que.<span class="built_in">front</span>();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">vector&lt;<span class="keyword">int</span>&gt; <span class="title">maxSlidingWindow</span><span class="params">(vector&lt;<span class="keyword">int</span>&gt;&amp; nums, <span class="keyword">int</span> k)</span> </span>&#123;</span><br><span class="line">        MyQueue que;</span><br><span class="line">        vector&lt;<span class="keyword">int</span>&gt; res;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; k; i++)que.<span class="built_in">push</span>(nums[i]);</span><br><span class="line"></span><br><span class="line">        res.<span class="built_in">push_back</span>(que.<span class="built_in">front</span>());</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i = k; i &lt; nums.<span class="built_in">size</span>(); i++)&#123;</span><br><span class="line">            que.<span class="built_in">pop</span>(nums[i-k]);</span><br><span class="line">            que.<span class="built_in">push</span>(nums[i]);</span><br><span class="line">            res.<span class="built_in">push_back</span>(que.<span class="built_in">front</span>());</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">evalRPN</span>(<span class="params">self, tokens: <span class="type">List</span>[<span class="built_in">str</span>]</span>) -&gt; <span class="built_in">int</span>:</span></span><br><span class="line">        stack = []</span><br><span class="line">        <span class="keyword">for</span> item <span class="keyword">in</span> tokens:</span><br><span class="line">            <span class="keyword">if</span> item <span class="keyword">not</span> <span class="keyword">in</span> &#123;<span class="string">&quot;+&quot;</span>, <span class="string">&quot;-&quot;</span>, <span class="string">&quot;*&quot;</span>, <span class="string">&quot;/&quot;</span>&#125;:</span><br><span class="line">                stack.append(item)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                num1, num2 = stack.pop(), stack.pop()</span><br><span class="line">                stack.append(</span><br><span class="line">                    <span class="built_in">int</span>(<span class="built_in">eval</span>(<span class="string">f&#x27;<span class="subst">&#123;num2&#125;</span> <span class="subst">&#123;item&#125;</span> <span class="subst">&#123;num1&#125;</span>&#x27;</span>))</span><br><span class="line">                )</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">int</span>(stack.pop())</span><br></pre></td></tr></table></figure>
-
-
-
-
-
-
-
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/05/13/Cheese_point/ring0%E4%B8%8B%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%BF%9D%E6%8A%A4/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/05/13/Cheese_point/ring0%E4%B8%8B%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%BF%9D%E6%8A%A4/" class="post-title-link" itemprop="url">ring0下的进程保护</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2022-05-13 00:00:00 / 修改时间：11:14:53" itemprop="dateCreated datePublished" datetime="2022-05-13T00:00:00+08:00">2022-05-13</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E9%98%B2%E5%BE%A1%E7%BB%95%E8%BF%87/" itemprop="url" rel="index"><span itemprop="name">防御绕过</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.4k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h3 id="SSDT表"><a href="#SSDT表" class="headerlink" title="SSDT表"></a>SSDT表</h3><p>SSDT表示系统服务表,我们ring3调用的很多函数都会调用这个SSDT表。这个表就是一个把 Ring3 的 Win32 API 和 Ring0 的内核 API 联系起来。SSDT 并不仅仅只包含一个庞大的地址索引表，它还包含着一些其它有用的信息，诸如地址索引的基地址、服务函数个数等。通过修改此表的函数地址可以对常用 Windows 函数及 API 进行 Hook，从而实现对一些关心的系统动作进行过滤、监控的目的。一些 HIPS、防毒软件、系统监控、注册表监控软件往往会采用此接口来实现自己的监控模块。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">SERVICE_DESCRIPTOR_TABLE</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    PULONG ServiceTableBase;			<span class="comment">// 指针，指向函数地址，每个成员占4字节</span></span><br><span class="line">    PULONG ServiceCounterTableBase;		<span class="comment">// 当前系统服务表被调用的次数</span></span><br><span class="line">    ULONG  NumberOfService;				<span class="comment">// 服务函数的总数</span></span><br><span class="line">    PUCHAR ParamTableBase;				<span class="comment">// 服务函数的参数总长度，以字节为单位，每个成员占一个字节</span></span><br><span class="line">    									<span class="comment">// 如：服务函数有两个参数，每个参数占四字节，那么对应参数总长度为8</span></span><br><span class="line">    									<span class="comment">// 函数地址成员 与 参数总长度成员 一一对应</span></span><br><span class="line">&#125; SSDTEntry, *PSSDTEntry;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-<p>用本地内核调试查看SSDT表，第一个参数指向的地址存储的是全部内核函数</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513101524872.png" alt="image-20220513101524872"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513101808757.png" alt="image-20220513101808757"></p>
-<p>第二个参数代表ssdt表里面有多少个内核函数</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513101659232.png" alt="image-20220513101659232"></p>
-<p>第三个参数是一个指针指向一个地址，这里表示的是与上面的内核函数相对应的参数个数，例如第一个为10，参数个数就为0x10/4 = 4</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513101831019.png" alt="image-20220513101831019"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513101934441.png" alt="image-20220513101934441"></p>
-<p>系统中一共存在两个系统服务描述表，<code>KeServiceDescriptorTable</code> 和 <code>KeServiceDescriptorTableShadow</code>，其中 <code>KeServiceDescriptorTable</code> 主要是处理来自 Ring3 层 Kernel32.dll 中的系统调用，而 <code>KeServiceDescriptorTableShadow</code> 则主要处理来自 User32.dll 和 GDI32.dll 中的系统调用，并且<code>KeServiceDescriptorTable</code> 在ntoskrnl.exe(Windows 操作系统内核文件，包括内核和执行体层)是导出的，而 <code>KeServiceDescriptorTableShadow</code> 则是没有被 Windows 操作系统所导出。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513102906581.png" alt="image-20220513102906581"></p>
-<h3 id="CR0寄存器"><a href="#CR0寄存器" class="headerlink" title="CR0寄存器"></a>CR0寄存器</h3><p>SSDT表所在的内存页属性是只读，没有写入的权限，所以需要把该地址设置为可写入，这样才能写入自己的函数，使用的是CR0寄存器关闭只读属性，开关在CR0寄存器的第16位。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513110615404.png" alt="image-20220513110615404"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513110650432.png" alt="image-20220513110650432"></p>
-<p>可以看到这里使用32位寄存器，而在CR0寄存器中，我们重点关注的是3个标志位：</p>
-<p>PE ­ 是否启用保护模式,置1则启用。<br>PG ­ 是否使用分页模式, 置1则开启分页模式, 此标志置1时, PE 标志也必须置1,否则CPU报异常。<br>WP WP为1时, 不能修改只读的内存页 , WP为0时, 可以修改只读的内存页。</p>
-<h3 id="驱动"><a href="#驱动" class="headerlink" title="驱动"></a>驱动</h3><p>原作者写了个简单驱动，其主要代码部分如下，就是替换SSDT表中相应函数地址。自己写的函数地址就是将相应进程设为拒绝访问，最后调用原函数。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513111120329.png" alt="image-20220513111120329"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513110923377.png" alt="image-20220513110923377"></p>
-<p><strong>不过，x64需要绕过PatchGuard保护，困难较大</strong>。</p>
-<p>参考文章：<a target="_blank" rel="noopener" href="https://drunkmars.top/2022/02/15/ssdt%20hook/">https://drunkmars.top/2022/02/15/ssdt%20hook/</a></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/05/12/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%B8%89%E5%8D%81%E4%B8%80%E5%A4%A9/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/05/12/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%B8%89%E5%8D%81%E4%B8%80%E5%A4%A9/" class="post-title-link" itemprop="url">代码随想录第三十一天</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2022-05-12 00:00:00" itemprop="dateCreated datePublished" datetime="2022-05-12T00:00:00+08:00">2022-05-12</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-05-13 15:05:02" itemprop="dateModified" datetime="2022-05-13T15:05:02+08:00">2022-05-13</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/leetcode/" itemprop="url" rel="index"><span itemprop="name">leetcode</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h4 id="字符串-有效的括号"><a href="#字符串-有效的括号" class="headerlink" title="字符串-有效的括号"></a>字符串-有效的括号</h4><p><a target="_blank" rel="noopener" href="https://leetcode.cn/problems/evaluate-reverse-polish-notation/">题目链接</a></p>
-<p>这道题多分析一下题目就知道是一种消除题，其实和前面一道题“对对碰”很像，这道题是出现运算符就运算前面两个数字，结果又重新压入栈。</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">evalRPN</span><span class="params">(vector&lt;string&gt;&amp; tokens)</span> </span>&#123;</span><br><span class="line">        stack&lt;<span class="keyword">int</span>&gt;st;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; tokens.<span class="built_in">size</span>(); i++)&#123;</span><br><span class="line">            <span class="keyword">if</span>(tokens[i] == <span class="string">&quot;+&quot;</span> || tokens[i] == <span class="string">&quot;-&quot;</span> || tokens[i] == <span class="string">&quot;*&quot;</span> || tokens[i] == <span class="string">&quot;/&quot;</span>)&#123;</span><br><span class="line">                <span class="keyword">int</span> num1 = st.<span class="built_in">top</span>();</span><br><span class="line">                st.<span class="built_in">pop</span>();</span><br><span class="line">                <span class="keyword">int</span> num2 = st.<span class="built_in">top</span>();</span><br><span class="line">                st.<span class="built_in">pop</span>();</span><br><span class="line">                <span class="keyword">if</span>(tokens[i] == <span class="string">&quot;+&quot;</span>)st.<span class="built_in">push</span>(num2 + num1);</span><br><span class="line">                <span class="keyword">if</span>(tokens[i] == <span class="string">&quot;-&quot;</span>)st.<span class="built_in">push</span>(num2 - num1);</span><br><span class="line">                <span class="keyword">if</span>(tokens[i] == <span class="string">&quot;*&quot;</span>)st.<span class="built_in">push</span>(num2 * num1);</span><br><span class="line">                <span class="keyword">if</span>(tokens[i] == <span class="string">&quot;/&quot;</span>)st.<span class="built_in">push</span>(num2 / num1);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span>&#123;</span><br><span class="line">                st.<span class="built_in">push</span>(<span class="built_in">stoi</span>(tokens[i]));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> st.<span class="built_in">top</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">evalRPN</span>(<span class="params">self, tokens: <span class="type">List</span>[<span class="built_in">str</span>]</span>) -&gt; <span class="built_in">int</span>:</span></span><br><span class="line">        stack = []</span><br><span class="line">        <span class="keyword">for</span> item <span class="keyword">in</span> tokens:</span><br><span class="line">            <span class="keyword">if</span> item <span class="keyword">not</span> <span class="keyword">in</span> &#123;<span class="string">&quot;+&quot;</span>, <span class="string">&quot;-&quot;</span>, <span class="string">&quot;*&quot;</span>, <span class="string">&quot;/&quot;</span>&#125;:</span><br><span class="line">                stack.append(item)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                num1, num2 = stack.pop(), stack.pop()</span><br><span class="line">                stack.append(</span><br><span class="line">                    <span class="built_in">int</span>(<span class="built_in">eval</span>(<span class="string">f&#x27;<span class="subst">&#123;num2&#125;</span> <span class="subst">&#123;item&#125;</span> <span class="subst">&#123;num1&#125;</span>&#x27;</span>))</span><br><span class="line">                )</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">int</span>(stack.pop())</span><br></pre></td></tr></table></figure>
-
-
-
-
-
-
-
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/05/11/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%B8%89%E5%8D%81%E5%A4%A9/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/05/11/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%B8%89%E5%8D%81%E5%A4%A9/" class="post-title-link" itemprop="url">代码随想录第三十天</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2022-05-11 00:00:00" itemprop="dateCreated datePublished" datetime="2022-05-11T00:00:00+08:00">2022-05-11</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-05-12 10:51:49" itemprop="dateModified" datetime="2022-05-12T10:51:49+08:00">2022-05-12</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/leetcode/" itemprop="url" rel="index"><span itemprop="name">leetcode</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>357</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h4 id="字符串-有效的括号"><a href="#字符串-有效的括号" class="headerlink" title="字符串-有效的括号"></a>字符串-有效的括号</h4><p><a target="_blank" rel="noopener" href="https://leetcode.cn/problems/remove-all-adjacent-duplicates-in-string/">题目链接</a></p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">string <span class="title">removeDuplicates</span><span class="params">(string S)</span> </span>&#123;</span><br><span class="line">        stack&lt;<span class="keyword">char</span>&gt;st;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">char</span> s : S)&#123;</span><br><span class="line">            <span class="keyword">if</span>(st.<span class="built_in">empty</span>() || s != st.<span class="built_in">top</span>())st.<span class="built_in">push</span>(s);</span><br><span class="line">            <span class="keyword">else</span>&#123;st.<span class="built_in">pop</span>();&#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        string result = <span class="string">&quot;&quot;</span>;</span><br><span class="line">        <span class="keyword">while</span>(!st.<span class="built_in">empty</span>())&#123;</span><br><span class="line">            result += st.<span class="built_in">top</span>();</span><br><span class="line">            st.<span class="built_in">pop</span>();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">reverse</span>(result.<span class="built_in">begin</span>(), result.<span class="built_in">end</span>());</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">       </span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-
-
-
-
-
-
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/05/10/pwn/0ctf-babyheap/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/05/10/pwn/0ctf-babyheap/" class="post-title-link" itemprop="url">0ctf-babyheap</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2022-05-10 00:00:00" itemprop="dateCreated datePublished" datetime="2022-05-10T00:00:00+08:00">2022-05-10</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-05-11 10:16:54" itemprop="dateModified" datetime="2022-05-11T10:16:54+08:00">2022-05-11</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/pwn/" itemprop="url" rel="index"><span itemprop="name">pwn</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.4k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h3 id="静态分析"><a href="#静态分析" class="headerlink" title="静态分析"></a>静态分析</h3><p>首先查看保护，全开，64位动态链接成簇，stripped.</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220510143212911.png" alt="image-20220510143212911"></p>
-<p>用IDA查看程序，函数逻辑如下，主要有4个功能</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220510143738417.png" alt="image-20220510143738417"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220510141350991.png" alt="image-20220510141350991"></p>
-<h4 id="allocate"><a href="#allocate" class="headerlink" title="allocate"></a>allocate</h4><p>可以看到该功能主要负责分配堆块以及记录堆块信息。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220510152759187.png" alt="image-20220510152759187"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220510153445247.png" alt="image-20220510153445247"></p>
-<h4 id="fill"><a href="#fill" class="headerlink" title="fill"></a>fill</h4><p>该功能先读取索引，然后判断堆块第一位如果是1，那么就输入size，content.这里可以向堆块输入任意长度，造成溢出</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220510160751315.png" alt="image-20220510160751315"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220510161522247.png" alt="image-20220510161522247"></p>
-<h4 id="Free"><a href="#Free" class="headerlink" title="Free"></a>Free</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220510161738040.png" alt="image-20220510161738040"></p>
-<h4 id="dump"><a href="#dump" class="headerlink" title="dump"></a>dump</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220510162009877.png" alt="image-20220510162009877"></p>
-<h3 id="利用分析"><a href="#利用分析" class="headerlink" title="利用分析"></a>利用分析</h3><p>想要利用，首先是要泄露libc地址。这里采用的是泄露unsortbin链表的地址，先申请四个堆块如图，其中最后一个chunk 3的作用是和top chunk隔离（申请0x68的大小实际上就是0x70）：</p>
-<img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220510170059939.png" alt="image-20220510170059939" style="zoom:67%;" />
-
-<p>然后利用堆溢出，堆chunk 0编辑，使chunk 0溢出内容将chunk1 的size修改为0xe1（<strong>包含pre_size</strong>），即chunk1+chunk2大小的和，然后pre占用位为1，这时释放1，相当于释放了一个size为0xe0的chunk，会被放入unsortbin链表中。（图中可以看到有tcache，一种内存管理机制，代码逻辑位于<code>malloc</code>函数和<code>free</code>函数中，具有较高的优先级。属于一种缓存机制，它为每一个线程创建了一个缓存，从而实现了不加锁的堆块分配算法，起到了性能提升的作用。）</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220511095326202.png" alt="image-20220511095326202"></p>
-<p>这时再申请一个0x70的堆块，便会从unsortbin中分割一个0x70的大小的堆块出来，然后剩下的继续连入unsortbin中。</p>
-<p>但需要注意的是，分割之前unsortbin中的那个0xe0大小的堆块是我们通过溢出伪造的堆块，实际上是由一个0x70的（已释放堆块，在前）和一个0x70的（未释放堆块，在后）组成的。这时再申请一个0x70的堆块就会将前一部分已释放的那个堆块重新申请回来，那么后一个堆块就会被作为空闲堆块连入unsortbin中，但实际上这个堆块我们可控，我们可以将其内容输出，就会获得一个指向unsortbin的指针值，便泄露了libc地址。</p>
-<p>然后将malloc_hook修改为onegadget,<strong>然后申请一个堆块就会完成getshell。</strong></p>
-<p>这部分的操作就是，只需要再盛情一个0x70的堆块chunk4，就会发现我们有两个堆块（chunk2和chunk4）同时指向同一个0x70的地址空间。这时我们只需释放chunk2，然后编辑chunk4便可修改fastbin的指针了。</p>
-<p>这里都是跟的<a target="_blank" rel="noopener" href="https://blog.csdn.net/Breeze_CAT/article/details/103788698">这篇博客</a>走的，但是复现出现了tcache这样的状况。就顺着理解了一下题目的思路。</p>
-<p>参考链接：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV12v4y1o7DK?spm_id_from=333.337.search-card.all.click">https://www.bilibili.com/video/BV12v4y1o7DK?spm_id_from=333.337.search-card.all.click</a></p>
-<h4 id="知识点"><a href="#知识点" class="headerlink" title="知识点"></a>知识点</h4><h5 id="main-arena"><a href="#main-arena" class="headerlink" title="main_arena"></a>main_arena</h5><p>chunk空间的共用情况，也就是下一个的chunk的prev_size域给当前chunk当做数据域使用，这种情况只出现在malloc的大小为8的奇数倍的情况。</p>
-<p>在正常情况下，当free掉一块大于max_fast的大小的chunk时，程序将会把他放至unsorted bins中，而由于unsorted是<strong>双向链表的结构</strong>，所以它有<code>FD</code>和<code>BK</code>两个指针，且当fastbin为空时，他的<code>fd</code>和<code>bk</code>指针将同时指向<code>main_arena</code>中，一般也就是<code>main_arena+88</code>的位置。</p>
-<p>main_arena存储在libc.so.6文件的.data段，通过这个偏移我们就可以获取libc的基址。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1276,7 +1265,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">95</span>
+          <span class="site-state-item-count">101</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1289,7 +1278,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">96</span>
+        <span class="site-state-item-count">103</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1336,12 +1325,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">222k</span>
+    <span title="站点总字数">229k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">3:22</span>
+    <span title="站点阅读时长">3:28</span>
 </div>
 
         
