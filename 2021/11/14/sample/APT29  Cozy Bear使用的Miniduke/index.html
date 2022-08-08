@@ -18,21 +18,48 @@
     var CONFIG = {"hostname":"erkeai.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="这篇文章详细分析了APT29使用的Miniduke，Minicuke是纯汇编编写的一个后门 ，该恶意软件采用了控制流整平迷惑并且实现了多种数据泄露的方法，比如用POST和PUT HTTP方法发送数据给C2服务器，或者在无网络连接的情况下用一个命名管道。后门实现37种不同的功能，如下图。 ![img]https:&#x2F;&#x2F;blog-1257910714.cos.ap-chengdu.myqcloud.co">
+  <meta name="description" content="这篇文章详细分析了APT29使用的Miniduke，Minicuke是纯汇编编写的一个后门 ，该恶意软件采用了控制流整平迷惑并且实现了多种数据泄露的方法，比如用POST和PUT HTTP方法发送数据给C2服务器，或者在无网络连接的情况下用一个命名管道。后门实现37种不同的功能，如下图。   技术分析首先用IDA打开文件，看到第一个函数setunhandledexceptionfilter，恶意软件">
 <meta property="og:type" content="article">
 <meta property="og:title" content="APT29 &#x2F; Cozy Bear使用的Miniduke">
 <meta property="og:url" content="https://erkeai.github.io/2021/11/14/sample/APT29%20%20Cozy%20Bear%E4%BD%BF%E7%94%A8%E7%9A%84Miniduke/index.html">
 <meta property="og:site_name" content="hazel&#39;blog">
-<meta property="og:description" content="这篇文章详细分析了APT29使用的Miniduke，Minicuke是纯汇编编写的一个后门 ，该恶意软件采用了控制流整平迷惑并且实现了多种数据泄露的方法，比如用POST和PUT HTTP方法发送数据给C2服务器，或者在无网络连接的情况下用一个命名管道。后门实现37种不同的功能，如下图。 ![img]https:&#x2F;&#x2F;blog-1257910714.cos.ap-chengdu.myqcloud.co">
+<meta property="og:description" content="这篇文章详细分析了APT29使用的Miniduke，Minicuke是纯汇编编写的一个后门 ，该恶意软件采用了控制流整平迷惑并且实现了多种数据泄露的方法，比如用POST和PUT HTTP方法发送数据给C2服务器，或者在无网络连接的情况下用一个命名管道。后门实现37种不同的功能，如下图。   技术分析首先用IDA打开文件，看到第一个函数setunhandledexceptionfilter，恶意软件">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373D.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373E.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373F.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3740.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3741.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3742.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3753.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3754.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3755.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3756.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3757.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3758.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3759.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375A.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375B.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375C.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375D.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375E.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375F.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3760.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3761.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3762.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3772.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3773.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3774.tmp.jpg">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3775.tmp.jpg">
 <meta property="article:published_time" content="2021-11-13T16:00:00.000Z">
-<meta property="article:modified_time" content="2021-12-22T06:57:22.553Z">
+<meta property="article:modified_time" content="2022-08-08T07:52:31.217Z">
 <meta property="article:author" content="ZouFeIYu">
 <meta property="article:tag" content="恶意代码">
 <meta property="article:tag" content="反汇编">
 <meta property="article:tag" content="样本分析">
 <meta property="article:tag" content="逆向">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373D.tmp.jpg">
 
 <link rel="canonical" href="https://erkeai.github.io/2021/11/14/sample/APT29%20%20Cozy%20Bear%E4%BD%BF%E7%94%A8%E7%9A%84Miniduke/">
 
@@ -126,7 +153,7 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">115</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">114</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -136,7 +163,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">108</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">107</span></a>
 
   </li>
   </ul>
@@ -197,7 +224,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-22 14:57:22" itemprop="dateModified" datetime="2021-12-22T14:57:22+08:00">2021-12-22</time>
+                <time title="修改时间：2022-08-08 15:52:31" itemprop="dateModified" datetime="2022-08-08T15:52:31+08:00">2022-08-08</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -215,14 +242,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>4.2k</span>
+              <span>1.9k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>4 分钟</span>
+              <span>2 分钟</span>
             </span>
 
         </div>
@@ -235,49 +262,49 @@
 
       
         <p>这篇文章详细分析了APT29使用的Miniduke，Minicuke是纯汇编编写的一个后门 ，该恶意软件采用了<strong>控制流整平迷惑</strong>并且实现了多种数据泄露的方法，比如用POST和PUT HTTP方法发送数据给C2服务器，或者在无网络连接的情况下用一个命名管道。后门实现37种不同的功能，如下图。</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373D.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373D.tmp.jpg</a>) </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373D.tmp.jpg" alt="img"> </p>
 <h2 id="技术分析"><a href="#技术分析" class="headerlink" title="技术分析"></a>技术分析</h2><p>首先用IDA打开文件，看到第一个函数setunhandledexceptionfilter，恶意软件将异常过滤器函数设置为特定函数。</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373E.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373E.tmp.jpg</a>) </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373E.tmp.jpg" alt="img"> </p>
 <p>前面的函数有点看不出来是个啥，我们注意看最后一个函数，可以看到用了GetStartupInfo获取STARTUPINFO结构的内容。Sub_4030A4如下图，可见是创建了一个线程。我们点进StartAddress看看</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373F.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373F.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3740.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3740.tmp.jpg</a>) </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps373F.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3740.tmp.jpg" alt="img"> </p>
 <p>StartAddress函数前部分非常多的Switch case函数，即使是后半段的这些函数也有非常多的switch case结构，<strong>非常多的无用的计算，</strong>并且加载了三个dll。</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3741.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3741.tmp.jpg</a>) </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3741.tmp.jpg" alt="img"> </p>
 <p>在IDA的图中可以看到startAddress如下，这就是前面说的控制流整平诱惑。StartAddress中的loc_4036F2中就实现了30个case,我们将该跳转用nop替换掉，因为该命令占6字节，nop一个字节，所以要用6个nop。</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3742.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3742.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3753.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3753.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3754.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3754.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3755.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3755.tmp.jpg</a>) </p>
-<p>SetErrorCode函数参数为2，作用是让系统不显示Windows错误报告对话框 （0x2 = <strong>SEM_NOGPFAULTERRORBOX</strong>）。加载的三个dll后的sub_407B60中有一个函数sub_417DCC，将在执行期间运行，并使用哈希机制定位。基本上，对于DLL中的每个函数名，恶意软件计算一个4字节的值，并与硬编码的值进行比较。这些函数都是目标：GetProcAddress, GetLongPathNameA, GetLastError, CreateProcessWithLogonW, CryptAcquireContextW, CryptGenRandom, InternetOpenA, InternetConnectA, InternetSetOptionA, HttpOpenRequestA, HttpSendRequestA, HttpQueryInfoA, InternetReadFile, InternetCloseHandle, HttpAddRequestHeadersA。</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3756.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3756.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3757.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3757.tmp.jpg</a>) </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3742.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3753.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3754.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3755.tmp.jpg" alt="img"> </p>
+<p>SetErrorCode函数参数为2，作用是让系统不显示Windows错误报告对话框 （0x2 = <strong>SEM_NOGPFAULTERRORBOX</strong>）。加载的三个dll后的sub_407B60中有一个函数sub_417DCC，将在执行期间运行，并使用哈希机制定位。基本上，对于DLL中的每个函数名，恶意软件计算一个4字节的值，并与硬编码的值进行比较。这些函数都是目标：GetProcAddress, GetLongPathNameA, GetLastError, CreateProcessWithLogonW, CryptAcquireContextW, CryptGenRandom, InternetOpenA, InternetConnectA, InternetSetOptionA, HttpOpenRequestA, (httpsendRequestA, HttpQueryInfoA, InternetReadFile, InternetCloseHandle, HttpAddRequestHeadersA。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3756.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3757.tmp.jpg" alt="img"> </p>
 <p>在该函数中有一个sub_423FC8函数，红框圈起来的函数就是hashing函数</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3758.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3758.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3759.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3759.tmp.jpg</a>) </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3758.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3759.tmp.jpg" alt="img"> </p>
 <p>现在回到加载dll的目标函数中，下图中的API用于连接CSP，获得指定CSP（真正实行加密的独立模块）的密钥容器的句柄（0x1 = <strong>PROV_RSA_FULL</strong>, 0xF0000040 = <strong>CRYPT_VERIFYCONTEXT</strong> | <strong>CRYPT_SILENT****）</strong></p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375A.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375A.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375B.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375B.tmp.jpg</a>) </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375A.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375B.tmp.jpg" alt="img"> </p>
 <p>下图函数使用一个子权限分配和初始化安全标识符(SID)</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375C.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375C.tmp.jpg</a>) </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375C.tmp.jpg" alt="img"> </p>
 <p>通过将新的访问控制或审核控制信息合并到现有的ACL结构中来创建新的访问控制列表（ACL）</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375D.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375D.tmp.jpg</a>) </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375D.tmp.jpg" alt="img"> </p>
 <p>通过恶意进程初始化新的安全描述符</p>
 <p>(0x1 = <strong>SECURITY_DESCRIPTOR_REVISION</strong>)，并使用setseCurityDescriptordACL API设置DACL（自定义访问控制列表）中的信息</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375E.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375E.tmp.jpg</a>) </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375E.tmp.jpg" alt="img"> </p>
 <p>进程创建了一个Software\Microsoft\ApplicationManager注册键值</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375F.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375F.tmp.jpg</a>) </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps375F.tmp.jpg" alt="img"> </p>
 <p>一个新的值AppId被创建，使用GetTickCount函数调用的输出计算此值，它检索自系统启动以来经过的毫秒数</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3760.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3760.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3761.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3761.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3762.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3762.tmp.jpg</a>) </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3760.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3761.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3762.tmp.jpg" alt="img"> </p>
 <p>继续查看下一个函数sub_41CD30,</p>
 <p>从上面的一个输出被转换并写入缓冲区，以及“AppID”值。将使用传统算法加密此缓冲区，该算法还包括XOR运算符（sub_420200）：</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3772.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3772.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3773.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3773.tmp.jpg</a>) </p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3774.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3774.tmp.jpg</a>) </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3772.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3773.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3774.tmp.jpg" alt="img"> </p>
 <h3 id="控制流整平"><a href="#控制流整平" class="headerlink" title="控制流整平"></a>控制流整平</h3><p>if-else、while、for具有典型的跳转等结构，即使通过多层嵌套、拓展条件等方法，依然可以通过“切片技术”来判断。有了这些依据，就给程序分析带来很多便利。<br>  正是这个原因，为了增加程序逆向的难度，我们得使得这些特征结构变得模糊，并且能让类似“切片技术”这样基于具体语义分析的方法失效，迫使逆向分析人员进行完整的抽象语义分析，斩断所谓的“捷径”。<br>  控制流整平的策略是这样的，它把所有的典型控制流以及其衍生结构“统而为一”，各种控制流的区别只是语义方面的，增加了理解控制流转换关系的难度。</p>
 <p> 控制流整平迷惑，是通过打破程序原有的控制流之间的嵌套和顺序关系，使得变换后的程序控制流扁平化的混淆方法，其基本思想是令程序中所有的基本块拥有共同的前驱和后继代码块。如下图</p>
-<p>![img]<a target="_blank" rel="noopener" href="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3775.tmp.jpg">https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3775.tmp.jpg</a>) </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample6/wps3775.tmp.jpg" alt="img"> </p>
 <p> 进行控制流整平后，使得面向过程的代码片段，原来比较清晰的控制流向混杂在一起，同时这也比较好的并行图形态，也有利于进一步的迷惑处理。</p>
 
     </div>
@@ -398,7 +425,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-count">107</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -411,7 +438,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">115</span>
+        <span class="site-state-item-count">114</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -458,12 +485,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">284k</span>
+    <span title="站点总字数">271k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">4:19</span>
+    <span title="站点阅读时长">4:07</span>
 </div>
 
         
