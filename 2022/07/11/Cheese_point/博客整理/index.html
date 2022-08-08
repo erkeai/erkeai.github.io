@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.ico">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"erkeai.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="进程强杀因为ring0的特权级别是比ring3高的，那么我们肯定不能在ring3调用windows提供的api杀死ring0特权级别的进程，那么这时候我们就需要使用ring0的函数来强行结束一些处于ring0级别的进程。 ZwTerminateProcess该函数是一个Ring0函数，结构参数如下： 1234NTSYSAPI NTSTATUS ZwTerminateProcess(  [in, o">
+<meta property="og:type" content="article">
+<meta property="og:title" content="博客相关知识点整理">
+<meta property="og:url" content="https://erkeai.github.io/2022/07/11/Cheese_point/%E5%8D%9A%E5%AE%A2%E6%95%B4%E7%90%86/index.html">
+<meta property="og:site_name" content="hazel&#39;blog">
+<meta property="og:description" content="进程强杀因为ring0的特权级别是比ring3高的，那么我们肯定不能在ring3调用windows提供的api杀死ring0特权级别的进程，那么这时候我们就需要使用ring0的函数来强行结束一些处于ring0级别的进程。 ZwTerminateProcess该函数是一个Ring0函数，结构参数如下： 1234NTSYSAPI NTSTATUS ZwTerminateProcess(  [in, o">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220711173115524.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712103431244.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712103453477.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712103646640.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712114148635.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712114301237.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712162202878.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712161035727.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712161456407.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712161541476.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712163341384.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712164037294.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712164429035.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712192755554.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712192744224.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712193240271.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712193728459.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712194929243.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712195644152.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712195706609.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714113338981.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714150402209.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714151607623.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714151816955.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714151851947.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714152047989.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714152033134.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714163125878.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714163148316.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714173229625.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714165444894.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714193904141.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714194647467.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714201137389.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714201250273.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714203006143.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714203021436.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714203256351.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714203628443.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714203852783.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714204313626.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714204329658.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714204746773.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714205128464.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714210434972.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714210523795.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718153145153.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718163930794.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718164517748.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718161129090.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718164732040.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718161413070.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718161736598.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718173242799.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718173735557.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718195402087.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718195002005.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718193319749.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718195106508.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718195537373.png">
+<meta property="article:published_time" content="2022-07-10T16:00:00.000Z">
+<meta property="article:modified_time" content="2022-07-25T08:03:59.918Z">
+<meta property="article:author" content="ZouFeIYu">
+<meta property="article:tag" content="SSDT Hook">
+<meta property="article:tag" content="全局句柄表">
+<meta property="article:tag" content="抹链技术">
+<meta property="article:tag" content="分页机制">
+<meta property="article:tag" content="vad">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220711173115524.png">
+
+<link rel="canonical" href="https://erkeai.github.io/2022/07/11/Cheese_point/%E5%8D%9A%E5%AE%A2%E6%95%B4%E7%90%86/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>博客相关知识点整理 | hazel'blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">hazel'blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">115</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">10</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">108</span></a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/07/11/Cheese_point/%E5%8D%9A%E5%AE%A2%E6%95%B4%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          博客相关知识点整理
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-07-11 00:00:00" itemprop="dateCreated datePublished" datetime="2022-07-11T00:00:00+08:00">2022-07-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-07-25 16:03:59" itemprop="dateModified" datetime="2022-07-25T16:03:59+08:00">2022-07-25</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%9F%A5%E8%AF%86%E7%82%B9%E8%A1%A5%E5%85%85%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">知识点补充学习</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>22k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>20 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="进程强杀"><a href="#进程强杀" class="headerlink" title="进程强杀"></a>进程强杀</h3><p>因为ring0的特权级别是比ring3高的，那么我们肯定不能在ring3调用windows提供的api杀死ring0特权级别的进程，那么这时候我们就需要使用ring0的函数来强行结束一些处于ring0级别的进程。</p>
+<h4 id="ZwTerminateProcess"><a href="#ZwTerminateProcess" class="headerlink" title="ZwTerminateProcess"></a>ZwTerminateProcess</h4><p>该函数是一个Ring0函数，结构参数如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">NTSYSAPI NTSTATUS <span class="title">ZwTerminateProcess</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">  [in, optional] HANDLE   ProcessHandle,</span></span></span><br><span class="line"><span class="params"><span class="function">  [in]           NTSTATUS ExitStatus</span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>但是这个函数在RIng0层面下，已经被杀软hook掉了，所以如果调用这个函数Kill杀软会被拒绝。</p>
+<h4 id="PspTerminateProcess"><a href="#PspTerminateProcess" class="headerlink" title="PspTerminateProcess"></a>PspTerminateProcess</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220711173115524.png" alt="image-20220711173115524"></p>
+<p>这个函数是没有被导出的，要调用该函数有两种方法</p>
+<blockquote>
+<ol>
+<li>暴力搜索，提取该函数的特征码，全盘搜索。</li>
+<li>如果有已文档化的函数调用了PspTerminateProcess，那我们就可以通过指针加偏移的方式获取到他的地址，同样可以调用。</li>
+</ol>
+</blockquote>
+<p>我们的驱动在被系统加载的同时，内存中会出现一个描述我们驱动信息的对象：<code>DRIVER OBJECT</code>，而这个对象的地址，其实就保存在我们驱动的入口函数 <code>Driver Entry </code>的第1个参数中。</p>
+<p>在 <code>DriverObject </code>对象中，有一个 <code>Driver Section</code> 成员，它所指向的是一个名叫 <code>_LDR_DATA_TABLE_ENTRY </code>的结构体，该结构体每个驱动模块都有一份，在这个结构体中就保存着一个驱动模块的所有信息。</p>
+<p>系统中有一个双向链表，其中每一个节点都保存着一个驱动模块的所有信息，而 <code>InLoadOrderLinks</code> 就是该链表中的节点类型，<code>Flink </code>指向下一个驱动对象的 <code>_LDR_DATA_TABLE_ENTRY</code>，<code>Blink</code> 指向上一个驱动对象的 <code>_LDR_DATA_TABLE_ENTRY</code>。</p>
+<p>因此，我们只要遍历这个<code> InLoadOrderLinks</code> ，就能获取系统中所有驱动的模块信息。</p>
+<p>接下来就是特征码的搜索匹配，在上图中可以看到，前一部分压栈操作不能作为特征码，所以可以选取中间部分，知道后再减去相应偏移。</p>
+<p>遍历代码如下：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712103431244.png" alt="image-20220712103431244"></p>
+<p>结束进程代码：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712103453477.png" alt="image-20220712103453477"></p>
+<p>特征码查找：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712103646640.png" alt="image-20220712103646640"></p>
+<p>上图中最后减去5是特征匹配字段与函数开头的距离（示例代码是在x86位下）</p>
+<p>1.将程序编译成sys文件后安装驱动，即可关闭进程；</p>
+<p>2.可以利用ring3常规方式传输数据到ring0的方式结束进程（其实就是多写一个客户端程序与驱动通信）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712114148635.png" alt="image-20220712114148635"></p>
+<p>请注意第一个红框，这是老写法，查阅资料如下</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712114301237.png" alt="image-20220712114301237"></p>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>总结一下，这篇进程强杀，主要用到了<code>PspTerminateProcess</code>函数，该函数并未导出，采取的是<code>DRIVER_OBJECT</code>的<code>Driver Section</code>成员，它所指向的是一个名叫 <code>_LDR_DATA_TABLE_ENTRY </code>的结构体，该结构体大家都比较熟悉，通过遍历其中的 <code>InLoadOrderLinks</code> 加上匹配特征码的方式就能得到函数地址。</p>
+<h3 id="Ring0下的进程保护"><a href="#Ring0下的进程保护" class="headerlink" title="Ring0下的进程保护"></a>Ring0下的进程保护</h3><h4 id="SSDT表"><a href="#SSDT表" class="headerlink" title="SSDT表"></a>SSDT表</h4><p>主要用到SSDT HOOK，SSDT表并不仅仅只包含一个庞大的地址索引表，它还包含着一些其它有用的信息，诸如地址索引的基地址、服务函数个数等。通过修改此表的函数地址可以对常用 Windows 函数及 API 进行 Hook，从而实现对一些关心的系统动作进行过滤、监控的目的。一些 HIPS、防毒软件、系统监控、注册表监控软件往往会采用此接口来实现自己的监控模块。</p>
+<p>因为x64位中ssdt表是加密的，ssdt中的每一项占4个字节但并不是对应的系统服务的地址，因为x64中地址为64位，而ssdt每一项只有4个字节所以无法直接存放服务的地址。其实际存储的4个字节的前28位表示的是对应的系统服务相对于SSDT表基地址的偏移，而后4位如果对应的服务的参数个数小于4则其值为0，不小于4则为参数个数减去4。</p>
+<p>所以我们在ssdt hook时向ssdt表项中填入的函数得在ntoskrnl.exe模块中，原因是因为函数到SSDT表基地址的偏移大小小于4个字节。所以我们需要选取一个ntoskrnl.exe中很少使用的函数<code>KeBugCheckEx</code>作为中转函数，将需要hook的ssdt项的改为<code>KeBugCheckEx</code>函数，然后在<strong>Inlinehook KeBugCheck</strong>函数，jmp到我们的函数中进行过滤。</p>
+<p><code>KeServiceDescriptorTable</code> 和 <code>KeServiceDescriptorTableShadow</code>，其中 <code>KeServiceDescriptorTable</code> 主要是处理来自 Ring3 层 <code>Kernel32.dll</code> 中的系统调用，而 <code>KeServiceDescriptorTableShadow</code> 则主要处理来自 <code>User32.dll</code> 和 <code>GDI32.dll</code> 中的系统调用，并且<code>KeServiceDescriptorTable</code> 在<code>ntoskrnl.exe</code>(Windows 操作系统内核文件，包括内核和执行体层)是导出的，而 <code>KeServiceDescriptorTableShadow</code> 则是没有被 Windows 操作系统所导出。</p>
+<p>通过SSDT表中<code>OpenProcess</code>函数的索引（系统调用号）来找到该函数。或者利用<code>Terminateprocess</code>函数也是可以的。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712162202878.png" alt="image-20220712162202878"></p>
+<h4 id="CR0寄存器"><a href="#CR0寄存器" class="headerlink" title="CR0寄存器"></a>CR0寄存器</h4><p>修改内存页属性，SSDT表所在的内存页属性是只读，没有写入的权限，所以需要把该地址设置为可写入，这样才能写入自己的函数，使用的是CR0寄存器关闭只读属性。</p>
+<h4 id="获取SSDT表基址"><a href="#获取SSDT表基址" class="headerlink" title="获取SSDT表基址"></a>获取SSDT表基址</h4><p>在x86下，可以通过代码的方式直接读取 <code>KeServiceDescriptorTable</code> 这个被导出的表结构从而可以直接读取到SSDT表的基址，而在Win64系统中 <code>KeServiceDescriptorTable</code> 这个表并没有被导出，所以我们必须手动搜索到它的地址。</p>
+<p>1.这里我们可以通过MSR(特别模块寄存器)，读取C0000082寄存器，从而得到<code>KiSystemCall64</code>的地址，在内核调试模式下直接输入<code> rdmsr c0000082</code> 即可读取到该地址，反汇编可看到<code> nt!KiSystemCall64Shadow</code> 函数。（<strong>Win10中如果开启了KVA Shadow那么这个地址是nt!KiSystemCall64Shadow，否则是nt!KiSystemCall64。</strong>）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712161035727.png" alt="image-20220712161035727"></p>
+<p>在<code>KiSystemCall64Shadow</code>函数的最后，有一个jmp指令，会跳转到<code>nt!KiSystemServiceUser</code>函数。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712161456407.png" alt="image-20220712161456407"></p>
+<p>继续跟进<code>KiSystemServiceUser</code>函数，可以看到对<code>nt!KeServiceDescriptorTable</code>的读取。<code>KeServiceDescriptorTable</code>就是SSDT表。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712161541476.png" alt="image-20220712161541476"></p>
+<p>总结一下，获取SSDT基址流程：</p>
+<p><strong>MSR寄存器（0xC0000082）-&gt; nt!KiSystemCall64Shadow -&gt;nt!KiSystemServiceUser -&gt; nt!KeServiceDescriptorTable。具体查找也是通过字节码匹配。</strong></p>
+<h4 id="具体实现"><a href="#具体实现" class="headerlink" title="具体实现"></a>具体实现</h4><p>下面是InlineHook KeBugCheckEx()的部分</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712163341384.png" alt="image-20220712163341384"></p>
+<p>关键匹配部分</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712164037294.png" alt="image-20220712164037294"></p>
+<p>获取函数部分</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712164429035.png" alt="image-20220712164429035"></p>
+<h4 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h4><p>这篇主题是进程保护，实际上主要知识点是关于<strong>SSDT_HOOK</strong>，需要注意的是x86和x64下操作方式不同，现在网上很多的x64下的也是基于win7的，并且x64下需要绕过PG。</p>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_41490873/article/details/108251175">x64下的进程保护</a>，<a target="_blank" rel="noopener" href="https://www.freesion.com/article/2812320367/">x64下的SSDTHOOK</a></p>
+<h3 id="Ring3下API的逆向分析及重构"><a href="#Ring3下API的逆向分析及重构" class="headerlink" title="Ring3下API的逆向分析及重构"></a>Ring3下API的逆向分析及重构</h3><p>首先分析<code>ReadProcessMemory</code>函数整个调用过程，我们知道函数虽然是Kernel32.dll中的函数，但是只不过是封装好的函数，最终调用还是会到ntdll.dll中去。</p>
+<p>我们先随便写个程序，然后生成64位exe动态分析。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712192755554.png" alt="image-20220712192755554"></p>
+<p><code>ReadProcessMemory</code>实际上会调用红框中的函数</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712192744224.png" alt="image-20220712192744224"></p>
+<p><code>NtReadVirtualMemory</code>函数如下图，test执行与操作，结果为0，ZF被置位，所以不执行下面的跳转（<strong>注意与cmp指令的差别</strong>）</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712193240271.png" alt="image-20220712193240271"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712193728459.png" alt="image-20220712193728459"></p>
+<p>这个地方首先是将内核函数的编号给了eax，然后test命令比较判断是采取中断的方式还是syscall的方式进入0环（以前x86的方式是调用<code>KiFastSystemCall</code>函数,也就是<code>0x7ffe0300</code>这个地址，该函数决定了采取哪种方式进入0环）。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712194929243.png" alt="image-20220712194929243"></p>
+<h4 id="KUSER-SHARED-DATA"><a href="#KUSER-SHARED-DATA" class="headerlink" title="_KUSER_SHARED_DATA"></a>_KUSER_SHARED_DATA</h4><p>前面说到了<code>0x7ffe0308</code>这个地址，如下图，其实就是shareddata+0x308</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712195644152.png" alt="image-20220712195644152"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220712195706609.png" alt="image-20220712195706609"></p>
+<p>在 User 层和 Kernel 层分别定义了一个 <code>_KUSER_SHARED_DATA</code>结构区域，用于 User 层和 Kernel 层共享某些数据，它们使用固定的地址值映射，<code>_KUSER_SHARED_DATA</code> 结构区域在 User 和 Kernel 层地址分别为：</p>
+<blockquote>
+<p>User 层地址为：0x7ffe0000</p>
+<p>Kernel 层地址为：0xffdf0000</p>
+</blockquote>
+<p>虽然指向的是同一个物理页，但在ring3层是只读的，在ring0层是可写的，在0x308偏移处<code>SystemCall</code>存放的地址就是真正进入ring0的实现方法。</p>
+<h4 id="总结-2"><a href="#总结-2" class="headerlink" title="总结"></a>总结</h4><p>这篇API逆向，主要涉及到了3环进入0环的详细结构，关于重构其实网上示例代码是有关call KiFastSystemCall的，但是x64并没有调用这个函数，而是直接进行了判断然后选取以哪种方式进入0环。</p>
+<h3 id="基于PEB断链实现隐藏"><a href="#基于PEB断链实现隐藏" class="headerlink" title="基于PEB断链实现隐藏"></a>基于PEB断链实现隐藏</h3><h4 id="模块隐藏"><a href="#模块隐藏" class="headerlink" title="模块隐藏"></a>模块隐藏</h4><p>前面提到的关于<code>DRIVER_OBJECT</code>结构中的<code>Driver Section</code>成员，实际上是一个结构体</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714113338981.png" alt="image-20220714113338981"></p>
+<p>偏移处有一个<code>DllBase</code>，这里存放的就是dll的地址，所以这里我们如果要想隐藏某个指定的dll，就可以通过<code>DllBase</code>的方式，通过<code>GetModuleHandleA</code>获取dll的句柄，来进行比对。</p>
+<p>前面三个双向链表结构都是一样的，我们以InloadOrderModuleList来进行断链示范（其他两个一样的操作），要实现断链，最简单的做法就是让Head的Flink和Blink指向它自己。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">PPEB_LDR_DATA ldr;  </span><br><span class="line">PLDR_DATA_TABLE_ENTRY ldte;</span><br><span class="line">PLIST_ENTRY Head, Cur; </span><br><span class="line">Head = &amp;(ldr-&gt;InLoadOrderModuleList);</span><br><span class="line">	Cur = Head-&gt;Flink;</span><br><span class="line">    </span><br><span class="line">	<span class="keyword">do</span></span><br><span class="line">	&#123;</span><br><span class="line">		</span><br><span class="line">		ldte = CONTAINING_RECORD( Cur, LDR_DATA_TABLE_ENTRY, InLoadOrderModuleList);</span><br><span class="line">		<span class="keyword">if</span> (ldte-&gt;BaseAddress == hModule)</span><br><span class="line">		&#123;		</span><br><span class="line">			</span><br><span class="line">			ldte-&gt;InLoadOrderModuleList.Blink-&gt;Flink = ldte-&gt;InLoadOrderModuleList.Flink;  </span><br><span class="line">			ldte-&gt;InLoadOrderModuleList.Flink-&gt;Blink = ldte-&gt;InLoadOrderModuleList.Blink;		 </span><br><span class="line">		&#125;</span><br><span class="line">		Cur = Cur-&gt;Flink;</span><br><span class="line">	&#125; <span class="keyword">while</span>(Head != Cur);</span><br></pre></td></tr></table></figure>
+
+<h4 id="进程隐藏"><a href="#进程隐藏" class="headerlink" title="进程隐藏"></a>进程隐藏</h4><p>在windows系统中，所有的活动进程都是连在一起的，构成一个双链表，表头是全局变量<code>PsActiveProcessHead</code>，当一个进程被创建时，其<code>ActiveProcessList</code>域将被作为节点加入到此链表中；当进程被删除时，则从此链表中移除，如果windows需要枚举所有的进程，直接操纵此链表即可。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714150402209.png" alt="image-20220714150402209"></p>
+<p>前八个字节指向的是下一个<code>EPROCESS</code>的偏移0x448处</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714151607623.png" alt="image-20220714151607623"></p>
+<p>如下图，可以看到进程名为<code>system</code></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714151816955.png" alt="image-20220714151816955"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714151851947.png" alt="image-20220714151851947"></p>
+<p>我们继续看下一个，可以看到进程名<code>Registry</code></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714152047989.png" alt="image-20220714152047989"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714152033134.png" alt="image-20220714152033134"></p>
+<h4 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h4><p>在驱动中通过 <code>PsGetCurrentProcess()</code>，来获取当前进程的<code>EPROCESS</code>结构体，然后通过链表遍历其余的<code>EPROCESS</code>,可以通过比较<code>ImageFileName</code>字段来筛选自己想要隐藏的进程。然后对其进行断链操作。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">curNode = (PLIST_ENTRY)((ULONG)pCurProcess + <span class="number">0x448</span>);</span><br><span class="line">nextNode = curNode-&gt;Flink;</span><br><span class="line">preNode = curNode-&gt;Blink;</span><br><span class="line"></span><br><span class="line">preNode-&gt;Flink = curNode-&gt;Flink;</span><br><span class="line"></span><br><span class="line">nextNode-&gt;Blink = curNode-&gt;Blink;</span><br></pre></td></tr></table></figure>
+
+<h4 id="总结-3"><a href="#总结-3" class="headerlink" title="总结"></a>总结</h4><p>这样的隐藏技术主要是基于关键结构体的成员，来进行摸链操作，可以详细复习一下EPROCESS、ETHREAD等关键数据结构</p>
+<h3 id="全局句柄表发现隐藏进程"><a href="#全局句柄表发现隐藏进程" class="headerlink" title="全局句柄表发现隐藏进程"></a>全局句柄表发现隐藏进程</h3><p>前面说了0环进行PEB断链可以达到隐藏进程的效果，但是这只是作为权限维持的一种方法。所以这篇讲了基于全局句柄表<code>PsdCidTable</code>，来找到隐藏进程的效果。</p>
+<p>在EPROCESS中有一个成员<code>ObjectTable</code></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714163125878.png" alt="image-20220714163125878"></p>
+<p><code>TableCode</code>就是句柄表地址</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714163148316.png" alt="image-20220714163148316"></p>
+<p>句柄表结构如下，句柄表以分级的方式存储，最多三级</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714173229625.png" alt="image-20220714173229625"></p>
+<p>句柄共八个字节,64位</p>
+<ul>
+<li>（bit48~bit63）这一块共计两个字节，16位；高位字节是给SetHandleInformation这个函数用的，例如当执行如下语句：</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SetHandleInformation(Handle,HANDLE_FLAG_PROTECT_FROM_CLOSE,HANDLE_FLAG_PROTECT_FROM_CLOSE);</span><br></pre></td></tr></table></figure>
+
+<p>这个位置将会被写入0x02</p>
+<ul>
+<li>（bit32~bit47）这一块也是两个字节，16位；这块是访问掩码，是给<code>OpenProcess</code>这个函数用的，即<code>OpenProcess</code>的第一个参数 <code>dwDesiredAccess</code>的值</li>
+<li>（bit0~bit31）这两块共计四个字节，32位，各个位主要含义如下：<ul>
+<li>bit0：OBJ_PROTECT_CLOSE，表示调用者是否允许关闭该句柄；默认值为1</li>
+<li>bit1：OBJ_INHERIT，指示该进程创建的子进程<strong>是否可以继承该句柄</strong>，即是否将该句柄项拷贝到它们的 句柄表中</li>
+<li>bit2：OBJ_AUDIT_OBJECT_CLOSE，指示关闭该对象时是否产生一个审计事件；默认值为0</li>
+<li>bit3~31：存放<strong>该内核对象在内核中的具体地址</strong></li>
+</ul>
+</li>
+</ul>
+<p><strong>句柄表中存放的是指针，32位就是32位指针</strong></p>
+<p>x64 算法:<br>进程ID(句柄索引) / 4 = 表索引<br>表索引 * 16 = 全局句柄表条目</p>
+<p>x86算法：</p>
+<p>进程ID / 4 = 表索引<br>表索引 * 8 = 全局句柄表条目</p>
+<blockquote>
+<p>为什么 * 8 (16)因为每一项占8(16)字节，<strong>前4(8)字节为头，后4(8)字节为地址</strong></p>
+</blockquote>
+<h4 id="OBJECT-HEADER"><a href="#OBJECT-HEADER" class="headerlink" title="_OBJECT_HEADER"></a>_OBJECT_HEADER</h4><p>当一个进程创建或者打开一个<strong>内核对象</strong>时，将获得一个<strong>句柄</strong>，通过这个句柄可以访问对应的内核对象。上面知道可以从句柄低32位获取到内核对象的地址，<strong>内核对象在开头都有一个0x30字节的_OBJECT_HEADER结构</strong>，这是内核对象的头部，也就是说从0x30字节开始， 才是进程结构体开始的位置。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714165444894.png" alt="image-20220714165444894"></p>
+<h4 id="全局句柄表"><a href="#全局句柄表" class="headerlink" title="全局句柄表"></a>全局句柄表</h4><p>全局变量 <code>PspCidTable </code>存储了全局句柄表 <code>_HANDLE_TABLE </code>的地址，全局句柄表存储了所有 <code>EPROCESS </code>和 <code>ETHREAD</code> ，全局句柄表项<strong>低32位指向的就是内核对象，而非 <code>OBJECT_HEADER</code>。</strong></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714193904141.png" alt="image-20220714193904141"></p>
+<p><code>TableCode</code>最后一位为1，代表句柄表中有两层，当最后一位为0时，代表直接指向句柄表，当最后一位为1时代表指向一个数组，数组中的值才指向的是句柄，这个数组可以存放句柄表的指针，为2时就变成了一个三维数组</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714194647467.png" alt="image-20220714194647467"></p>
+<p><strong>X86下_HANDLE_TABLE_ENTRY结构大小为8，x64下结构大小为16，每张表4k大小4k/16=256，所以一张表可以存256个handle。二级三级表存放指针，x64下一个指针地址占用8字节，x86下占用4字节。4k/8=512</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*为0时*/</span></span><br><span class="line"></span><br><span class="line">Handle Handle_table[<span class="number">256</span>] = &#123;&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*为1时*/</span></span><br><span class="line"></span><br><span class="line">Handle_table Handle_table[<span class="number">512</span>][<span class="number">0</span>] = Handle_table;</span><br></pre></td></tr></table></figure>
+
+<p>根据上面的分析我们知道，当前句柄表存储的是512个句柄表数组(大小为0x8)的数组指针,每个句柄表数组有256个成员，每个成员大小为0x10大小, 这里我们查询的目标明显在第一张句柄表中,我们查看目标内存。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714201137389.png" alt="image-20220714201137389"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714201250273.png" alt="image-20220714201250273"></p>
+<p>这里我们查看PID为4的进程对象，先4/4 = 1（0x01）计算地址公式为：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ffffad09`de6b0000 + <span class="number">0x01</span> * <span class="number">16</span> = ffffad09`de6b0010</span><br></pre></td></tr></table></figure>
+
+<p>**(note:前面提到过PspCidTable表中其表项低32位指向目标的Object，内核句柄表中存储的是Object_Header。)**所以：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(c40ae409`<span class="number">80401</span>dc5 &gt;&gt; <span class="number">0x10</span>) &amp; <span class="number">0xFFFFFFFFFFFFFFF0</span> == ffffc40ae4098040</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714203006143.png" alt="image-20220714203006143"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714203021436.png" alt="image-20220714203021436"></p>
+<p>我们成功在全局句柄表中查了目标进程对象，这里我们可以看其对应的<code>Object_Header</code>。圈起来的地方就是64与32的区别，64位<code>Object_Header</code>中已经没有<code>Object_Type</code>结构体指针，取而代之的是<code>TypeIndex</code></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714203256351.png" alt="image-20220714203256351"></p>
+<p>其是一个XOR加密的数据,我们可以逆向解出其数据，公式如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">0x2 ^ 0x80(上图中OBJECT_HEADER地址的倒数第二字节) ^ ObHeaderCookie</span><br></pre></td></tr></table></figure>
+
+<p>其中 ObHeaderCookie 为一个BYTE字节的全局变量，我么可以通过WinDbg查看</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714203628443.png" alt="image-20220714203628443"></p>
+<p>计算结果如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">0x2 ^ 0x80 ^ ObHeaderCookie(0x85) == 0x7</span><br></pre></td></tr></table></figure>
+
+<p>这里的0x7对应的是<code>Object_Type</code>中的<code>Index</code>字段(外提一句线程是0x8)，我们查看<code>PsProcessType</code>(其为<code>Object_Type</code>结构)</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714203852783.png" alt="image-20220714203852783"></p>
+<p><strong>第二种方法：</strong></p>
+<p><code>TypeIndex</code>就在说明内核对象的类型，说明放在了<code>ObTypeIndexTable</code>中，将<code>ObTypeIndexTable</code>首地址：<code>fffff807670fce80</code>,取出来然后+0x2* 8(x86为0x2 * 4):</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714204313626.png" alt="image-20220714204313626"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714204329658.png" alt="image-20220714204329658"></p>
+<p>然后使用<code>_OBJECT_TYPE</code>查看是什么类型(<strong>也不知道为啥我这里是Type,大家也可以试试hhh</strong>)：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714204746773.png" alt="image-20220714204746773"></p>
+<p><strong>第三种方法</strong>：既然<code>Object_Header</code>中去除了<code>Object_Type</code>, 那么我们如何快速获取Object对应的<code>Object_Type</code>呢，这里我们可以利用内核导出函数<code>ObGetObjectType</code>，来获取对象对应的<code>OBJECT_TYPE</code>, 函数原型如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 返回_OBJECT_TYPE指针</span></span><br><span class="line"><span class="function">NTKERNELAPI PVOID NTAPI <span class="title">ObGetObjectType</span><span class="params">(IN PVOID pObject<span class="comment">/*目标对象结构体指针*/</span>)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>可以看一下IDA：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714205128464.png" alt="image-20220714205128464"></p>
+<p>如上图可以看到其是在<code>ObTypeIndexTable</code>中获取对应的<code>OBJECT_TYPE</code>指针, 可以知道其是个<code>OBJECT_TYPE</code>指针数组, 获取公式：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ObTypeIndexTable[OBJECT_HEADER.TypeIndex ^ BYTE((OBJECT_HEADER地址 &gt;&gt; <span class="number">8</span>)) ^ ObHeaderCookie]</span><br></pre></td></tr></table></figure>
+
+<h4 id="实现-1"><a href="#实现-1" class="headerlink" title="实现"></a>实现</h4><p>首先需要解决的问题是，获取<code>PspCidTable</code></p>
+<p>win7：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">PsLookupProcessByProcessId（被导出） -&gt; PspCidTable</span><br><span class="line">1</span><br></pre></td></tr></table></figure>
+
+<p>win10：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">PsLookupProcessByProcessId（被导出） -&gt; PspReferenceCidTableEntry -&gt; PspCidTable</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714210434972.png" alt="image-20220714210434972"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220714210523795.png" alt="image-20220714210523795"></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 获取 PspCidTable</span></span><br><span class="line"><span class="function">BOOLEAN <span class="title">get_PspCidTable</span><span class="params">(ULONG64* tableAddr)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 获取 PsLookupProcessByProcessId 地址</span></span><br><span class="line">	UNICODE_STRING uc_funcName;</span><br><span class="line">	RtlInitUnicodeString(&amp;uc_funcName, <span class="string">L&quot;PsLookupProcessByProcessId&quot;</span>);</span><br><span class="line">	ULONG64 ul_funcAddr = MmGetSystemRoutineAddress(&amp;uc_funcName);</span><br><span class="line">	<span class="keyword">if</span> (ul_funcAddr == <span class="literal">NULL</span>) &#123;</span><br><span class="line">		<span class="comment">//DbgPrint(&quot;[LYSM] MmGetSystemRoutineAddress error.\n&quot;);</span></span><br><span class="line">		<span class="keyword">return</span> FALSE;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">//DbgPrint(&quot;[LYSM] PsLookupProcessByProcessId:%p\n&quot;, ul_funcAddr);</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// 前 40 字节有 call（PspReferenceCidTableEntry）</span></span><br><span class="line">	ULONG64 ul_entry = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">for</span> (INT i = <span class="number">0</span>; i &lt; <span class="number">40</span>; i++) &#123;</span><br><span class="line">		<span class="keyword">if</span> (*(PUCHAR)(ul_funcAddr + i) == <span class="number">0xe8</span>) &#123;</span><br><span class="line">			ul_entry = ul_funcAddr + i;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> (ul_entry != <span class="number">0</span>) &#123;</span><br><span class="line">		<span class="comment">// 解析 call 地址</span></span><br><span class="line">		INT i_callCode = *(INT*)(ul_entry + <span class="number">1</span>);</span><br><span class="line">		<span class="comment">//DbgPrint(&quot;[LYSM] i_callCode:%X\n&quot;, i_callCode);</span></span><br><span class="line">		ULONG64 ul_callJmp = ul_entry + i_callCode + <span class="number">5</span>;</span><br><span class="line">		<span class="comment">//DbgPrint(&quot;[LYSM] ul_callJmp:%p\n&quot;, ul_callJmp);</span></span><br><span class="line">		<span class="comment">// 来到 call（PspReferenceCidTableEntry） 内找 PspCidTable</span></span><br><span class="line">		<span class="keyword">for</span> (INT i = <span class="number">0</span>; i &lt; <span class="number">20</span>; i++) &#123;</span><br><span class="line">			<span class="keyword">if</span> (*(PUCHAR)(ul_callJmp + i) == <span class="number">0x48</span> &amp;&amp;</span><br><span class="line">				*(PUCHAR)(ul_callJmp + i + <span class="number">1</span>) == <span class="number">0x8b</span> &amp;&amp;</span><br><span class="line">				*(PUCHAR)(ul_callJmp + i + <span class="number">2</span>) == <span class="number">0x05</span>) &#123;</span><br><span class="line">				<span class="comment">// 解析 mov 地址</span></span><br><span class="line">				INT i_movCode = *(INT*)(ul_callJmp+i + <span class="number">3</span>);</span><br><span class="line">				<span class="comment">//DbgPrint(&quot;[LYSM] i_movCode:%X\n&quot;, i_movCode);</span></span><br><span class="line">				ULONG64 ul_movJmp = ul_callJmp+i + i_movCode + <span class="number">7</span>;</span><br><span class="line">				<span class="comment">//DbgPrint(&quot;[LYSM] ul_movJmp:%p\n&quot;, ul_movJmp);</span></span><br><span class="line">				<span class="comment">// 得到 PspCidTable</span></span><br><span class="line">				*tableAddr = ul_movJmp;</span><br><span class="line">				<span class="keyword">return</span> TRUE;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 前 40字节没有 call</span></span><br><span class="line">	<span class="keyword">else</span> &#123;</span><br><span class="line">		<span class="comment">// 直接在 PsLookupProcessByProcessId 找 PspCidTable</span></span><br><span class="line">		<span class="keyword">for</span> (INT i = <span class="number">0</span>; i &lt; <span class="number">70</span>; i++) &#123;</span><br><span class="line">			<span class="keyword">if</span>(*(PUCHAR)(ul_funcAddr + i) == <span class="number">0x49</span> &amp;&amp;</span><br><span class="line">				*(PUCHAR)(ul_funcAddr + i + <span class="number">1</span>) == <span class="number">0x8b</span> &amp;&amp;</span><br><span class="line">				*(PUCHAR)(ul_funcAddr + i + <span class="number">2</span>) == <span class="number">0xdc</span> &amp;&amp;</span><br><span class="line">				*(PUCHAR)(ul_funcAddr + i + <span class="number">3</span>) == <span class="number">0x48</span> &amp;&amp;</span><br><span class="line">				*(PUCHAR)(ul_funcAddr + i + <span class="number">4</span>) == <span class="number">0x8b</span> &amp;&amp;</span><br><span class="line">				*(PUCHAR)(ul_funcAddr + i + <span class="number">5</span>) == <span class="number">0xd1</span> &amp;&amp;</span><br><span class="line">				*(PUCHAR)(ul_funcAddr + i + <span class="number">6</span>) == <span class="number">0x48</span> &amp;&amp;</span><br><span class="line">				*(PUCHAR)(ul_funcAddr + i + <span class="number">7</span>) == <span class="number">0x8b</span>)&#123;</span><br><span class="line">				<span class="comment">// 解析 mov 地址</span></span><br><span class="line">				INT i_movCode = *(INT*)(ul_funcAddr+i+<span class="number">6</span> + <span class="number">3</span>);</span><br><span class="line">				<span class="comment">//DbgPrint(&quot;[LYSM] i_movCode:%X\n&quot;, i_movCode);</span></span><br><span class="line">				ULONG64 ul_movJmp = ul_funcAddr+i+<span class="number">6</span> + i_movCode + <span class="number">7</span>;</span><br><span class="line">				<span class="comment">//DbgPrint(&quot;[LYSM] ul_movJmp:%p\n&quot;, ul_movJmp);</span></span><br><span class="line">				<span class="comment">// 得到 PspCidTable</span></span><br><span class="line">				*tableAddr = ul_movJmp;</span><br><span class="line">				<span class="keyword">return</span> TRUE;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> FALSE;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 解析一级表</span></span><br><span class="line"><span class="comment">	BaseAddr：一级表的基地址</span></span><br><span class="line"><span class="comment">	index1：第几个一级表</span></span><br><span class="line"><span class="comment">	index2：第几个二级表</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function">VOID <span class="title">parse_table_1</span><span class="params">(ULONG64 BaseAddr,INT index1,INT index2)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//DbgPrint(&quot;[LYSM] BaseAddr 1:%p\n&quot;, BaseAddr);</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// 获取系统版本</span></span><br><span class="line">	RTL_OSVERSIONINFOEXW OSVersion = &#123; <span class="number">0</span> &#125;;</span><br><span class="line">	OSVersion.dwOSVersionInfoSize = <span class="keyword">sizeof</span>(RTL_OSVERSIONINFOEXW);</span><br><span class="line">	RtlGetVersion((PRTL_OSVERSIONINFOW)&amp;OSVersion);</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 遍历一级表（每个表项大小 16 ），表大小 4k，所以遍历 4096/16 = 526 次</span></span><br><span class="line">	PEPROCESS p_eprocess = <span class="literal">NULL</span>;</span><br><span class="line">	PETHREAD p_ethread = <span class="literal">NULL</span>;</span><br><span class="line">	INT i_id = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">for</span> (INT i = <span class="number">0</span>; i &lt; <span class="number">256</span>; i++) &#123;</span><br><span class="line">		<span class="keyword">if</span> (!MmIsAddressValid((PVOID64)(BaseAddr + i * <span class="number">16</span>))) &#123; </span><br><span class="line">			<span class="comment">//DbgPrint(&quot;[LYSM] 非法地址:%p\n&quot;, BaseAddr + i * 16);</span></span><br><span class="line">			<span class="keyword">continue</span>; </span><br><span class="line">		&#125;</span><br><span class="line">		<span class="comment">// win10</span></span><br><span class="line">		<span class="keyword">if</span> (OSVersion.dwMajorVersion == <span class="number">10</span> &amp;&amp; OSVersion.dwMinorVersion == <span class="number">0</span>) &#123;</span><br><span class="line">			ULONG64 ul_recode = *(PULONG64)(BaseAddr + i * <span class="number">16</span>);</span><br><span class="line">			<span class="comment">// 解密</span></span><br><span class="line">			ULONG64 ul_decode = (LONG64)ul_recode &gt;&gt; <span class="number">0x10</span>;</span><br><span class="line">			ul_decode &amp;= <span class="number">0xfffffffffffffff0</span>;</span><br><span class="line">			<span class="comment">// 判断是进程还是线程</span></span><br><span class="line">			i_id = i*<span class="number">4</span> + <span class="number">1024</span>*index1 + <span class="number">512</span>*index2*<span class="number">1024</span>;	</span><br><span class="line">			<span class="keyword">if</span> (PsLookupProcessByProcessId(i_id , &amp;p_eprocess) == STATUS_SUCCESS) &#123;</span><br><span class="line">				DbgPrint(<span class="string">&quot;[LYSM] PID:%d , i:%d , addr:%p , object:%p\n&quot;</span>, i_id , i, BaseAddr + i*<span class="number">0x10</span>, ul_decode);</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">else</span> <span class="keyword">if</span> (PsLookupThreadByThreadId(i_id , &amp;p_ethread) == STATUS_SUCCESS) &#123;</span><br><span class="line">				DbgPrint(<span class="string">&quot;[LYSM] TID:%d , i:%d , addr:%p , object:%p\n&quot;</span>, i_id , i, BaseAddr + i*<span class="number">0x10</span>, ul_decode);</span><br><span class="line">			&#125;</span><br><span class="line">			</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="comment">// win7</span></span><br><span class="line">		<span class="keyword">if</span> (OSVersion.dwMajorVersion == <span class="number">6</span> &amp;&amp; OSVersion.dwMinorVersion == <span class="number">1</span>) &#123;</span><br><span class="line">			ULONG64 ul_recode = *(PULONG64)(BaseAddr + i * <span class="number">16</span>);</span><br><span class="line">			<span class="comment">// 解密</span></span><br><span class="line">			ULONG64 ul_decode = ul_recode &amp; <span class="number">0xfffffffffffffff0</span>;</span><br><span class="line">			<span class="comment">// 判断是进程还是线程</span></span><br><span class="line">			i_id = i*<span class="number">4</span> + <span class="number">1024</span>*index1 + <span class="number">512</span>*index2*<span class="number">1024</span>;</span><br><span class="line">			<span class="keyword">if</span> (PsLookupProcessByProcessId(i_id , &amp;p_eprocess) == STATUS_SUCCESS) &#123;</span><br><span class="line">				DbgPrint(<span class="string">&quot;[LYSM] PID:%d , i:%d , addr:%p , object:%p\n&quot;</span>, i_id , i, BaseAddr + i*<span class="number">0x10</span>, ul_decode);</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">else</span> <span class="keyword">if</span> (PsLookupThreadByThreadId(i_id , &amp;p_ethread) == STATUS_SUCCESS) &#123;</span><br><span class="line">				DbgPrint(<span class="string">&quot;[LYSM] TID:%d , i:%d , addr:%p , object:%p\n&quot;</span>, i_id , i, BaseAddr + i*<span class="number">0x10</span>, ul_decode);</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">else</span> &#123; <span class="keyword">continue</span>; &#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 解析二级表</span></span><br><span class="line"><span class="comment">	BaseAddr：二级表基地址</span></span><br><span class="line"><span class="comment">	index2：第几个二级表</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function">VOID <span class="title">parse_table_2</span><span class="params">(ULONG64 BaseAddr, INT index2)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//DbgPrint(&quot;[LYSM] BaseAddr 2:%p\n&quot;, BaseAddr);</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// 遍历二级表（每个表项大小 8）,表大小 4k，所以遍历 4096/8 = 512 次</span></span><br><span class="line">	ULONG64 ul_baseAddr_1 = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">for</span> (INT i = <span class="number">0</span>; i &lt; <span class="number">512</span>; i++) &#123;</span><br><span class="line">		<span class="keyword">if</span> (!MmIsAddressValid((PVOID64)(BaseAddr + i * <span class="number">8</span>))) &#123; </span><br><span class="line">			<span class="comment">//DbgPrint(&quot;[LYSM] 非法二级表指针（1）:%p\n&quot;, BaseAddr + i * 8);</span></span><br><span class="line">			<span class="keyword">continue</span>; </span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> (!MmIsAddressValid((PVOID64)*(PULONG64)(BaseAddr + i * <span class="number">8</span>))) &#123; </span><br><span class="line">			<span class="comment">//DbgPrint(&quot;[LYSM] 非法二级表指针（2）:%p\n&quot;, BaseAddr + i * 8);</span></span><br><span class="line">			<span class="keyword">continue</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		ul_baseAddr_1 = *(PULONG64)(BaseAddr + i * <span class="number">8</span>);</span><br><span class="line">		parse_table_1(ul_baseAddr_1, i, index2);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 解析三级表</span></span><br><span class="line"><span class="comment">	BaseAddr：三级表基地址</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function">VOID <span class="title">parse_table_3</span><span class="params">(ULONG64 BaseAddr)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//DbgPrint(&quot;[LYSM] BaseAddr 3:%p\n&quot;, BaseAddr);</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// 遍历三级表（每个表项大小 8）,表大小 4k，所以遍历 4096/8 = 512 次</span></span><br><span class="line">	ULONG64 ul_baseAddr_2 = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">for</span> (INT i = <span class="number">0</span>; i &lt; <span class="number">512</span>; i++) &#123;</span><br><span class="line">		<span class="keyword">if</span> (!MmIsAddressValid((PVOID64)(BaseAddr + i * <span class="number">8</span>))) &#123; <span class="keyword">continue</span>; &#125;</span><br><span class="line">		<span class="keyword">if</span> (!MmIsAddressValid((PVOID64) * (PULONG64)(BaseAddr + i * <span class="number">8</span>))) &#123; <span class="keyword">continue</span>; &#125;</span><br><span class="line">		ul_baseAddr_2 = *(PULONG64)(BaseAddr + i * <span class="number">8</span>);</span><br><span class="line">		parse_table_2(ul_baseAddr_2, i);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 遍历进程和线程</span></span><br><span class="line"><span class="comment">	cidTableAddr：PspCidTable 地址</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function">BOOLEAN <span class="title">enum_PspCidTable</span><span class="params">(ULONG64 cidTableAddr)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 获取 _HANDLE_TABLE 的 TableCode</span></span><br><span class="line">	ULONG64 ul_tableCode = *(PULONG64)(((ULONG64)*(PULONG64)cidTableAddr) + <span class="number">8</span>);</span><br><span class="line">	<span class="comment">//DbgPrint(&quot;[LYSM] ul_tableCode:%p\n&quot;, ul_tableCode);</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// 取低 2位（二级制11 = 3）</span></span><br><span class="line">	INT i_low2 = ul_tableCode &amp; <span class="number">3</span>;</span><br><span class="line">	<span class="comment">//DbgPrint(&quot;[LYSM] i_low2:%X\n&quot;, i_low2);</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// 一级表</span></span><br><span class="line">	<span class="keyword">if</span> (i_low2 == <span class="number">0</span>) &#123;</span><br><span class="line">		<span class="comment">// TableCode 低 2位抹零（二级制11 = 3）</span></span><br><span class="line">		parse_table_1(ul_tableCode &amp; (~<span class="number">3</span>),<span class="number">0</span>,<span class="number">0</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// 二级表</span></span><br><span class="line">	<span class="keyword">else</span> <span class="keyword">if</span> (i_low2 == <span class="number">1</span>) &#123;</span><br><span class="line">		<span class="comment">// TableCode 低 2位抹零（二级制11 = 3）</span></span><br><span class="line">		parse_table_2(ul_tableCode &amp; (~<span class="number">3</span>),<span class="number">0</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// 三级表</span></span><br><span class="line">	<span class="keyword">else</span> <span class="keyword">if</span> (i_low2 == <span class="number">2</span>) &#123;</span><br><span class="line">		<span class="comment">// TableCode 低 2位抹零（二级制11 = 3）</span></span><br><span class="line">		parse_table_3(ul_tableCode &amp; (~<span class="number">3</span>));</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span> &#123;</span><br><span class="line">		DbgPrint(<span class="string">&quot;[LYSM] i_low2 非法！\n&quot;</span>);</span><br><span class="line">		<span class="keyword">return</span> FALSE;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> TRUE;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="tips"><a href="#tips" class="headerlink" title="tips"></a>tips</h4><p>除了进程遍历外，还可以用于<strong>反调试。</strong>一个进程加载进内存后，可以起一个线程，专门去遍历其他所有进程的句柄表，如果发现，某个进程的句柄表中有自己进程的句柄，说明自己的这个进程可能正在被调试，就算没有在被调试，也至少被打开了，这时就可以强行关闭自己的程序，不被调试，达到反调试的目的。</p>
+<h4 id="总结-4"><a href="#总结-4" class="headerlink" title="总结"></a>总结</h4><p>这一篇知识点比较多，其实主要还是围绕进程句柄表和全局句柄表，现在大多基于64位进行开发，但是网上很多资料都是32位的，参考性较小，所以这里参考了几篇博客进行了总结归纳。</p>
+<p>首先从句柄表入手，X86下_HANDLE_TABLE_ENTRY结构大小为8，x64下结构大小为16，每张表4k大小4k/16=256，所以一张表可以存256个handle。二级三级表存放指针，x64下一个指针地址占用8字节，x86下占用4字节。4k/8=512。</p>
+<p><code>EPROCESS</code>偏移0x570处有一个成员<code>ObjectTable</code>，查看该结构类型可以看到偏移0x8处是<code>TableCode</code>也就是句柄表地址，该地址后三位是有关句柄表是几级表的，该地址指向的是<code>OBJECT_HEADER</code>，该结构相当于链表的头部，需要加上0x30的偏移才能定位到真正的链表。</p>
+<p>全局变量 <code>PspCidTable </code>存储了全局句柄表 <code>_HANDLE_TABLE </code>的地址，全局句柄表存储了所有 <code>EPROCESS </code>和 <code>ETHREAD</code> ，全局句柄表项<strong>低32位指向的就是内核对象，而非 <code>OBJECT_HEADER</code>。</strong></p>
+<p>关于全局句柄表的<code>ObjectHeader</code>有一个TypeIndex字段，采用了XOR加密，可以采用公式解密，也可以利用导出函数<code>ObGetObjectType</code>,(<strong>0x7为进程，0x8为线程</strong>)</p>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://f5.pm/go-49551.html">x64下的全局句柄表解析</a>，<a target="_blank" rel="noopener" href="https://blog.csdn.net/Simon798/article/details/106572336">x64遍历枚举</a>，<a target="_blank" rel="noopener" href="http://blog.leanote.com/post/only_the_brave/861cd6f40678">解析全局句柄表</a></p>
+<h3 id="x64下隐藏可执行内存"><a href="#x64下隐藏可执行内存" class="headerlink" title="x64下隐藏可执行内存"></a>x64下隐藏可执行内存</h3><p>前面讲了PEB断链实现隐藏进程的效果，但是只是表面的进程隐藏，所有内存的详细信息都会被存储在vad树里面。</p>
+<h4 id="vad"><a href="#vad" class="headerlink" title="vad"></a>vad</h4><p>内存管理器使用<strong>需求分页算法</strong>来知道何时将页面加载到内存中，直到线程引用地址并导致页面故障，然后再从磁盘中检索页面。与写时复制一样，需求分页是一种惰性评估的形式（等待直到需要时才执行任务。）</p>
+<p>内存管理器使用惰性计算不仅可以将页面带入内存，还可以构造描述新页面所需的页面表。例如，当一个线程使用<code>VirtualAlloc</code>提交一个大区域的虚拟内存时，内存管理器可以立即构造访问已分配的整个内存范围所需的页面表。但如果其中一些范围从未被访问过呢？为整个范围创建页面表将是一个浪费时间的工作。相反，内存管理器等待创建一个页面表，直到线程导致页面故障。然后，它将为该页面创建一个页面表。这种方法显著提高了保留以及提交大量内存但访问量稀疏的进程的性能。</p>
+<p>使用惰性计算算法，即使是很大的内存块也是一个快速的操作。当一个线程分配内存时，内存管理器必须响应该线程要使用的地址范围。为此，内存管理器维护另一组数据结构，以跟踪哪些虚拟地址已保留在进程的地址空间中，而哪些没有保留。这些数据结构被称为虚拟地址描述符(VADs)。VADs被分配在非分页池中。</p>
+<p>VAD（虚拟地址描述符）是管理虚拟内存的，每一个进程有自己单独的一个VAD树，使用<code>VirtualAlloc</code>申请一个内存，则会在VAD树上增加一个结点，其是<code>_MMVAD</code>结构体</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718153145153.png" alt="image-20220718153145153"></p>
+<p><code>StartingVpn</code>和这个<code>EndingVpn</code>是以页为单位</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718163930794.png" alt="image-20220718163930794"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718164517748.png" alt="image-20220718164517748"></p>
+<p>在<code>EPROCESS</code>结构中偏移0x7d8处有一个<code>VadRoot</code>成员，其是根结点</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718161129090.png" alt="image-20220718161129090"></p>
+<p>VADs被组织成一个自平衡的<code>AVL tree</code>（以其发明者阿德尔森-维尔斯基和兰迪斯的名字命名，其中任何节点的两个子子树的高度最多相差1；这使得插入、查找和删除非常快）。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718164732040.png" alt="image-20220718164732040"></p>
+<p>通过下面可以看到<code>VadRoot</code>，采用指令<code>!vad 红框中地址</code>就可以查看到该进程的vad树</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718161413070.png" alt="image-20220718161413070"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718161736598.png" alt="image-20220718161736598"></p>
+<p>由以上可知，可以通过<code>_EPROCESS.VadRoot</code>遍历VAD二叉树。进程内的所有用户模式线程使用<code>Thread Control Stack</code>上的不同内存区域（Shadow Stack），可以通过遍历进程的VAD自平衡二叉树（self-balancing AVL tree）获取描述进程Thread Control Stack的<code>_MMVAD</code>结构</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">MMVAD</span> &#123;</span></span><br><span class="line">  <span class="comment">/* 0x0000 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">MMVAD_SHORT</span> <span class="title">Core</span>;</span></span><br><span class="line">  <span class="class"><span class="keyword">union</span> &#123;</span></span><br><span class="line">    <span class="class"><span class="keyword">union</span> &#123;</span></span><br><span class="line">      <span class="comment">/* 0x0040 */</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> LongFlags2;</span><br><span class="line">      <span class="comment">/* 0x0040 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">MMVAD_FLAGS2</span> <span class="title">VadFlags2</span>;</span></span><br><span class="line">    &#125;; <span class="comment">/* size: 0x0004 */</span></span><br><span class="line">  &#125; <span class="comment">/* size: 0x0004 */</span> u2;</span><br><span class="line">  <span class="comment">/* 0x0044 */</span> <span class="keyword">long</span> Padding_;</span><br><span class="line">  <span class="comment">/* 0x0048 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">SUBSECTION</span>* <span class="title">Subsection</span>;</span></span><br><span class="line">  <span class="comment">/* 0x0050 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">MMPTE</span>* <span class="title">FirstPrototypePte</span>;</span></span><br><span class="line">  <span class="comment">/* 0x0058 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">MMPTE</span>* <span class="title">LastContiguousPte</span>;</span></span><br><span class="line">  <span class="comment">/* 0x0060 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">LIST_ENTRY</span> <span class="title">ViewLinks</span>;</span></span><br><span class="line">  <span class="comment">/* 0x0070 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">EPROCESS</span>* <span class="title">VadsProcess</span>;</span></span><br><span class="line">  <span class="class"><span class="keyword">union</span> &#123;</span></span><br><span class="line">    <span class="class"><span class="keyword">union</span> &#123;</span></span><br><span class="line">      <span class="comment">/* 0x0078 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">MI_VAD_SEQUENTIAL_INFO</span> <span class="title">SequentialVa</span>;</span></span><br><span class="line">      <span class="comment">/* 0x0078 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">MMEXTEND_INFO</span>* <span class="title">ExtendedInfo</span>;</span></span><br><span class="line">    &#125;; <span class="comment">/* size: 0x0008 */</span></span><br><span class="line">  &#125; <span class="comment">/* size: 0x0008 */</span> u4;</span><br><span class="line">  <span class="comment">/* 0x0080 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">FILE_OBJECT</span>* <span class="title">FileObject</span>;</span></span><br><span class="line">&#125; MMVAD, *PMMVAD; <span class="comment">/* size: 0x0088 */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">MMVAD_SHORT</span> &#123;</span></span><br><span class="line">  <span class="class"><span class="keyword">union</span> &#123;</span></span><br><span class="line">    <span class="comment">/* 0x0000 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">RTL_BALANCED_NODE</span> <span class="title">VadNode</span>;</span></span><br><span class="line">    <span class="comment">/* 0x0000 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">MMVAD_SHORT</span>* <span class="title">NextVad</span>;</span></span><br><span class="line">  &#125;; <span class="comment">/* size: 0x0018 */</span></span><br><span class="line">  <span class="comment">/* 0x0018 */</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> StartingVpn;</span><br><span class="line">  <span class="comment">/* 0x001c */</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> EndingVpn;</span><br><span class="line">  <span class="comment">/* 0x0020 */</span> <span class="keyword">unsigned</span> <span class="keyword">char</span> StartingVpnHigh;</span><br><span class="line">  <span class="comment">/* 0x0021 */</span> <span class="keyword">unsigned</span> <span class="keyword">char</span> EndingVpnHigh;</span><br><span class="line">  <span class="comment">/* 0x0022 */</span> <span class="keyword">unsigned</span> <span class="keyword">char</span> CommitChargeHigh;</span><br><span class="line">  <span class="comment">/* 0x0023 */</span> <span class="keyword">unsigned</span> <span class="keyword">char</span> SpareNT64VadUChar;</span><br><span class="line">  <span class="comment">/* 0x0024 */</span> <span class="keyword">long</span> ReferenceCount;</span><br><span class="line">  <span class="comment">/* 0x0028 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">EX_PUSH_LOCK</span> <span class="title">PushLock</span>;</span></span><br><span class="line">  <span class="class"><span class="keyword">union</span> &#123;</span></span><br><span class="line">    <span class="class"><span class="keyword">union</span> &#123;</span></span><br><span class="line">      <span class="comment">/* 0x0030 */</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> LongFlags;</span><br><span class="line">      <span class="comment">/* 0x0030 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">MMVAD_FLAGS</span> <span class="title">VadFlags</span>;</span></span><br><span class="line">    &#125;; <span class="comment">/* size: 0x0004 */</span></span><br><span class="line">  &#125; <span class="comment">/* size: 0x0004 */</span> u;</span><br><span class="line">  <span class="class"><span class="keyword">union</span> &#123;</span></span><br><span class="line">    <span class="class"><span class="keyword">union</span> &#123;</span></span><br><span class="line">      <span class="comment">/* 0x0034 */</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> LongFlags1;</span><br><span class="line">      <span class="comment">/* 0x0034 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">MMVAD_FLAGS1</span> <span class="title">VadFlags1</span>;</span></span><br><span class="line">    &#125;; <span class="comment">/* size: 0x0004 */</span></span><br><span class="line">  &#125; <span class="comment">/* size: 0x0004 */</span> u1;</span><br><span class="line">  <span class="comment">/* 0x0038 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">MI_VAD_EVENT_BLOCK</span>* <span class="title">EventList</span>;</span></span><br><span class="line">&#125; MMVAD_SHORT, *PMMVAD_SHORT; <span class="comment">/* size: 0x0040 */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">RTL_BALANCED_NODE</span> &#123;</span></span><br><span class="line">  <span class="class"><span class="keyword">union</span> &#123;</span></span><br><span class="line">    <span class="comment">/* 0x0000 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">RTL_BALANCED_NODE</span>* <span class="title">Children</span>[2];</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">      <span class="comment">/* 0x0000 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">RTL_BALANCED_NODE</span>* <span class="title">Left</span>;</span></span><br><span class="line">      <span class="comment">/* 0x0008 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">RTL_BALANCED_NODE</span>* <span class="title">Right</span>;</span></span><br><span class="line">    &#125;; <span class="comment">/* size: 0x0010 */</span></span><br><span class="line">  &#125;; <span class="comment">/* size: 0x0010 */</span></span><br><span class="line">  <span class="class"><span class="keyword">union</span> &#123;</span></span><br><span class="line">    <span class="comment">/* 0x0010 */</span> <span class="keyword">unsigned</span> <span class="keyword">char</span> Red : <span class="number">1</span>; <span class="comment">/* bit position: 0 */</span></span><br><span class="line">    <span class="comment">/* 0x0010 */</span> <span class="keyword">unsigned</span> <span class="keyword">char</span> Balance : <span class="number">2</span>; <span class="comment">/* bit position: 0 */</span></span><br><span class="line">    <span class="comment">/* 0x0010 */</span> <span class="keyword">unsigned</span> __int64 ParentValue;</span><br><span class="line">  &#125;; <span class="comment">/* size: 0x0008 */</span></span><br><span class="line">&#125; RTL_BALANCED_NODE, *PRTL_BALANCED_NODE; <span class="comment">/* size: 0x0018 */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">RTL_AVL_TREE</span> &#123;</span></span><br><span class="line">  <span class="comment">/* 0x0000 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">RTL_BALANCED_NODE</span>* <span class="title">Root</span>;</span></span><br><span class="line">&#125; RTL_AVL_TREE, *PRTL_AVL_TREE; <span class="comment">/* size: 0x0008 */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">EPROCESS</span> &#123;</span></span><br><span class="line">    …</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">RTL_AVL_TREE</span> <span class="title">VadRoot</span>;</span></span><br><span class="line">    …</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">MMVAD_FLAGS</span> &#123;</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> /* <span class="title">bitfield</span> */ &#123;</span></span><br><span class="line">    <span class="comment">/* 0x0000 */</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> VadType : <span class="number">3</span>; <span class="comment">/* bit position: 0 */</span></span><br><span class="line">    <span class="comment">/* 0x0000 */</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> Protection : <span class="number">5</span>; <span class="comment">/* bit position: 3 */</span></span><br><span class="line">    <span class="comment">/* 0x0000 */</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> PreferredNode : <span class="number">6</span>; <span class="comment">/* bit position: 8 */</span></span><br><span class="line">    <span class="comment">/* 0x0000 */</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> NoChange : <span class="number">1</span>; <span class="comment">/* bit position: 14 */</span></span><br><span class="line">    <span class="comment">/* 0x0000 */</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> PrivateMemory : <span class="number">1</span>; <span class="comment">/* bit position: 15 */</span></span><br><span class="line">    <span class="comment">/* 0x0000 */</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> PrivateFixup : <span class="number">1</span>; <span class="comment">/* bit position: 16 */</span></span><br><span class="line">    <span class="comment">/* 0x0000 */</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> ManySubsections : <span class="number">1</span>; <span class="comment">/* bit position: 17 */</span></span><br><span class="line">    <span class="comment">/* 0x0000 */</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> Enclave : <span class="number">1</span>; <span class="comment">/* bit position: 18 */</span></span><br><span class="line">    <span class="comment">/* 0x0000 */</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> DeleteInProgress : <span class="number">1</span>; <span class="comment">/* bit position: 19 */</span></span><br><span class="line">    <span class="comment">/* 0x0000 */</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> PageSize64K : <span class="number">1</span>; <span class="comment">/* bit position: 20 */</span></span><br><span class="line">    <span class="comment">/* 0x0000 */</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> RfgControlStack : <span class="number">1</span>; <span class="comment">/* bit position: 21 */</span> </span><br><span class="line">    <span class="comment">/* 0x0000 */</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> Spare : <span class="number">10</span>; <span class="comment">/* bit position: 22 */</span></span><br><span class="line">  &#125;; <span class="comment">/* bitfield */</span></span><br><span class="line">&#125; MMVAD_FLAGS, *PMMVAD_FLAGS; <span class="comment">/* size: 0x0004 */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">MI_VAD_EVENT_BLOCK</span> &#123;</span></span><br><span class="line">  <span class="comment">/* 0x0000 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">MI_VAD_EVENT_BLOCK</span>* <span class="title">Next</span>;</span></span><br><span class="line">  <span class="class"><span class="keyword">union</span> &#123;</span></span><br><span class="line">    <span class="comment">/* 0x0008 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">KGATE</span> <span class="title">Gate</span>;</span></span><br><span class="line">    <span class="comment">/* 0x0008 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">MMADDRESS_LIST</span> <span class="title">SecureInfo</span>;</span></span><br><span class="line">    <span class="comment">/* 0x0008 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">RTL_BITMAP_EX</span> <span class="title">BitMap</span>;</span></span><br><span class="line">    <span class="comment">/* 0x0008 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">MMINPAGE_SUPPORT</span>* <span class="title">InPageSupport</span>;</span></span><br><span class="line">    <span class="comment">/* 0x0008 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">MI_LARGEPAGE_IMAGE_INFO</span> <span class="title">LargePage</span>;</span></span><br><span class="line">    <span class="comment">/* 0x0008 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">ETHREAD</span>* <span class="title">CreatingThread</span>;</span></span><br><span class="line">    <span class="comment">/* 0x0008 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">MI_SUB64K_FREE_RANGES</span> <span class="title">PebTebRfg</span>;</span></span><br><span class="line">    <span class="comment">/* 0x0008 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">MI_RFG_PROTECTED_STACK</span> <span class="title">RfgProtectedStack</span>;</span></span><br><span class="line">  &#125;; <span class="comment">/* size: 0x0038 */</span></span><br><span class="line">  <span class="comment">/* 0x0040 */</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> WaitReason;</span><br><span class="line">  <span class="comment">/* 0x0044 */</span> <span class="keyword">long</span> __PADDING__[<span class="number">1</span>];</span><br><span class="line">&#125; MI_VAD_EVENT_BLOCK, *PMI_VAD_EVENT_BLOCK; <span class="comment">/* size: 0x0048 */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">MI_RFG_PROTECTED_STACK</span> &#123;</span></span><br><span class="line">  <span class="comment">/* 0x0000 */</span> <span class="keyword">void</span>* ControlStackBase;</span><br><span class="line">  <span class="comment">/* 0x0008 */</span> <span class="class"><span class="keyword">struct</span> _<span class="title">MMVAD_SHORT</span>* <span class="title">ControlStackVad</span>;</span></span><br><span class="line">&#125; MI_RFG_PROTECTED_STACK, *PMI_RFG_PROTECTED_STACK; <span class="comment">/* size: 0x0010 */</span></span><br></pre></td></tr></table></figure>
+
+<p>虚拟内存分为两类：</p>
+<p>（1）通过<code>VirtualAlloc/VirtualAllocEx </code>申请的：Private Memory ，独享物理页</p>
+<p>（2）通过<code>CreateFlieMapping</code>映射的：Mapped Memory，多个进程共享物理页。</p>
+<h4 id="分页机制"><a href="#分页机制" class="headerlink" title="分页机制"></a>分页机制</h4><p>在32位里面有<code>2-9-9-12</code>、<code>10-10-12</code>两种分页模式，而在64位下只有一种分页模式，即<code>9-9-9-9-12</code>分页模式。在64位系统中，实际上CPU只使用了其中的48位用于寻址。</p>
+<p><code>9-9-9-9-12</code>分页表示物理地址拥有四级页表，在Intel开发手册中，将这四级页表分别称为<code>PML4E</code>、<code>PDPTE</code>、<code>PDE</code>、<code>PTE</code>，但微软的命名方式略有不同，将这四级页表分别称为<code>PXE</code>、<code>PPE</code>、<code>PDE</code>、<code>PTE</code>，WinDbg中也是如此</p>
+<p>启用分页模式条件：<code>cr0.PG = 1</code> 且 <code>cr0.PE = 1</code></p>
+<p>根据不同CPU架构及特性主要分为三种模式，处于哪种模式视寄存器属性不同：</p>
+<ul>
+<li> 32-bit paging(32位OS): <code>cr0.PG = 1</code> 、 <code>cr4.PAE = 0</code></li>
+<li> PAE paging(32位OS且开启了PAE): <code>cr0.PG = 1</code> 、 <code>cr4.PAE = 1</code> 、 <code>IA32_EFER.LME = 0</code></li>
+<li> IA-32e paging(64位OS): <code>cr0.PG = 1</code> 、 <code>cr4.PAE = 1</code> 、 <code>IA32_EFER.LME = 1</code></li>
+</ul>
+<p>主要研究的是<code>IA-32e</code>模式下的内存，这里<code>IA-32e</code>提供了三种页转换模型：</p>
+<ul>
+<li>4k：PML4T,PDPT,PDT和PT</li>
+<li>2M：PML4T，PDPT和PDT</li>
+<li>1G：PML4T和PDPT</li>
+</ul>
+<p>在4kb小页的情况下，64位可以拆分为以下几段，即9-9-9-9-9-12分页</p>
+<blockquote>
+<p>sign extended – 符号扩展位 — 在线性地址48~63bit </p>
+<p>PML4 entry – 在线性地址39～47bit用于索引PML4 entry，指向PDP </p>
+<p>PDP entry – 在线性地址的30～38bit用来索引PDP entry，指向PDE </p>
+<p>PDE entry – 在线性地址的21～29bit用来索引PDEentry，指向PTE </p>
+<p>PTE entry – 在线性地址的12～20bit用来索引PTE entry，指向page offset</p>
+<p>page offse t – 在线性地址的0～11bit提供在页中的offset</p>
+</blockquote>
+<h4 id="页表基址"><a href="#页表基址" class="headerlink" title="页表基址"></a>页表基址</h4><p>CR3中保存的页表基址是物理地址，程序如果直接访问这个地址，实际上访问的是一个线性地址，会被虚拟内存管理器解析成另一个地址.实际上，操作系统会将当前进程的物理页映射在某个线性地址中，以供程序读取自己的页表内容。</p>
+<p>在x86系统中，页表基址是固定的，位于<code>0xC0000000</code>，将这个线性地址进行解析，访问其物理页的内容，会发现从这个地址开始，里面保存的数据为当前程序的所有物理页地址。</p>
+<p>而在x64系统中，页表基址不再是固定的值，而是每次系统启动后随机生成的可以在WinDbg中查看0地址对应的线性地址来确定当前的页表基址（!pte 0）。每个物理页占8个字节，例如，第一个物理页地址位于线性地址<code>0xFFFFF38000000000</code>，第二个物理页地址位于线性地址<code>0xFFFF800000000008</code>，每个物理页中包含1024个字节的数据。</p>
+<h4 id="MmIsAddressValid"><a href="#MmIsAddressValid" class="headerlink" title="MmIsAddressValid"></a>MmIsAddressValid</h4><p>探索系统的分页机制最好的办法是对内核中的 <code>MiIsAddressValid</code> 函数的实现进行分析。win7和win10的64位系统下使用的是两种不同的查找 <code>pte</code> 、 <code>pde</code> 、 <code>pdpte</code> 、 <code>pml4e</code> 的方式。接下来分别对两个系统的该函数进行相应的分析</p>
+<p><strong>win7 64位下的函数分析</strong></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718173242799.png" alt="image-20220718173242799"></p>
+<p>首先通过移位，查看前16位是否为全0或者全1，如果不是，返回不合法。然后通过移位分别分出9-9-9-9-12这5部分，然后加上相应的基址，找到对应的 <code>pte,pde,pdpte,pml4e</code> ，并判断P位是否为0。如果为0返回不合法。</p>
+<p>该函数较为简单，将减去的数值取反加一可以得到对应的基址。可得在win7 64位下，其 <code>PTE_BASE</code> 为 <code>fffff68000000000</code> 。</p>
+<p><strong>win10 64位下的函数分析</strong></p>
+<p>在 <code>win10 1607</code> 以上版本，微软为分页基址加上了随机页目录基址，这让定位 <code>pte</code> 变得更加困难。 <code>PTE_BASE</code> 不再是之前写死的值，而是每次开机都会随机在一定的范围内挑选一个值。而在 <code>win10 64</code> 位下的 <code>MmIsAddressValidEx</code> 函数中，其更换了另外一套寻找 <code>pte,pde,pdpte,pml4e</code> 的方法，如下</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718173735557.png" alt="image-20220718173735557"></p>
+<p>可以看到这里计算 <code>pte,pde,pdpte,pml4e</code> 的时候用的都只有一个 <code>pte_base</code> ，不再像win7那样求每个值的时候都使用一个不同的基址。</p>
+<h4 id="实现-2"><a href="#实现-2" class="headerlink" title="实现"></a>实现</h4><p>在申请一块不可执行的内存后通过修改 <code>pte</code> 与 <code>pde</code> 手动将页面设置为可执行，达到隐藏可执行内存的目的。</p>
+<p>首先是定位定位<code>PTE</code>、<code>PDE</code>、<code>PPE</code>、<code>PXE</code>，<code>PTE_BASE</code>有两种情况，当是Win10 1607以上，就需要自己通过逆向的方式提取硬编码进行定位，这里通过<code>MmGetVirtualForPhysical</code>函数加偏移的方式进行定位。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718195402087.png" alt="image-20220718195402087"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718195002005.png" alt="image-20220718195002005"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718193319749.png" alt="image-20220718193319749"></p>
+<p>然后是一个分配内存的函数，可以往指定pid的进程中写入shellcode，并隐藏其可执行属性，使这块内存在vad树中看来是不可执行的。</p>
+<p>我们找到目标进程，然后通过<code>KeStackAttachProcess</code>函数实现进程挂靠，即把自己的cr3换成目标进程的cr3(<strong>CR3含有存放页目录表页面的物理地址</strong>)。</p>
+<p>然后使用<code>ZwAllocateVirtualMemory</code>先分配一块可读可写的内存。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718195106508.png" alt="image-20220718195106508"></p>
+<p>首先将前3位符号位去掉得到内存的起始地址和结束地址，然后循环判断，必须每一块内存都需要修改。结合<code>MmIsAddressValid</code>并判断<code>valid</code>是否为1，这里如果<code>valid</code>为0则该块内存无效，然后将<code>no_execute</code>置0即可获得可执行权限</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220718195537373.png" alt="image-20220718195537373"></p>
+<h4 id="总结-5"><a href="#总结-5" class="headerlink" title="总结"></a>总结</h4><p>其实就是通过修改pde和pte属性隐藏可执行内存，在编写这样的驱动的过程中也能巩固对x64分页机制的认识。</p>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/0ZtgGviuTbhZ9TpOnySZkg">x64下隐藏可执行内存</a>，<a target="_blank" rel="noopener" href="https://github.com/smallzhong/hide_execute_memory">hide_excute_memory</a></p>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://drunkmars.top/2022/02/15/ssdt%20hook/">主要参考博客</a></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>ZouFeIYu
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://erkeai.github.io/2022/07/11/Cheese_point/%E5%8D%9A%E5%AE%A2%E6%95%B4%E7%90%86/" title="博客相关知识点整理">https://erkeai.github.io/2022/07/11/Cheese_point/博客整理/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/SSDT-Hook/" rel="tag"># SSDT Hook</a>
+              <a href="/tags/%E5%85%A8%E5%B1%80%E5%8F%A5%E6%9F%84%E8%A1%A8/" rel="tag"># 全局句柄表</a>
+              <a href="/tags/%E6%8A%B9%E9%93%BE%E6%8A%80%E6%9C%AF/" rel="tag"># 抹链技术</a>
+              <a href="/tags/%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6/" rel="tag"># 分页机制</a>
+              <a href="/tags/vad/" rel="tag"># vad</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/07/06/paper/Malware%20classification%20using%20a%20byte-granularity/" rel="prev" title="Malware classification using a byte-granularity feature based on structural entropy">
+      <i class="fa fa-chevron-left"></i> Malware classification using a byte-granularity feature based on structural entropy
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/07/19/Cheese_point/GS%E7%BB%95%E8%BF%87/" rel="next" title="GS绕过">
+      GS绕过 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E5%BC%BA%E6%9D%80"><span class="nav-number">1.</span> <span class="nav-text">进程强杀</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#ZwTerminateProcess"><span class="nav-number">1.1.</span> <span class="nav-text">ZwTerminateProcess</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#PspTerminateProcess"><span class="nav-number">1.2.</span> <span class="nav-text">PspTerminateProcess</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.3.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Ring0%E4%B8%8B%E7%9A%84%E8%BF%9B%E7%A8%8B%E4%BF%9D%E6%8A%A4"><span class="nav-number">2.</span> <span class="nav-text">Ring0下的进程保护</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#SSDT%E8%A1%A8"><span class="nav-number">2.1.</span> <span class="nav-text">SSDT表</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CR0%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-number">2.2.</span> <span class="nav-text">CR0寄存器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96SSDT%E8%A1%A8%E5%9F%BA%E5%9D%80"><span class="nav-number">2.3.</span> <span class="nav-text">获取SSDT表基址</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B7%E4%BD%93%E5%AE%9E%E7%8E%B0"><span class="nav-number">2.4.</span> <span class="nav-text">具体实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%BB%E7%BB%93-1"><span class="nav-number">2.5.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Ring3%E4%B8%8BAPI%E7%9A%84%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E5%8F%8A%E9%87%8D%E6%9E%84"><span class="nav-number">3.</span> <span class="nav-text">Ring3下API的逆向分析及重构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#KUSER-SHARED-DATA"><span class="nav-number">3.1.</span> <span class="nav-text">_KUSER_SHARED_DATA</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%BB%E7%BB%93-2"><span class="nav-number">3.2.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8EPEB%E6%96%AD%E9%93%BE%E5%AE%9E%E7%8E%B0%E9%9A%90%E8%97%8F"><span class="nav-number">4.</span> <span class="nav-text">基于PEB断链实现隐藏</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A8%A1%E5%9D%97%E9%9A%90%E8%97%8F"><span class="nav-number">4.1.</span> <span class="nav-text">模块隐藏</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E9%9A%90%E8%97%8F"><span class="nav-number">4.2.</span> <span class="nav-text">进程隐藏</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0"><span class="nav-number">4.3.</span> <span class="nav-text">实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%BB%E7%BB%93-3"><span class="nav-number">4.4.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%A8%E5%B1%80%E5%8F%A5%E6%9F%84%E8%A1%A8%E5%8F%91%E7%8E%B0%E9%9A%90%E8%97%8F%E8%BF%9B%E7%A8%8B"><span class="nav-number">5.</span> <span class="nav-text">全局句柄表发现隐藏进程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#OBJECT-HEADER"><span class="nav-number">5.1.</span> <span class="nav-text">_OBJECT_HEADER</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%A8%E5%B1%80%E5%8F%A5%E6%9F%84%E8%A1%A8"><span class="nav-number">5.2.</span> <span class="nav-text">全局句柄表</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0-1"><span class="nav-number">5.3.</span> <span class="nav-text">实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#tips"><span class="nav-number">5.4.</span> <span class="nav-text">tips</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%BB%E7%BB%93-4"><span class="nav-number">5.5.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#x64%E4%B8%8B%E9%9A%90%E8%97%8F%E5%8F%AF%E6%89%A7%E8%A1%8C%E5%86%85%E5%AD%98"><span class="nav-number">6.</span> <span class="nav-text">x64下隐藏可执行内存</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#vad"><span class="nav-number">6.1.</span> <span class="nav-text">vad</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6"><span class="nav-number">6.2.</span> <span class="nav-text">分页机制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A1%B5%E8%A1%A8%E5%9F%BA%E5%9D%80"><span class="nav-number">6.3.</span> <span class="nav-text">页表基址</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#MmIsAddressValid"><span class="nav-number">6.4.</span> <span class="nav-text">MmIsAddressValid</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0-2"><span class="nav-number">6.5.</span> <span class="nav-text">实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%BB%E7%BB%93-5"><span class="nav-number">6.6.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ZouFeIYu"
+      src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+  <p class="site-author-name" itemprop="name">ZouFeIYu</p>
+  <div class="site-description" itemprop="description">reading, coding, travelling</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">115</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/erkeai" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;erkeai" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:563783592@qq.com" title="E-Mail → mailto:563783592@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-feather"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ZouFeIYu</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">284k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:19</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

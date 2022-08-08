@@ -120,7 +120,7 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">103</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">115</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -130,7 +130,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">101</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">108</span></a>
 
   </li>
   </ul>
@@ -156,6 +156,693 @@
 
           <div class="content index posts-expand">
             
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/04/13/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%BA%8C%E5%8D%81%E5%85%AD%E5%A4%A9/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/04/13/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%BA%8C%E5%8D%81%E5%85%AD%E5%A4%A9/" class="post-title-link" itemprop="url">代码随想录第二十六天</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-04-13 00:00:00 / 修改时间：15:30:54" itemprop="dateCreated datePublished" datetime="2022-04-13T00:00:00+08:00">2022-04-13</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/leetcode/" itemprop="url" rel="index"><span itemprop="name">leetcode</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>308</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="字符串-实现strstr"><a href="#字符串-实现strstr" class="headerlink" title="字符串-实现strstr()"></a>字符串-实现strstr()</h4><p><a target="_blank" rel="noopener" href="https://leetcode-cn.com/problems/implement-strstr/">题目链接</a></p>
+<p>暴力破解</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">strStr</span><span class="params">(string haystack, string needle)</span> </span>&#123;</span><br><span class="line">         <span class="keyword">int</span> n = haystack.<span class="built_in">size</span>();</span><br><span class="line">         <span class="keyword">int</span> m = needle.<span class="built_in">size</span>();</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt;= n - m; i++)&#123;</span><br><span class="line">            <span class="keyword">int</span> j = i, k = <span class="number">0</span>; </span><br><span class="line">            <span class="keyword">while</span>(k &lt; m &amp;&amp; haystack[j] == needle[k])&#123;</span><br><span class="line">                j++;</span><br><span class="line">                k++;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span>(k == m) <span class="keyword">return</span> i;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/04/12/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%BA%8C%E5%8D%81%E4%BA%94%E5%A4%A9/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/04/12/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%BA%8C%E5%8D%81%E4%BA%94%E5%A4%A9/" class="post-title-link" itemprop="url">代码随想录第二十五天</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-04-12 00:00:00 / 修改时间：16:05:49" itemprop="dateCreated datePublished" datetime="2022-04-12T00:00:00+08:00">2022-04-12</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/leetcode/" itemprop="url" rel="index"><span itemprop="name">leetcode</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>263</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="字符串-左旋字符串"><a href="#字符串-左旋字符串" class="headerlink" title="字符串-左旋字符串"></a>字符串-左旋字符串</h4><p><a target="_blank" rel="noopener" href="https://leetcode-cn.com/problems/zuo-xuan-zhuan-zi-fu-chuan-lcof/">题目链接</a></p>
+<p>​    先翻转前一部分和后一部分，然后在全部反转，这样可以不用重新申请空间。也可以重新申请一个string装新的数据，这样也很简单。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">string <span class="title">reverseLeftWords</span><span class="params">(string s, <span class="keyword">int</span> n)</span> </span>&#123;</span><br><span class="line">            <span class="built_in">reverse</span>(s.<span class="built_in">begin</span>(), s.<span class="built_in">begin</span>() + n);</span><br><span class="line">            <span class="built_in">reverse</span>(s.<span class="built_in">begin</span>() + n, s.<span class="built_in">end</span>());</span><br><span class="line">            <span class="built_in">reverse</span>(s.<span class="built_in">begin</span>(), s.<span class="built_in">end</span>());</span><br><span class="line"></span><br><span class="line">            <span class="keyword">return</span> s;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/04/11/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%BA%8C%E5%8D%81%E5%9B%9B%E5%A4%A9/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/04/11/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%BA%8C%E5%8D%81%E5%9B%9B%E5%A4%A9/" class="post-title-link" itemprop="url">代码随想录第二十四天</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-04-11 00:00:00 / 修改时间：10:59:40" itemprop="dateCreated datePublished" datetime="2022-04-11T00:00:00+08:00">2022-04-11</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/leetcode/" itemprop="url" rel="index"><span itemprop="name">leetcode</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>498</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="字符串-颠倒字符串中的单词"><a href="#字符串-颠倒字符串中的单词" class="headerlink" title="字符串-颠倒字符串中的单词"></a>字符串-颠倒字符串中的单词</h4><p><a target="_blank" rel="noopener" href="https://leetcode-cn.com/problems/reverse-words-in-a-string/">题目链接</a></p>
+<p>​    先全部反转，然后从不是空格的第一个单词字符开始计算。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">    <span class="function">string <span class="title">reverseWords</span><span class="params">(string s)</span> </span>&#123;</span><br><span class="line">        <span class="built_in">reverse</span>(s.<span class="built_in">begin</span>(), s.<span class="built_in">end</span>());</span><br><span class="line">        <span class="keyword">int</span> n = s.<span class="built_in">size</span>();</span><br><span class="line">        <span class="keyword">int</span> m = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; ++i) &#123; <span class="comment">//如果是i++会导致字符重复，比如“ hello world ”到这一步会变成“worldw olleh”</span></span><br><span class="line">            <span class="keyword">if</span> (s[i] != <span class="string">&#x27; &#x27;</span>) &#123;</span><br><span class="line">                <span class="keyword">if</span> (m != <span class="number">0</span>)s[m++] = <span class="string">&#x27; &#x27;</span>;</span><br><span class="line">                <span class="keyword">int</span> j = i;</span><br><span class="line">                <span class="keyword">while</span> (j &lt; n &amp;&amp; s[j] != <span class="string">&#x27; &#x27;</span>)</span><br><span class="line">                    s[m++] = s[j++];</span><br><span class="line">                <span class="built_in">reverse</span>(s.<span class="built_in">begin</span>() + m - (j - i), s.<span class="built_in">begin</span>() + m);</span><br><span class="line">                i = j;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">        s.<span class="built_in">erase</span>(s.<span class="built_in">begin</span>() + m, s.<span class="built_in">end</span>());<span class="comment">//调试发现这一步非常重要</span></span><br><span class="line">        <span class="keyword">return</span> s;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/04/11/pwn/%E8%92%B8%E7%B1%B3x86%E5%92%8Cx64%E7%9A%84ROP/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/04/11/pwn/%E8%92%B8%E7%B1%B3x86%E5%92%8Cx64%E7%9A%84ROP/" class="post-title-link" itemprop="url">蒸米ROP</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-04-11 00:00:00" itemprop="dateCreated datePublished" datetime="2022-04-11T00:00:00+08:00">2022-04-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-04-18 10:06:57" itemprop="dateModified" datetime="2022-04-18T10:06:57+08:00">2022-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/pwn/" itemprop="url" rel="index"><span itemprop="name">pwn</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>7.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p>Linux x86和x64区别</p>
+<ol>
+<li><p>首先是内存地址的范围由32位变成了64位。但是可以使用的内存地址不能大于<code>0x00007fffffffffff</code>，否则就会抛出异常。</p>
+</li>
+<li><p>其次是函数参数的传递方式发生了改变，x86中参数都是保存在栈上，但在x64中的前六个参数依次保存在RDI, RSI, RDX, RCX, R8和R9中，如果还有更多的参数的话才会保存在栈上。</p>
+</li>
+</ol>
+</blockquote>
+<h2 id="X86"><a href="#X86" class="headerlink" title="X86"></a>X86</h2><h3 id="level1-栈上执行shellcode"><a href="#level1-栈上执行shellcode" class="headerlink" title="level1 - 栈上执行shellcode"></a>level1 - 栈上执行shellcode</h3><p>level1主要演示32位程序中最基本的栈溢出利用，可直接在栈上写shellcode并执行。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411111305626.png" alt="image-20220411111305626"></p>
+<p>用下面命令编译，<code>-m32</code>参数指定编译为32位程序；<code>-fno-stack-protector</code>参数指定不开启堆栈溢出保护，即不生成 canary；<code>-z execstack</code>参数指定允许栈执行，即不开启NX。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -m32 -fno-stack-protector -z execstack -o level1 level1.c</span><br></pre></td></tr></table></figure>
+
+<p>关闭ALSR，先进root权限，然后执行命令</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo 0 &gt; /proc/sys/kernel/randomize_va_space</span><br></pre></td></tr></table></figure>
+
+<p>查看是否关闭成功，以及程序情况，发现已经关闭了，但是还是显示PIE打开，后续看看能不能溢出再说。</p>
+<p><img src="C:\Users\16434\AppData\Roaming\Typora\typora-user-images\image-20220411112803443.png" alt="image-20220411112803443"></p>
+<p>采用<code>pattern_offset</code>获取偏移量，现在知道了偏移量，剩下的就是构造shellcode以及控制PC跳转到shellcode地址上。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411140147029.png" alt="image-20220411140147029"></p>
+<p>shellcode构造直接用，pwntools的asm(shellcraft.sh())来获得。</p>
+<p>下面获取写入的shellcode地址。由于ASLR等都关掉，因此现在获取的地址就不会变了。采用gdb查看内存的方式<code>x/10s $esp-144</code>(144是140加上四字节的ret)</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411141134398.png" alt="image-20220411141134398"></p>
+<p>但是如果这样利用该地址其实运行会出错。查网上的博客发现：</p>
+<blockquote>
+<p>对初学者来说这个shellcode地址的位置其实是一个坑。因为正常的思维是使用gdb调试目标程序，然后查看内存来确定shellcode的位置。但当你真的执行exp的时候你会发现shellcode压根就不在这个地址上！这是为什么呢？原因是gdb的调试环境会影响buf在内存中的位置，虽然我们关闭了ASLR，但这只能保证buf的地址在gdb的调试环境中不变，但当我们直接执行./level1的时候，buf的位置会固定在别的地址上。怎么解决这个问题呢？</p>
+</blockquote>
+<p>最简单的方法就是开启core dump这个功能。当程序运行的过程中异常终止或崩溃，操作系统会将程序当时的内存状态记录下来，保存在一个文件中，这种行为就叫做Core Dump。可以认为是内存快照，除了内存信息外，还有一些寄存器信息，内存管理信息，其他处理器和操作系统状态和信息被保存下来。用下面这两条命令开启该功能：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ulimit -c unlimited</span><br><span class="line">sudo sh -c &#x27;echo &quot;/tmp/core.%t&quot; &gt; /proc/sys/kernel/core_pattern&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>开启之后，当出现内存错误的时候，系统会生成一个core dump文件在tmp目录下。然后我们再用gdb查看这个core文件就可以获取到buf真正的地址了。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411143033923.png" alt="image-20220411143033923"></p>
+<p>得到shellcode真正地址是<code>0xffffd150</code></p>
+<h4 id="payload"><a href="#payload" class="headerlink" title="payload"></a>payload</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411144041530.png" alt="image-20220411144041530"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411144025934.png" alt="image-20220411144025934"></p>
+<p>果然出错了，还是之前查看程序的时候发现PIE和relro保护都有,把作者在github上的程序重新跑一下前面的步骤发现可行了</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411145234664.png" alt="image-20220411145234664"></p>
+<h4 id="远程部署"><a href="#远程部署" class="headerlink" title="远程部署"></a>远程部署</h4><p>除了本地调试，还有远程部署的方式，如下，将题目绑定到指定端口上：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">socat tcp-l:10001,fork exec:./level1</span><br></pre></td></tr></table></figure>
+
+<p>payload除了将p = process(“./level1”)改为p = remote(“127.0.0.1”, 10001)外，ret的地址还会发生改变。解决方法还是采用生成core dump的方案，然后用gdb调试core文件获取返回地址</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411153012363.png" alt="image-20220411153012363"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411153059184.png" alt="image-20220411153059184"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411153110496.png" alt="image-20220411153110496"></p>
+<h3 id="level2-ret2libc绕过NX"><a href="#level2-ret2libc绕过NX" class="headerlink" title="level2 - ret2libc绕过NX"></a>level2 - ret2libc绕过NX</h3><p>还是首先看一下这个程序情况，发现只开了NX保护</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411153712277.png" alt="image-20220411153712277"></p>
+<p>这样就不能和前面一样将shellcode写到栈上去，我们可以看一下,level1的stack是rwx的，但是level2的stack却是rw的</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /proc/[pid]/maps</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411154528160.png" alt="image-20220411154528160"></p>
+<p>既然开启了NX，那一般是利用ROP绕过，这里用的是ret2libc，因为程序level2调用了libc.so，并且libc.so里保存了大量可利用的函数如system()和/bin/sh，我们如果可以让程序执行system(“/bin/sh”)的话，也可以获取到shell。</p>
+<p>所以现在重要的是获取system和/bin/sh的地址。因为关掉了ALSR，所以system函数在内存中地址不会变化，并且libc.so中也包含”/bin/sh”这个字符串，并且这个字符串的地址也是固定的。</p>
+<p>在main下断点然后运行，system地址和bin/sh地址都全出来了，溢出偏移量和之前一样140</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411155713622.png" alt="image-20220411155713622"></p>
+<h4 id="payload-1"><a href="#payload-1" class="headerlink" title="payload"></a>payload</h4><p>这里就不写了，很简单，和之前ret2libc差不多</p>
+<h3 id="level2-ROP绕过NX和ASLR"><a href="#level2-ROP绕过NX和ASLR" class="headerlink" title="level2 - ROP绕过NX和ASLR"></a>level2 - ROP绕过NX和ASLR</h3><p>就在上一题的基础上，不过需要打开ALSR,如果你通过sudo cat /proc/[pid]/maps或者ldd查看，你会发现level2的libc.so地址每次都是变化的：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411161110720.png" alt="image-20220411161110720"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411161127819.png" alt="image-20220411161127819"></p>
+<p>所以这次如何利用呢？——思路是：先泄漏出libc.so某些函数在内存中的地址，再利用泄漏出的函数地址根据偏移量计算出system()函数和/bin/sh字符串在内存中的地址，最后执行我们的ret2libc的shellcode。既然栈、libc、堆的地址都是随机的，我们怎么才能泄露出libc.so的地址呢？方法还是有的，因为程序本身在内存中的地址并不是随机的，如图所示，Linux内存随机化分布图：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411161439026.png" alt="image-20220411161439026"></p>
+<p>所以我们只要把返回值设置到程序本身就可执行我们期望的指令了。</p>
+<p>首先我们利用objdump来查看可以利用的plt函数和函数对应的got表：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411161818642.png" alt="image-20220411161818642"></p>
+<p>我们可以通过<code>write@plt ()</code>函数把<code>write()</code>函数在内存中的地址也就是<code>write.got</code>给打印出来。</p>
+<p><strong>既然<code>write()</code>函数实现是在<code>libc.so</code>当中，那我们调用的<code>write@plt()</code>函数为什么也能实现<code>write()</code>功能呢?</strong> 这是因为linux采用了<strong>延时绑定技术</strong>，当我们调用<code>write@plit()</code>的时候，系统会将真正的<code>write()</code>函数地址link到got表的<code>write.got</code>中，然后<code>write@plit()</code>会根据<code>write.got</code> 跳转到真正的<code>write()</code>函数上去。</p>
+<p>因为<code>system()</code>函数和<code>write()</code>在<code>libc.so</code>中的相对地址是不变的，<strong>所以如果我们得到了write()的地址并且拥有目标服务器上的<code>libc.so</code>就可以计算出<code>system()</code>在内存中的地址了。</strong></p>
+<p>然后我们再将pc指针return回<code>vulnerable_function()</code>函数，就可以进行ret2libc溢出攻击，并且这一次我们知道了<code>system()</code>在内存中的地址，就可以调用<code>system()</code>函数来获取我们的shell了。</p>
+<p>使用ldd命令可以查看目标程序调用的so库。随后我们把<code>libc.so</code>拷贝到当前目录，因为我们的exp需要这个so文件来计算相对地址：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411162311187.png" alt="image-20220411162311187"></p>
+<p>除了用ldd命令查看libc.so库，还可以直接用pwntools库的elf.libc来获取libc.so库：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">elf = ELF(<span class="string">&quot;./level2&quot;</span>)</span><br><span class="line">libc = elf.libc</span><br></pre></td></tr></table></figure>
+
+<h4 id="payload-2"><a href="#payload-2" class="headerlink" title="payload"></a>payload</h4><p>说一下write函数原型</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">ssize_t</span> <span class="title">write</span><span class="params">(<span class="keyword">int</span> fd,<span class="keyword">const</span> <span class="keyword">void</span>*buf,<span class="keyword">size_t</span> count)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>所以首先填充<code>‘a’</code>造成溢出，覆盖到返回地址，返回地址填上write函数的plt地址来调用write函数，之后跟上vulnerable_function函数地址（其实设置成main也行，我们要将程序程序重新执行一遍，再次利用输入点来进构造rop）<br><code>p32(1)+p32(write_addr)+p32(4)</code>是在设置write函数的参数，对应函数原型看一下，32位程序是4位，所以这边写的4，对应的64位程序是8位</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411165400556.png" alt="image-20220411165400556"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411165337387.png" alt="image-20220411165337387"></p>
+<h3 id="level2-在不获取目标libc-so的情况下进行ROP攻击"><a href="#level2-在不获取目标libc-so的情况下进行ROP攻击" class="headerlink" title="level2 - 在不获取目标libc.so的情况下进行ROP攻击"></a>level2 - 在不获取目标libc.so的情况下进行ROP攻击</h3><p>如果我们在获取不到目标机器上的libc.so情况下，应该如何做呢？这时候就需要通过memory leak(内存泄露)来搜索内存找到system()的地址。</p>
+<blockquote>
+<p>这里采用pwntools提供的<strong>DynELF</strong>模块来进行内存搜索。首先我们需要实现一个leak(address)函数，通过这个函数可以获取到某个地址上最少1 byte的数据。拿上一篇中的level2程序举例。leak函数应该是这样实现的：</p>
+</blockquote>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">leak</span>(<span class="params">address</span>):</span></span><br><span class="line">    payload1 = <span class="string">&#x27;a&#x27;</span>*<span class="number">140</span> + p32(plt_write) + p32(vulfun_addr) + p32(<span class="number">1</span>) +p32(address) + p32(<span class="number">4</span>)</span><br><span class="line">    p.send(payload1)</span><br><span class="line">    data = p.recv(<span class="number">4</span>)</span><br><span class="line">    <span class="built_in">print</span> <span class="string">&quot;%#x =&gt; %s&quot;</span> % (address, (data <span class="keyword">or</span> <span class="string">&#x27;&#x27;</span>).encode(<span class="string">&#x27;hex&#x27;</span>))</span><br><span class="line">	<span class="keyword">return</span> data</span><br></pre></td></tr></table></figure>
+
+<p>随后将这个函数作为参数再调用<code>d = DynELF(leak, elf=ELF(‘./level2’))</code>就可以对DynELF模块进行初始化了。然后可以通过调用<code>system_addr = d.lookup(‘system’, ‘libc’)</code>来得到libc.so中system()在内存中的地址。</p>
+<p>要注意的是，通过DynELF模块只能获取到system()在内存中的地址，但无法获取字符串“/bin/sh”在内存中的地址。所以我们在payload中需要调用read()将“/bin/sh”这字符串写入到程序的.bss段中。.bss段是用来保存全局变量的值的，地址固定，并且可以读可写。通过<code>readelf -S level2</code>这个命令就可以获取到bss段的地址了,或者IDA中直接ctrl+s就可以获取了。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411172320166.png" alt="image-20220411172320166"></p>
+<p>当然，可以在pwntools中直接调用elf.bss()获取.bss段地址：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">elf = ELF(&quot;./level2&quot;)</span><br><span class="line">bss_base = elf.bss()</span><br></pre></td></tr></table></figure>
+
+<p>因为我们在执行完read()之后要接着调用system(“/bin/sh”)，并且read()这个函数的参数有三个，所以我们需要一个pop pop pop ret的gadget用来保证栈平衡。这里我们用ROPgadget来寻找：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411173204893.png" alt="image-20220411173204893"></p>
+<p>注意用python3会出现对DynELF模块不兼容的问题, python3和python2的最大区别(pwn中), 是bytes和str类型不共通了, 所以原本python2能跑的脚本, 在python3得考虑类型转换问题, DynELF中报错也是因为这个</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">sudo gedit /usr/local/lib/python3.8/dist-packages/pwnlib/dynelf.py</span><br><span class="line"><span class="meta">#</span><span class="bash">把下面这一行改了</span></span><br><span class="line">result = e.symbols[symb]</span><br><span class="line"><span class="meta">#</span><span class="bash">改成这个</span></span><br><span class="line">result = e.symbols[symb.decode()]</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411194023196.png" alt="image-20220411194023196"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411193850745.png" alt="image-20220411193850745"></p>
+<h2 id="x64"><a href="#x64" class="headerlink" title="x64"></a>x64</h2><h3 id="level-3-通过-ROP-绕过-DEP-和-ASLR-防护"><a href="#level-3-通过-ROP-绕过-DEP-和-ASLR-防护" class="headerlink" title="level 3 - 通过 ROP 绕过 DEP 和 ASLR 防护"></a>level 3 - 通过 ROP 绕过 DEP 和 ASLR 防护</h3><p>程序代码如下：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411195114336.png" alt="image-20220411195114336"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411195303008.png" alt="image-20220411195303008"></p>
+<p>查看文件基本情况，发现是64位动态链接的文件，之开启了NX保护</p>
+<p>我们用GDB调试一下，输入大量字符串，程序终止在vulnerable_function()函数处</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411195704764.png" alt="image-20220411195704764"></p>
+<blockquote>
+<p>奇怪的事情发生了，PC指针并没有指向类似于0x41414141那样地址，而是停在了vulnerable_function()函数中。这是为什么呢？原因就是我们之前提到过的程序使用的内存地址不能大于0x00007fffffffffff，否则会抛出异常。但是，虽然PC不能跳转到那个地址，我们依然可以通过栈来计算出溢出点。因为ret相当于“pop rip”指令，所以我们只要看一下栈顶的数值就能知道PC跳转的地址了。</p>
+</blockquote>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411200245589.png" alt="image-20220411195850173"></p>
+<h4 id="payload-3"><a href="#payload-3" class="headerlink" title="payload"></a>payload</h4><p>其实payload也很简单，和之前一样，因程序中本来就存在一个callsystem()函数，其会直接调用system(“/bin/sh”)，那就简单多了。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">payload = <span class="string">&quot;A&quot;</span> * <span class="number">136</span> + p64(callsystem_addr)</span><br></pre></td></tr></table></figure>
+
+<h3 id="level-4-使用ROPgadget寻找gadget"><a href="#level-4-使用ROPgadget寻找gadget" class="headerlink" title="level 4 - 使用ROPgadget寻找gadget"></a>level 4 - 使用ROPgadget寻找gadget</h3><blockquote>
+<p>x64中前六个参数依次保存在RDI，RSI，RDX，RCX，R8和 R9寄存器里，如果还有更多的参数的话才会保存在栈上。所以我们需要寻找一些类似于pop rdi; ret的这种gadget。如果是简单的gadgets，我们可以通过objdump来查找。但当我们打算寻找一些复杂的gadgets的时候，还是借助于一些查找gadgets的工具比较方便。比较有名的工具有：</p>
+<p><strong>ROPEME</strong>: <a target="_blank" rel="noopener" href="https://github.com/packz/ropeme">https://github.com/packz/ropeme</a></p>
+<p><strong>Ropper</strong>: <a target="_blank" rel="noopener" href="https://github.com/sashs/Ropper">https://github.com/sashs/Ropper</a></p>
+<p><strong>ROPgadget</strong>: <a target="_blank" rel="noopener" href="https://github.com/JonathanSalwan/ROPgadget/tree/master">https://github.com/JonathanSa…</a></p>
+<p><strong>rp++</strong>: <a target="_blank" rel="noopener" href="https://github.com/0vercl0k/rp">https://github.com/0vercl0k/rp</a></p>
+</blockquote>
+<p>程序代码如下，看到程序在一开始运行时调用systemaddr()函数，该函数会从本程序用到的libc.so.6中获取其中的system()函数地址并打印出来：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411201005408.png" alt="image-20220411201005408"></p>
+<p>程序文件情况如下，只开了NX保护</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411201337087.png" alt="image-20220411201337087"></p>
+<p>因为我们知道了溢出偏移量和system()函数的地址，剩下的就是通过寄存器给system()函数传参了，而在64位中传参的前六个参数是通过寄存器来实现的，而且system()只接受一个参数，因此我们需要找到一条pop rdi;ret的Gadget来帮助我们实现，这里我们用的是ROPgadget工具帮我们查找：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411202231371.png" alt="image-20220411202231371"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220411202305530.png" alt="image-20220411202305530"></p>
+<h4 id="payload-4"><a href="#payload-4" class="headerlink" title="payload"></a>payload</h4><p>先填充栈空间，到达 rip 上一个内存空间。覆写为gadget地址，再接着是<code>/bin/sh</code>内存地址，这样就可以将<code>/bin/sh</code>存入到 rdi 寄存器。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220412103155409.png" alt="image-20220412103155409"></p>
+<h3 id="level5-通用gadgets"><a href="#level5-通用gadgets" class="headerlink" title="level5 - 通用gadgets"></a>level5 - 通用gadgets</h3><blockquote>
+<p>因为程序在编译过程中会加入一些通用函数用来进行初始化操作（比如加载libc.so的初始化函数），所以虽然很多程序的源码不同，但是初始化的过程是相同的，因此针对这些初始化函数，我们可以提取一些通用的gadgets加以使用，从而达到我们想要达到的效果。</p>
+</blockquote>
+<p>level5.c代码如下，相比于level3和level4，去掉了提供system()或其地址的辅助函数：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220412105037820.png" alt="image-20220412105037820"></p>
+<p>这道题思路和level2-ROP绕过NX和ALSR一样，但问题在于write()的参数应该如何传递，因为x64下前6个参数不是保存在栈中，而是通过寄存器传值。我们使用ROPgadget并没有找到类似于pop rdi, ret,pop rsi, ret这样的gadgets。那应该怎么办呢？其实在x64下有一些万能的gadgets可以利用。比如说我们用<code>objdump -d ./level5</code>观察一下__libc_csu_init()这个函数。一般来说，只要程序调用了libc.so，程序都会有这个函数用来对libc进行初始化操作。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220412113304210.png" alt="image-20220412113304210"></p>
+<p>这个函数里先执行400606再执行4005f0有以下赋值过程</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">RDI，RSI，RDX</span><br><span class="line">[RSP+0X8]-&gt;RBX  </span><br><span class="line">[RSP+0X10]-&gt;RBP</span><br><span class="line">[RSP+0X18]-&gt;R12</span><br><span class="line">[RSP+0X20]-&gt;R13;R13D-&gt;EDI</span><br><span class="line">[RSP+0X28]-&gt;R14-&gt;RSI</span><br><span class="line">[RSP+0X30]-&gt;R15-&gt;RDX</span><br><span class="line">CALL [R12+RBX*8]</span><br></pre></td></tr></table></figure>
+
+<p>只要我们控制rbx的值为 0 ，精心构造栈上传入上述寄存器的值，就可以实现控制 pc ，调用我们想要的函数。</p>
+<blockquote>
+<p>为什么需要控制 rbx 的值为0？</p>
+<p>执行完 call qword ptr [r12+rbx*8] 之后，程序会对rbx+=1，然后对比 rbp 和 rbx 的值，如果相等就会继续向下执行并 ret 到我们想要继续执行的地址。所以为了让 rbp 和 rbx 的值相等，我们可以将 rbp 的值设置为1，因为之前已经将 rbx 的值设置为0了。</p>
+</blockquote>
+<p> 我们先构造一个payload1输出write在got表中的地址</p>
+<blockquote>
+<p>为什么使用的是 write.got 而不是 write.plt？</p>
+<p>write.plt 相当于 call write。执行了两个动作，将指针跳转到 write 真实地址；将返回地址压栈。</p>
+<p>write.got 仅将指针跳转到 write 真实地址。</p>
+</blockquote>
+<p>整个流程如下:</p>
+<ul>
+<li><p>由于利用到泄露函数地址和向.bss段写内容的功能，需要先获取write()和read()函数的GOT地址；</p>
+</li>
+<li><p>payload1先填充溢出偏移量的字符、然后根据gadget1来设置对应寄存器的值、再调用gadget2、然后填充字符至gadget1的ret指令处、最后调用输入的返回地址即main处让程序继续执行下去；这里注意两个偏移量，第一个136是程序本身溢出到ret的偏移量，而第二个56则是gadget2跑完之后还要继续往下跑到gadget1的ret中去，这中间需要填充56个字节；</p>
+</li>
+<li><p>当我们exp在收到write()在内存中的地址后，就可以计算出system()在内存中的地址了。接着构造payload2，利用read()将system()或execve()的地址以及“/bin/sh”读入到.bss段内存中；</p>
+</li>
+<li><p>最后我们构造payload3,调用system()函数执行“/bin/sh”。注意，system()的地址保存在了.bss段首地址上，“/bin/sh”的地址保存在了.bss段首地址+8字节上。</p>
+</li>
+</ul>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220412153739968.png" alt="image-20220412153739968"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220412153831586.png" alt="image-20220412153831586"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220412153857551.png" alt="image-20220412153857551"></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/04/08/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%BA%8C%E5%8D%81%E4%B8%89%E5%A4%A9/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/04/08/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%BA%8C%E5%8D%81%E4%B8%89%E5%A4%A9/" class="post-title-link" itemprop="url">代码随想录第二十三天</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-04-08 00:00:00 / 修改时间：10:34:08" itemprop="dateCreated datePublished" datetime="2022-04-08T00:00:00+08:00">2022-04-08</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/leetcode/" itemprop="url" rel="index"><span itemprop="name">leetcode</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>940</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="字符串-替换空格"><a href="#字符串-替换空格" class="headerlink" title="字符串-替换空格"></a>字符串-替换空格</h4><p><a target="_blank" rel="noopener" href="https://leetcode-cn.com/problems/ti-huan-kong-ge-lcof/">题目链接</a></p>
+<p>​        这道题需要注意的就是替换的字符长度是3，对于数组我们需要先扩充大小，然后再一一替换，利用双指针会方便很多。</p>
+<ol>
+<li>不用申请新数组。（看到网上有人申请新数组，然后push_back）</li>
+<li>从后向前填充元素，避免了从前先后填充元素要来的 每次添加元素都要将添加元素之后的所有元素向后移动。</li>
+</ol>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">string <span class="title">replaceSpace</span><span class="params">(string s)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> num = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; s.<span class="built_in">size</span>(); i++)&#123;</span><br><span class="line">            <span class="keyword">if</span>(s[i] == <span class="string">&#x27; &#x27;</span>) num++;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">int</span> left = s.<span class="built_in">size</span>() - <span class="number">1</span>;</span><br><span class="line">        s.<span class="built_in">resize</span>(s.<span class="built_in">size</span>() + num*<span class="number">2</span>);</span><br><span class="line">        <span class="keyword">int</span> newSize = s.<span class="built_in">size</span>();</span><br><span class="line">        <span class="keyword">int</span> right = newSize - <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">for</span>(; left &lt; right; left--, right--)&#123;</span><br><span class="line">            <span class="keyword">if</span>(s[left] != <span class="string">&#x27; &#x27;</span>)s[right] = s[left];</span><br><span class="line">            <span class="keyword">else</span>&#123;</span><br><span class="line">                s[right] = <span class="string">&#x27;0&#x27;</span>;</span><br><span class="line">                s[right<span class="number">-1</span>] = <span class="string">&#x27;2&#x27;</span>;</span><br><span class="line">                s[right<span class="number">-2</span>] = <span class="string">&#x27;%&#x27;</span>;</span><br><span class="line">                right -= <span class="number">2</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> s;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">replaceSpace</span>(<span class="params">self, s: <span class="built_in">str</span></span>) -&gt; <span class="built_in">str</span>:</span></span><br><span class="line">        num = s.count(<span class="string">&#x27; &#x27;</span>)</span><br><span class="line">        res = <span class="built_in">list</span>(s)</span><br><span class="line">        res.extend([<span class="string">&#x27; &#x27;</span>] * num * <span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">        left, right = <span class="built_in">len</span>(s) - <span class="number">1</span>, <span class="built_in">len</span>(res) - <span class="number">1</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> left &gt;= <span class="number">0</span>:</span><br><span class="line">            <span class="keyword">if</span> res[left] != <span class="string">&#x27; &#x27;</span>:</span><br><span class="line">                res[right] = res[left]</span><br><span class="line">                right -= <span class="number">1</span></span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                res[right - <span class="number">2</span> : right + <span class="number">1</span>] = <span class="string">&#x27;%20&#x27;</span></span><br><span class="line">                right -= <span class="number">3</span></span><br><span class="line">            left -= <span class="number">1</span></span><br><span class="line">        <span class="keyword">return</span> <span class="string">&#x27;&#x27;</span>.join(res)</span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/04/07/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%BA%8C%E5%8D%81%E4%BA%8C%E5%A4%A9/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/04/07/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%BA%8C%E5%8D%81%E4%BA%8C%E5%A4%A9/" class="post-title-link" itemprop="url">代码随想录第二十二天</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-04-07 00:00:00 / 修改时间：10:14:26" itemprop="dateCreated datePublished" datetime="2022-04-07T00:00:00+08:00">2022-04-07</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/leetcode/" itemprop="url" rel="index"><span itemprop="name">leetcode</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>768</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="字符串-反转字符串II"><a href="#字符串-反转字符串II" class="headerlink" title="字符串-反转字符串II"></a>字符串-反转字符串II</h4><p><a target="_blank" rel="noopener" href="https://leetcode-cn.com/problems/reverse-string-ii/">题目链接</a></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">reverse</span><span class="params">(string&amp; s, <span class="keyword">int</span> start, <span class="keyword">int</span> end)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = start, j = end; i &lt; j; i++, j--) &#123;</span><br><span class="line">            <span class="built_in">swap</span>(s[i], s[j]);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function">string <span class="title">reverseStr</span><span class="params">(string s, <span class="keyword">int</span> k)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; s.<span class="built_in">size</span>(); i += (<span class="number">2</span> * k))&#123;</span><br><span class="line">            <span class="keyword">if</span>(i + k &lt;= s.<span class="built_in">size</span>())&#123;</span><br><span class="line">                <span class="built_in">reverse</span>(s, i, i + k - <span class="number">1</span>);</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="built_in">reverse</span>(s, i, s.<span class="built_in">size</span>() - <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">       </span><br><span class="line">        <span class="keyword">return</span> s;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span>(<span class="params"><span class="built_in">object</span></span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">reverseStr</span>(<span class="params">self, s, k</span>):</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        :type s: str</span></span><br><span class="line"><span class="string">        :type k: int</span></span><br><span class="line"><span class="string">        :rtype: str</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        <span class="function"><span class="keyword">def</span> <span class="title">reverse_substr</span>(<span class="params">text</span>):</span></span><br><span class="line">            left, right = <span class="number">0</span>, <span class="built_in">len</span>(text) - <span class="number">1</span></span><br><span class="line">            <span class="keyword">while</span> left &lt; right:</span><br><span class="line">                text[left], text[right] = text[right], text[left]</span><br><span class="line">                left += <span class="number">1</span></span><br><span class="line">                right -= <span class="number">1</span></span><br><span class="line">            <span class="keyword">return</span> text</span><br><span class="line">        </span><br><span class="line">        res = <span class="built_in">list</span>(s)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> cur <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>, <span class="built_in">len</span>(s), <span class="number">2</span>*k):</span><br><span class="line">            res[cur : cur + k] = reverse_substr(res[cur : cur + k]) </span><br><span class="line">        <span class="keyword">return</span> <span class="string">&#x27;&#x27;</span>.join(res)</span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -277,6 +964,89 @@
 <p>看到别人写的是有exit函数地址，但是感觉替换成其他四个字节的数据也可以（实践了一下确实可以）</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220407201448443.png" alt="image-20220407201448443"></p>
 <p>参考链接：<a target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2019/03/08/TAMUctf-Pwn-writeup/">TAMUCTF-PWN</a> </p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/04/07/pwn/%E4%B8%AD%E7%BA%A7ROP/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/04/07/pwn/%E4%B8%AD%E7%BA%A7ROP/" class="post-title-link" itemprop="url">中级ROP</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-04-07 00:00:00 / 修改时间：14:48:29" itemprop="dateCreated datePublished" datetime="2022-04-07T00:00:00+08:00">2022-04-07</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/pwn/" itemprop="url" rel="index"><span itemprop="name">pwn</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>187</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="ret2csu"><a href="#ret2csu" class="headerlink" title="ret2csu"></a>ret2csu</h2><p>​      在 64 位程序中，函数的前 6 个参数是通过寄存器传递的，但是大多数时候，我们很难找到每一个寄存器对应的 gadgets。 这时候，我们可以利用 x64 下的 __libc_csu_init 中的 gadgets。这个函数是用来对 libc 进行初始化操作的，而一般的程序都会调用 libc 函数，所以这个函数一定会存在。我们先来看一下这个函数 (当然，不同版本的这个函数有一定的区别) </p>
+<p>​       </p>
 
       
     </div>
@@ -471,1072 +1241,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/04/04/paper/A%20Systematical%20and%20longitudinal%20study%20of%20evasive%20behaviors%20in%20windows%20malware/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/04/04/paper/A%20Systematical%20and%20longitudinal%20study%20of%20evasive%20behaviors%20in%20windows%20malware/" class="post-title-link" itemprop="url">A Systematical and longitudinal study of evasive behaviors in windows malware</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2022-04-04 00:00:00" itemprop="dateCreated datePublished" datetime="2022-04-04T00:00:00+08:00">2022-04-04</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-04-06 17:13:37" itemprop="dateModified" datetime="2022-04-06T17:13:37+08:00">2022-04-06</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/paper-reading/" itemprop="url" rel="index"><span itemprop="name">paper reading</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.5k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>​        该文研究了恶意软件的规避行为。论文收集了92种恶意软件用来检测和以及阻止检测的规避技术，并做了系统化，提供了一种根据这些技术的语义和特征进行分类的分类方法。实现了一个对x86二进制文件进行逃避分析的框架，分析了2010年至2019年期间的45,375个恶意软件样本，并采取将这种分析与合法的主流windoiws程序进行比较的方法，来研究规避行为的内在特征。还研究了恶意软件家族与所采用的规避技术之间的相关性。并且论文确定了特定于恶意代码的技术，而不是恶意代码与合法软件都会使用的技术。</p>
-<p>​        论文实验结果体现了规避技术的使用以及随着时间的演变，发现规避行为十年间，在数量上仅仅增加了12%，但是在技术上已经有显著的提高。最后论文研究了如何应对新型规避技术的部署。</p>
-<h3 id="规避技术分类法"><a href="#规避技术分类法" class="headerlink" title="规避技术分类法"></a>规避技术分类法</h3><p>​        该文根据在操作系统上执行的动作的语义来进行分类。基于先前提出的系统化，该文还开发了由16个语义等价组组成的分类法。有内存指纹、异常处理、CPU指纹、表描述符、陷阱、时间、暂缓、人类交互、注册表、系统环境、WMI、进程环境、文件系统、枚举进程、枚举服务、枚举驱动。 通过静态分析每个二进制程序，计算了实现92个规避技术所需的基本块、指令和函数调用的数量。</p>
-<h3 id="分析框架"><a href="#分析框架" class="headerlink" title="分析框架"></a>分析框架</h3><p>​        可以实现四个级别的检测：指令（监控每个执行指令）、API hook（hook一些感兴趣的Windows API）、系统调用（hook感兴趣的系统调用）、内存访问（监视对特定内存区域的访问）。系统会在逃避前后进行hook,这两个hook都会采用日志记录规避行为。</p>
-<p>​        系统根据级别分为了四个模块，并且还增加了一个库追踪器模块，用来记录规避技术和相关库的调用堆栈。</p>
-<h3 id="规避行为分析"><a href="#规避行为分析" class="headerlink" title="规避行为分析"></a>规避行为分析</h3><p>​        该部分根据五个问题展开</p>
-<p>1.恶意软件最常见的规避技术是什么？</p>
-<p>​        时间和暂缓技术是使用最多的，搜索特定的驱动程序很少被用到，并且实验数据并未观察到对WMI的使用。恶意软件家族也会寻找关键字，其中“vbox”、“sandbox”和“虚拟virtualbox”是最常用的关键字。</p>
-<p>2.恶意软件家族和采用的规避行为技术之间有什么联系吗？</p>
-<p>​        事实上，恶意软件样本通常是由工具构建的。恶意软件的作者通常开发可以很容易地用来生成新的样本的工具。该文建立了一个随机森林分类器；分类器的输入是一个布尔变量数组，表示样本中每种技术的使用情况；分类器的输出是族标签。我们为123个家族（所有至少有50个样本的家族）建立了123个分类器。每个分类器的输出采用分层抽样进行3倍交叉验证训练。对于每个分类器，计算了f1-score，这是一个评估分类器性能的指标，并考虑了所有的混淆矩阵。</p>
-<p>3.在过去的10年里，每个家庭和每个类别所采用的规避技术的数量是否发生了变化？</p>
-<p>​        该部分研究了每种技术的使用周期，规避技术的使用量，单个样本所使用的规避技术的最大数量，恶意样本规避的四大目标占比。</p>
-<p>4.采用恶意软件规避技术如何影响安全社区，反之亦然？</p>
-<p>​        如果该技术已经被广泛采用/已知，在报告发布后，我们注意到在随后的几年中它们的使用有轻微和暂时的下降。相反，如果该技术几乎很少被使用或者被知道，在报告发布后的接下来的几年里，它的采用迅速增加。一旦一种技术被广泛使用，相关报告的数量就会显著增加。</p>
-<p>5.合法的软件是否也采用了规避技术？</p>
-<p>​        合法的程序也会采用规避技术，但是并不是很常见。特别是，只有少数技术被普遍采用，这表明这种技术并不主要用于真正的规避目的。</p>
-<p>​        基于良性软件分析，对每个技术进行了分类：</p>
-<p>​        被恶意软件使用的规避技术。这是在良性软件样本中从未观察到的逃避行为，或者手动验证了它在良性软件样本中被用作一种逃避机制。</p>
-<p>​        被用于良性软件的规避技术。这是在超过1%的良性软件样本中观察到的规避行为，或者手动验证没有被用作逃避行为。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/04/01/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E5%8D%81%E4%B9%9D%E5%A4%A9/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/04/01/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E5%8D%81%E4%B9%9D%E5%A4%A9/" class="post-title-link" itemprop="url">代码随想录第十九天</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2022-04-01 00:00:00 / 修改时间：11:13:01" itemprop="dateCreated datePublished" datetime="2022-04-01T00:00:00+08:00">2022-04-01</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/leetcode/" itemprop="url" rel="index"><span itemprop="name">leetcode</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.7k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>2 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h4 id="哈希表-三数之和"><a href="#哈希表-三数之和" class="headerlink" title="哈希表-三数之和"></a>哈希表-三数之和</h4><p><a target="_blank" rel="noopener" href="https://leetcode-cn.com/problems/3sum/">题目链接</a></p>
-<p>这道题采用双指针的方法，首先顺序依次是i，left，right。按照每个i下标处的值一次寻找排序后数组中满足条件的left和right下标位置的值（注意去重）。第一个i处理完成后，i递增，如果此时发现由重复的数也需要去重，这样可以寻找出所有满足条件的数组</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; <span class="built_in">threeSum</span>(vector&lt;<span class="keyword">int</span>&gt;&amp; nums) &#123;</span><br><span class="line">        vector&lt;vector&lt;<span class="keyword">int</span>&gt;&gt; result;</span><br><span class="line">        <span class="built_in">sort</span>(nums.<span class="built_in">begin</span>(),nums.<span class="built_in">end</span>());</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; nums.<span class="built_in">size</span>(); i++)&#123;</span><br><span class="line">            <span class="keyword">if</span>(nums[i] &gt; <span class="number">0</span>) <span class="keyword">return</span> result;</span><br><span class="line">            <span class="keyword">if</span>(i &gt; <span class="number">0</span> &amp;&amp; nums[i] == nums[i - <span class="number">1</span>])<span class="keyword">continue</span>;</span><br><span class="line">            <span class="keyword">int</span> left = i + <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">int</span> right = nums.<span class="built_in">size</span>() - <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">while</span>(left &lt; right)&#123;</span><br><span class="line">                <span class="keyword">if</span>(nums[i] + nums[left] + nums[right] &gt; <span class="number">0</span>)&#123;</span><br><span class="line">                    right--;</span><br><span class="line">                    <span class="keyword">while</span>(left &lt; right &amp;&amp; nums[right] == nums[right + <span class="number">1</span>]) right--;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">else</span> <span class="keyword">if</span>(nums[i] + nums[left] + nums[right] &lt; <span class="number">0</span>)&#123;</span><br><span class="line">                    left++;</span><br><span class="line">                    <span class="keyword">while</span>(left &lt; right &amp;&amp; nums[left] == nums[left<span class="number">-1</span>]) left++;</span><br><span class="line">                &#125; </span><br><span class="line">                <span class="keyword">else</span>&#123;</span><br><span class="line">                    result.<span class="built_in">push_back</span>(vector&lt;<span class="keyword">int</span>&gt;&#123;nums[i], nums[left], nums[right]&#125;);</span><br><span class="line">                    <span class="keyword">while</span>(left &lt; right &amp;&amp; nums[right] == nums[right - <span class="number">1</span>]) right--;</span><br><span class="line">                    <span class="keyword">while</span>(left &lt; right &amp;&amp; nums[left] == nums[left+<span class="number">1</span>]) left++;</span><br><span class="line">                    right--;</span><br><span class="line">                    left++;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;     </span><br><span class="line">            </span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">threeSum</span>(<span class="params">self, nums: <span class="type">List</span>[<span class="built_in">int</span>]</span>) -&gt; <span class="type">List</span>[<span class="type">List</span>[<span class="built_in">int</span>]]:</span></span><br><span class="line">        n = <span class="built_in">len</span>(nums)</span><br><span class="line">        ans = <span class="built_in">list</span>()</span><br><span class="line">        nums.sort()</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(n):</span><br><span class="line">            left = i + <span class="number">1</span></span><br><span class="line">            right = n - <span class="number">1</span></span><br><span class="line">            <span class="keyword">if</span> nums[i] &gt; <span class="number">0</span>:</span><br><span class="line">                <span class="keyword">break</span></span><br><span class="line">            <span class="keyword">if</span> i &gt; <span class="number">0</span> <span class="keyword">and</span> nums[i] == nums[i-<span class="number">1</span>]:</span><br><span class="line">                <span class="keyword">continue</span></span><br><span class="line">            <span class="keyword">while</span> left &lt; right:</span><br><span class="line">                total = nums[i] + nums[left] + nums[right]</span><br><span class="line">                <span class="keyword">if</span> total &gt; <span class="number">0</span>:</span><br><span class="line">                    right -= <span class="number">1</span></span><br><span class="line">                    <span class="keyword">while</span> left &lt; right <span class="keyword">and</span> nums[right] == nums[right + <span class="number">1</span>]: right -= <span class="number">1</span></span><br><span class="line">                <span class="keyword">elif</span> total &lt; <span class="number">0</span>:</span><br><span class="line">                    left += <span class="number">1</span></span><br><span class="line">                    <span class="keyword">while</span> left &lt; right <span class="keyword">and</span> nums[left] == nums[left - <span class="number">1</span>]: left += <span class="number">1</span></span><br><span class="line">                <span class="keyword">else</span>:</span><br><span class="line">                    ans.append([nums[i], nums[left], nums[right]])</span><br><span class="line">                    <span class="keyword">while</span> left &lt; right <span class="keyword">and</span> nums[left] == nums[left + <span class="number">1</span>]: left += <span class="number">1</span></span><br><span class="line">                    <span class="keyword">while</span> left &lt; right <span class="keyword">and</span> nums[right] == nums[right - <span class="number">1</span>]: right -= <span class="number">1</span></span><br><span class="line">                    left += <span class="number">1</span></span><br><span class="line">                    right -= <span class="number">1</span> </span><br><span class="line">        <span class="keyword">return</span> ans</span><br></pre></td></tr></table></figure>
-
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/04/01/pwn/%E6%A0%88%E6%BA%A2%E5%87%BA%E6%94%BB%E5%87%BB/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/04/01/pwn/%E6%A0%88%E6%BA%A2%E5%87%BA%E6%94%BB%E5%87%BB/" class="post-title-link" itemprop="url">栈溢出攻击以及基本ROP</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2022-04-01 00:00:00" itemprop="dateCreated datePublished" datetime="2022-04-01T00:00:00+08:00">2022-04-01</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-04-11 19:50:46" itemprop="dateModified" datetime="2022-04-11T19:50:46+08:00">2022-04-11</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/pwn/" itemprop="url" rel="index"><span itemprop="name">pwn</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>7.7k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>7 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="栈溢出攻击基础知识"><a href="#栈溢出攻击基础知识" class="headerlink" title="栈溢出攻击基础知识"></a>栈溢出攻击基础知识</h2><p>​        栈溢出指的是程序向栈中某个变量中写入的字节数超过了这个变量本身所申请的字节数，因而导致与其相邻的栈中的变量的值被改变。关于栈溢出攻击，可以看一下下面的图。  </p>
-<p>​        缓冲区可以理解为一段可读写的内存区域。代码段存放的是程序的机器码和只读数据。数据段存储的是静态数据和用户的全局变量。堆存储程序运行时分配的变量，大小不固定，由内存地址低向高增长。栈存放函数调用时的临时信息结构，由内存地址高向低增长。入栈（PUSH）时，栈顶变小。出栈（POP）时，栈顶变大。</p>
-<p>​        除了代码段和数据区域，其他的内存区域都能作为缓冲区，因此缓冲区溢出的位置可能在数据段、也可能在堆栈段。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401142938542.png" alt="image-20220401142938542"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401143120042.png" alt="image-20220401143120042"></p>
-<h3 id="linux安全机制"><a href="#linux安全机制" class="headerlink" title="linux安全机制"></a>linux安全机制</h3><ul>
-<li>canary(GS)：在栈靠近栈底某个位置设置初值，当函数结束时会检查这个栈上的值是否和存进去的值一致，防止栈溢出的一种保护</li>
-<li>relro：主要用来保护重定位表段对应数据区域，默认可写。分为两种，Partial RELRO：got表不可写，got.plt可写。Full RELRO：got表，got.plt不可写</li>
-<li>PIE(ALSR)：程序开启了PIE保护的话，在每次加载程序时都改变加载的基地址，不会影响指令间的相对地址</li>
-<li>NX(DEP)：数据执行保护，指不允许数据页(默认的堆页、各种堆栈页以及内存池页)执行代码</li>
-</ul>
-<h2 id="基本ROP"><a href="#基本ROP" class="headerlink" title="基本ROP"></a>基本ROP</h2><p>​        直接向栈或者堆上直接注入代码的方式已经难以发挥效果，提出的主要的绕过保护的方法就是ROP（面向返回的编程），主要思想是在<strong>栈缓冲区溢出的基础上，利用程序中已有的小片段 (gadgets) 来改变某些寄存器或者变量的值，从而控制程序的执行流程。</strong>所谓 gadgets 就是以 ret 结尾的指令序列，通过这些指令序列，我们可以修改某些地址的内容，方便控制程序的执行流程。</p>
-<p>利用条件如下：</p>
-<pre><code>        * 程序存在溢出，并且可以控制返回地址。
-        * 可以找到满足条件的gadgets以及其地址。
-</code></pre>
-<h3 id="ret2text"><a href="#ret2text" class="headerlink" title="ret2text"></a>ret2text</h3><p>ret2text 即控制程序执行程序本身已有的的代码 (.text)。我们控制执行程序已有的代码的时候也可以控制程序执行好几段不相邻的程序已有的代码 (也就是 gadgets)。</p>
-<p>1.先查看一下该elf文件，可以看到是32位elf文件见，并且是动态连接的。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401155738902.png" alt="image-20220401155738902"></p>
-<p>查看一下程序的保护机制，可以看到是32位的程序且仅仅开启了栈不可执行保护NX</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401202249910.png" alt="image-20220401202249910"></p>
-<h4 id="IDA分析"><a href="#IDA分析" class="headerlink" title="IDA分析"></a>IDA分析</h4><p>IDA看一下，可以看到主函数使用了<code>gets</code>函数，显然这个是可以利用的栈溢出漏洞。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401165554355.png" alt="image-20220401165554355"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401203317416.png" alt="image-20220401203317416"></p>
-<p>查看字符串，双击进去看到是<code>secure</code>函数调用，这也就是gadgets，即反弹shell地址：0x0804863A</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401165837291.png" alt="image-20220401165837291"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401174052664.png" alt="image-20220401174052664"></p>
-<h4 id="构造payload"><a href="#构造payload" class="headerlink" title="构造payload"></a>构造payload</h4><p>​        构造之前，需要计算能够控制得内存起始地址距离main()函数返回地址得字节数。在<code>gets</code>函数那个图中的call前面两行，说明了参数的地址是esp+0x1c，通过动态调试，我们也可以发现这一点。</p>
-<p>​        在0x080486AE处下断点调试</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402094553917.png" alt="image-20220402094553917"></p>
-<p>​        ESP为<code>ffffd130</code>，其中存放的内容为<code>ffffd14c</code>，即输入的内容s的地址为<code>ESP+1c= ffffd14c</code>，而EBP为<code>ffffd1b8</code>，则s到EBP的偏移为<code>|ffffd1b8- ffffd14c|=6c</code>，所以s相对与返回地址的偏移为0x6c+4=0x70。</p>
-<h4 id="payload"><a href="#payload" class="headerlink" title="payload"></a>payload</h4><p>​        我们的目标就是控制这个ret，由前面分析知，可以利用.text代码段区域中的<code>system(“/bin/sh”)</code>代码，该代码段即为可被ROP利用的Gadget，地址为<code>0x0804863a</code>，将其覆盖到函数返回地址处，前面再padding 70h个字节码即可。（图中应该是sendline，懒得重新截图了）</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402101815404.png" alt="image-20220402101815404"></p>
-<p>成功getshell：</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402103300478.png" alt="image-20220402103300478"></p>
-<h3 id="ret2shellcode"><a href="#ret2shellcode" class="headerlink" title="ret2shellcode"></a>ret2shellcode</h3><p>​        ret2shellcode也就是控制程序执行shellcode(<strong>修改函数返回地址，让其指向溢出数据中的一段指令</strong>)。要想执行 shellcode，需要shellcode所在的区域具有可执行权限。该方法关键点：</p>
-<ul>
-<li>溢出点附近有可执行权限，以便让填充的shellcode能够被执行；</li>
-<li>有类似于jmp esp这样的gadget，使得程序能够跳转到shellcode中。</li>
-</ul>
-<p>​        前提条件：该技术的前提是需要操作系统关闭内存布局随机化以及需要程序调用栈有可执行权限。</p>
-<h4 id="静态分析"><a href="#静态分析" class="headerlink" title="静态分析"></a>静态分析</h4><p>​    可以看到是动态链接的32位程序，没有开启任何保护，并且具有可读、可写、可执行段。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402193552695.png" alt="image-20220402193552695"></p>
-<p>​        IDA打开查看，依然是基本的栈溢出漏洞，不过这次将对应字符串复制到了buf2处</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402193819764.png" alt="image-20220402193819764"></p>
-<p>​        buf2处于bss段（这次查看字符串，并没有之前所利用的system(“/bin/sh”)了）</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402193948368.png" alt="image-20220402193948368"></p>
-<p>​        先输入命令<code>b main</code>和<code>r</code>，然后输入vmmap查看映射状况，可以看到第三行，buf2所在的bss段具有可读可写可执行权限</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402194512179.png" alt="image-20220402194512179"></p>
-<h4 id="调试分析"><a href="#调试分析" class="headerlink" title="调试分析"></a>调试分析</h4><p>​        可以和ret2text一样利用gdb下断点来计算偏移地址，也可以用GDB pattern字符串计算偏移量，先用<code>pattern_create</code>创建计算溢出偏移量的字符串，在输入的时候输入就可以了。（<strong>EIP指向CPU即将要执行的指令，SIGSEGV是当一个进程执行了一个无效的内存引用，或发生段错误时发送给它的信号</strong>）</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402200053543.png" alt="image-20220402200053543"></p>
-<p>​        <code>pattern_offset</code>计算出偏移量。也就是0x70</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402200631556.png" alt="image-20220402200631556"></p>
-<h4 id="payload-1"><a href="#payload-1" class="headerlink" title="payload"></a>payload</h4><p>​        <code>asm()</code>接收一个字符串作为参数，得到汇编码的机器代码。shellcraft模块是shellcode的模块，包含一些生成shellcode的函数。其中的子模块声明架构，比如<code>shellcraft.arm</code> 是ARM架构的，<code>shellcraft.amd64</code>是AMD64架构，<code>shellcraft.i386</code>是Intel 80386架构的，以及有一个<code>shellcraft.common</code>是所有架构通用的。</p>
-<p>​        而这里的<code>shellcraft.sh()</code>则是执行/bin/sh的shellcode了。<code>shellcode.ljust()</code>这段代码就是要讲shellcode不足112长度的地方用a来填充。<strong>注意红框部分，圈起来的地方需要<code>b&#39;A&#39;</code>，不然会报错。</strong><br><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402202232199.png" alt="image-20220402202232199"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220402202212510.png" alt="image-20220402202212510"></p>
-<h3 id="ret2syscall"><a href="#ret2syscall" class="headerlink" title="ret2syscall"></a>ret2syscall</h3><p>​        ret2syscall即控制程序执行系统调用，获取shell。需要满足两个条件：</p>
-<pre><code>    程序中有分别用于控制eax，ebx，ecx，edx的gadgets；
-    程序中有int 0x80指令，用于触发系统调用。
-</code></pre>
-<p>​        一般利用如下系统调用来获取shell：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">execve(<span class="string">&quot;/bin/sh&quot;</span>,NULL,NULL)</span><br></pre></td></tr></table></figure>
-
-<p>​        当遇到32位程序时，需要使得：</p>
-<ul>
-<li>系统调用号，即 eax 应该为 0xb（0xb 为 execve 对应的系统调用号）</li>
-<li>第一个参数，即 ebx 应该指向 /bin/sh 的地址，其实执行 sh 的地址也可以。</li>
-<li>第二个参数，即 ecx 应该为 0</li>
-<li>第三个参数，即 edx 应该为 0</li>
-</ul>
-<h4 id="Linux系统调用的实现"><a href="#Linux系统调用的实现" class="headerlink" title="Linux系统调用的实现"></a>Linux系统调用的实现</h4><p>Linux 的系统调用通过 int 80h 实现，用系统调用号来区分入口函数。在 Linux 中，<code>0x80</code>中断处理程序是内核，用于其他程序对内核进行系统调用。操作系统实现系统调用的基本过程是：</p>
-<ul>
-<li>应用程序调用库函数（API）；</li>
-<li>API 将系统调用号存入 EAX，然后通过中断调用使系统进入内核态；</li>
-<li>内核中的中断处理函数根据系统调用号，调用对应的内核函数（系统调用）；</li>
-<li>系统调用完成相应功能，将返回值存入 EAX，返回到中断处理函数；</li>
-<li>中断处理函数返回到 API 中；</li>
-<li>API 将 EAX 返回给应用程序。</li>
-</ul>
-<p>应用程序的调用过程是：</p>
-<ul>
-<li>把系统调用的编号存入 EAX；</li>
-<li>把函数参数存入其它通用寄存器；</li>
-<li>触发 0x80 号中断（int 0x80）。</li>
-</ul>
-<h4 id="静态分析-1"><a href="#静态分析-1" class="headerlink" title="静态分析"></a>静态分析</h4><p>​        发现文件是32位的静态链接文件，并且只打开了NX保护</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404125137686.png" alt="image-20220404125137686"></p>
-<p>​        IDA打开看到，<code>gets</code>函数存在栈溢出风险，</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404125637358.png" alt="image-20220404125637358"></p>
-<p>​        如何控制寄存器的值呢？这里就需要使用 gadgets。比如说，现在栈顶是 10，那么如果此时执行了 pop eax，那么现在 eax 的值就为 10。但是我们并不能期待有一段连续的代码可以同时控制对应的寄存器，所以我们需要一段一段控制，这也是我们在 gadgets 最后使用 ret 来再次控制程序执行流程的原因。具体寻找 gadgets 的方法，我们可以使用 ropgadgets 这个工具。</p>
-<p>​        寻找pop eax~edx+ret寄存器的指令，记下符合条件的地址分别为0x080bb196和0x0806eb90：</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404134647641.png" alt="image-20220404134647641"></p>
-<p>​        类似于之前的做法，我们可以获得 v4 相对于 ebp 的偏移为 108。所以我们需要覆盖的返回地址相对于 v4 的偏移为 112。此次，由于我们不能直接利用程序中的某一段代码或者自己填写代码来获得 shell，所以我们利用程序中的 gadgets 来获得 shell，而对应的 shell 获取则是利用系统调用。</p>
-<p>​        我们还需要获得 /bin/sh 字符串对应的地址，还有 int 0x80 的地址。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404142901925.png" alt="image-20220404142901925"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404142942346.png" alt="image-20220404142942346"></p>
-<h4 id="payload-2"><a href="#payload-2" class="headerlink" title="payload"></a>payload</h4><p>payload构造如下，要在将返回地址指向int 0x80,在返回之前要将四个寄存器赋值完成，所以最终payload构成是</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">payload = padding+pop_eax+”0xb”+pop_edx_ecx_ebx+0+0+”/bin/sh”+int 0x80</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404141904456.png" alt="image-20220404141904456"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220404142841848.png" alt="image-20220404142841848"></p>
-<h3 id="ret2libc"><a href="#ret2libc" class="headerlink" title="ret2libc"></a>ret2libc</h3><p>​        libc是Standard C library的简称，它是符合ANSI C标准的一个函数库。libc库提供C语言中所使用的宏，类型定义，字符串操作函数，数学计算函数以及输入输出函数等。简而言之，每个使用了标准库函数的Linux程序，都会加载libc，以便能够真正调用这些库函数。在Ubuntu中，libc的实现是libc.so.6（32位）或libc-2.xx.so（64位），不同的Ubuntu系统，xx是不一样的，例如Ubuntu 16.04的64位libc实现是libc-2.23.so。</p>
-<p>​        这种攻击方式主要是针对 <strong>动态链接(Dynamic linking)</strong> 编译的程序，因为正常情况下是无法在程序中找到像 <strong>system() 、execve()</strong> 这种系统级函数(<u>如果程序中直接包含了这种函数就可以直接控制返回地址指向他们，而不用通过这种麻烦的方式</u>,，比如<strong>ret2text</strong>)。因为程序是动态链接生成的，所以在程序运行时会调用 <strong>libc.so (程序被装载时，动态链接器会将程序所有所需的动态链接库加载至进程空间，libc.so 就是其中最基本的一个)<strong>，</strong>libc.so</strong> 是 linux 下 C 语言库中的运行库<strong>glibc</strong> 的动态链接版，并且 <strong>libc</strong>.<strong>so</strong> 中包含了大量的可以利用的函数，包括 <strong>system() 、execve()</strong> 等系统级函数，我们可以通过找到这些函数在内存中的地址覆盖掉返回地址来获得当前进程的控制权。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405155936033.png" alt="image-20220405155936033"></p>
-<p>​        就像Windows里面对DLL的调用一样，如果一个Linux程序想要隐式调用libc库函数，就需要在程序的“导入表”中填写该函数的相关信息，包括函数名。当然，Linux是没有“导入表”这个概念的，取而代之的是.plt表和.got表，对比Windows，它们就像INT表和IAT表。前者是编译后就已经写好的，里面并不包含真正的目标函数地址；后者是在运行时确定的，包含真正的目标函数地址。</p>
-<p>​        <strong>为什么要多用一个PLT表？</strong>原因是为了程序的运行效率，GOT表的初始值都指向PLT对应的某个片段中，而对应的PLT片段中包含能够解析函数地址的函数。（提高效率的原因就在这里）</p>
-<p>​        外部函数的内存地址存储在 GOT 而非 PLT 表内，PLT 存储的入口点又指向 GOT 的对应条目，那么程序为什么选择 PLT 而非 GOT 作为调用的入口点呢？GOT 表的初始值都指向 PLT 表对应条目中的某个片段，这个片段的作用是调用一个<strong>函数地址解析函数</strong>。当程序需要调用某个外部函数时，首先到 PLT 表内寻找对应的入口点，跳转到 GOT 表中。如果这是第一次调用这个函数，程序会通过 GOT 表再次跳转回 PLT 表，运行地址解析程序来确定函数的确切地址，并用其覆盖掉 GOT 表的初始值，之后再执行函数调用。当再次调用这个函数时，程序仍然首先通过 PLT 表跳转到 GOT 表，此时 GOT 表已经存有获取函数的内存地址，所以会直接跳转到函数所在地址执行函数。整个过程如下面两张图所示。</p>
-<p>​        <img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406155849976.png" alt="image-20220406155849976"></p>
-<p>再次调用的时候如下：</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406155917813.png" alt="image-20220406155917813"></p>
-<p>​        ret2libc，即控制执行 libc 中的函数，通常是返回至某个函数的 plt 处或者函数的具体位置 (即函数对应的 got 表项的内容)。一般情况下，我们会选择执行 system(“/bin/sh”)，故而此时我们需要知道 system 函数的地址。</p>
-<h4 id="静态分析-2"><a href="#静态分析-2" class="headerlink" title="静态分析"></a>静态分析</h4><p>​        首先看一下程序基本情况，发现是动态链接的并且只开启了NX保护</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405151835554.png" alt="image-20220405151835554"></p>
-<p>​        IDA查看</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405152932134.png" alt="image-20220405152932134"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405153116989.png" alt="image-20220405153116989"></p>
-<p>​        可知“/bin/sh”字符串所在地址为0x08048720。</p>
-<p>​        因为要从libc中寻找利用函数，则可以在ida直接查看plt中是否有<code>system()</code>函数，发现是存在有的且地址为<code>0x08048460</code>,其内容只是一条jmp指令，跳转到.got表的地址中去。</p>
-<p>​        而.got表又是程序运行起来之后动态填充的，因此，我们在进行pwn时，只需返回到.plt表中的对应函数地址处，就能够让系统“帮忙”调用目标函数了。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405153323375.png" alt="image-20220405153323375"></p>
-<p>​        至于用户输入的变量v4距函数返回地址的偏移地址的计算如之前所示，结果是一样的为0x70。</p>
-<h4 id="payload-3"><a href="#payload-3" class="headerlink" title="payload"></a>payload</h4><p>​        这里我们需要注意函数调用栈的结构，如果是正常调用 system 函数，我们调用的时候会有一个对应的返回地址，这里以’bbbb’ 作为虚假的地址，其后参数对应的参数内容。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405163142087.png" alt="image-20220405163142087"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220405163611287.png" alt="image-20220405163611287"></p>
-<h4 id="只有system-无‘bin-sh’"><a href="#只有system-无‘bin-sh’" class="headerlink" title="只有system(),无‘bin/sh’"></a>只有system(),无‘bin/sh’</h4><p>​        此次需要我们自己来读取字符串，所以我们需要两个 gadgets，第一个控制程序读取字符串，第二个控制程序执行 system(“/bin/sh”)。</p>
-<p>​        可以在plt中看到有gets()函数，即可以将该gets()函数地址用来踩掉原本程序函数的返回地址，然后通过输入的方式将“/bin/sh”输入进去。换句话说，整个过程分成了两部分，第一部分是将“/bin/sh”读入到内存中；第二部分是执行system()获取shell。</p>
-<p>​        可知get()函数地址为08048460。查看gets()函数，其需要一个可读可写的指针参数，且会返回值</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406104719572.png" alt="image-20220406104719572"></p>
-<p>​        寻找一块可读可写的buffer区，通常会寻找.bss段，使用IDA查看可看到存在buf2[100]数组，并且调用命令<code>vmmap</code>可以看到该.bss段可读可写。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406104605394.png" alt="image-20220406104605394"></p>
-<p>​        因为在<code>gets()</code>函数完成后需要调用<code>system()</code>函数需要保持堆栈平衡，所以在调用完gets()函数后提升堆栈，这就需要<code>add esp, 4</code>这样的指令但是程序中并没有这样的指令。更换思路，通过使用<code>pop xxx</code>指令也可以完成同样的功能，在程序中找到了<code>pop ebx，ret</code>指令。通过ROPgadget工具查看，发现存在一条符合条件的指令，地址为<code>0x0804841d</code></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406104929107.png" alt="image-20220406104929107"></p>
-<p>payload构造如下</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406112911760.png" alt="image-20220406112911760"></p>
-<h4 id="无system-无‘bin-sh’"><a href="#无system-无‘bin-sh’" class="headerlink" title="无system(),无‘bin/sh’"></a>无system(),无‘bin/sh’</h4><p>​        通常情况下，并没有这么好的条件让我们能够直接调用system。我们需要想办法通过已知函数地址，去推测system函数的地址。</p>
-<p>​        由于一个ELF文件在生成完成后，它的不同函数之间的偏移地址是不会改变的，或者说，<strong>每一个函数与文件起始地址之间的偏移是不会改变的</strong>。所以我们可以通过<strong>泄露libc中某个被调用过的函数的地址来获取libc版本，获取libc中各个偏移地址值</strong>，然后通过某个函数的真实地址计算出system()和/bin/bash的真实地址。</p>
-<p>​        对于system()函数，其属于libc，在libc.so动态链接库中的函数之间相对偏移是固定的。我们由泄露的某个函数的GOT表地址可以计算出偏移地址<strong>（A真实地址-A的偏移地址 = B真实地址-B的偏移地址 = 基地址）</strong>，从而可以得到system()函数的真实地址（当然也可以直接调用pwntools的libc.address得到libc的真实地址，然后再直接查找即可找到真实的system()函数地址）。        </p>
-<h5 id="利用过程"><a href="#利用过程" class="headerlink" title="利用过程"></a>利用过程</h5><p>​        红色箭头为第一次溢出调用，通过gets()栈溢出至函数返回地址处将其覆盖为puts的plt地址，将puts的GOT表地址泄露输出出来，再返回到_start()函数重新执行程序；蓝色箭头为程序第二次执行时的溢出调用，重新通过gets()输入内容栈溢出至函数返回地址处，覆盖该地址为libc中找到的system()地址（libc地址由泄露的puts函数地址计算得出），从而getshell：</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406140129118.png" alt="image-20220406140129118"></p>
-<ul>
-<li>将puts()的plt地址覆盖到函数返回地址处，通过puts()泄露某个已执行过的函数的GOT地址，并且返回地址设置为_start()或main()，以便于重新执行一遍程序</li>
-<li>通过recv(4)接收puts()输出泄露的某个已执行过的函数的GOT地址，再以此来计算libc中地址与真实地址的偏移量；或者通过泄露的某个已执行过的函数的GOT地址，直接使用pwntools的<code>libc.address=func_got-libc.symbols[‘func’]</code>的形式直接获取libc的真实地址，从而直接通过<code>system_addr=libc.symbols[‘system’]</code>的方式直接获取该函数真实地址</li>
-<li>程序再次执行时填充padding，在函数返回地址处覆盖为libc中system()函数的真实地址，其中参数为libc中”/bin/sh”字符串的真实地址。</li>
-</ul>
-<p>​        上面提到的泄漏方式，则是读取got表中的值。而反推libc版本的工作，已经有大佬通过编写<a target="_blank" rel="noopener" href="https://github.com/lieanu/LibcSearcher">LibcSearcher</a>帮忙完成了。</p>
-<p>​        整个利用过程总体而言分为三步：</p>
-<p>​            （1）  第一次ROP，打印出某个已知函数got表的值；</p>
-<p>​            （2）  读取打印的这个值，并解析成地址，然后利用这个地址通过LibcSearcher去反推libc版本，进而利用已知偏移获取到libc基址；</p>
-<p>​            （3）  解析ELF文件，获取目标函数（包括system）的偏移，加上基址就是目标函数实际地址，将获取到的地址填入溢出点完成exploit。</p>
-<h4 id="payload-4"><a href="#payload-4" class="headerlink" title="payload"></a>payload</h4><p>​        在第一次栈溢出puts()的plt地址覆盖函数返回地址时，puts()的返回地址可以设置为_start()或main()函数地址。</p>
-<p><strong>_start()和main()的区别</strong></p>
-<p>​        简单地说，main()函数是用户代码的入口，是对用户而言的；而<code>_start()</code>函数是系统代码的入口，是程序真正的入口.我们可以看下本题的<code>_start()</code>函数内容，其包含<code>main()</code>和<code>__libc_start_main()</code>函数的调用，也就是说，它才是程序真正的入口：</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406142427454.png" alt="image-20220406142427454"></p>
-<p><strong>返回地址为_start()函数</strong></p>
-<p>这里的示例只展示了两个可利用的函数puts()和__libc_start_main()。</p>
-<p><strong>泄露puts()函数地址</strong></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406152131967.png" alt="image-20220406152131967"></p>
-<p><strong>泄露__libc_start_main 地址</strong></p>
-<ul>
-<li>泄露 __libc_start_main 地址（<strong>这个地址就是libc文件的基址</strong>）</li>
-<li>获取 libc 版本</li>
-<li>获取 system 地址与 /bin/sh 的地址</li>
-<li>再次执行源程序</li>
-<li>触发栈溢出执行 system(‘/bin/sh’)</li>
-</ul>
-<p>注意返回地址为start()</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406155128449.png" alt="image-20220406155128449"></p>
-<p>看了别人的博客发现，当将先将_start()换成main()，payload2的B字符的偏移量不变，运行脚本会报错，添加GDB调试交互发现溢出多了8个B</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406155326463.png" alt="image-20220406155326463"></p>
-<h3 id="tips"><a href="#tips" class="headerlink" title="tips"></a>tips</h3><p>为了更好理解，在网上找到了这个图，栈溢出利用的时候按照1234的顺序来写payload，先构造main()函数，造成溢出，然后构造puts()函数。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220406105537868.png" alt="image-20220406105537868"></p>
-<p>参考链接：<a target="_blank" rel="noopener" href="https://www.mi1k7ea.com/2019/03/03/%E6%A0%88%E6%BA%A2%E5%87%BA%E4%B9%8Bret2shellcode/">栈溢出之ret系列</a>、<a target="_blank" rel="noopener" href="https://ctf-wiki.org/pwn/linux/user-mode/stackoverflow/x86/basic-rop/">CTF-Wiki</a></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/04/01/pwn/%E5%A0%86%E6%BA%A2%E5%87%BA%E6%94%BB%E5%87%BB/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/04/01/pwn/%E5%A0%86%E6%BA%A2%E5%87%BA%E6%94%BB%E5%87%BB/" class="post-title-link" itemprop="url">堆溢出攻击</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2022-04-01 00:00:00" itemprop="dateCreated datePublished" datetime="2022-04-01T00:00:00+08:00">2022-04-01</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-04-24 10:45:16" itemprop="dateModified" datetime="2022-04-24T10:45:16+08:00">2022-04-24</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/pwn/" itemprop="url" rel="index"><span itemprop="name">pwn</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>7.3k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>7 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>​        堆溢出是指程序向某个堆块中写入的字节数超过了堆块本身可使用的字节数，因而导致了数据溢出，并覆盖到<strong>物理相邻的高地址</strong>的下一个堆块。但是其与栈溢出所不同的是，堆上并不存在返回地址等可以让攻击者直接控制执行流程的数据，因此我们一般无法直接通过堆溢出来控制 EIP 。</p>
-<h3 id="Linux内存布局"><a href="#Linux内存布局" class="headerlink" title="Linux内存布局"></a>Linux内存布局</h3><p>先提一下windows的内存布局</p>
-<img src="C:\Users\16434\AppData\Roaming\Typora\typora-user-images\image-20220414195634518.png" alt="image-20220414195634518" style="zoom:80%;" />
-
-<p>linux 64位下内存布局如下，这种内存布局方式沿用的32位模式下内存的经典布局，但是栈和mmap的映射区域不再是从一个固定的地方开始，每次启动时的值都不一样。这样一来，使得使用缓冲区溢出攻击变得更加困难。（32位中，程序能够访问的最后地址是0xbfffffff(3G)的位置，3G以上的位置是给内核使用的，应用程序不能直接访问。）</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414195748633.png" alt="image-20220414195748633"></p>
-<h4 id="heap操作的相关函数"><a href="#heap操作的相关函数" class="headerlink" title="heap操作的相关函数"></a>heap操作的相关函数</h4><p>​        <code>brk()</code>是系统调用、<code>sbrk()</code>是库函数。c语言的动态内存分配基本函数是<code>malloc()</code>，在linux上的实现是：<code>malloc()</code>函数调用库函数<code>sbrk()</code>，<code>sbrk()</code>的实质是调用<code>brk()</code>函数。<code>brk()</code>是一个简单的系统调用，只是简单的改变<code>mm_struct</code>结构体的成员变量<code>brk</code>的值。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414201147203.png" alt="image-20220414201147203"></p>
-<h4 id="Mmap映射区域操作的相关函数"><a href="#Mmap映射区域操作的相关函数" class="headerlink" title="Mmap映射区域操作的相关函数"></a>Mmap映射区域操作的相关函数</h4><p>​        <code>malloc</code> 会使用<code>mmap</code>来创建独立的匿名映射段。匿名映射的目的主要是可以申请以 0 填充的内存，并且这块内存仅被调用进程所使用。<code>mmap()</code>函数将一个文件或者其他对象映射进内存。文件被映射到多个页上，如果文件大小不是所有页大小之和，最后一个页不被使用的空间将会清零。<code>munmap()</code>执行相反的操作，删除特定地址区域的对象映射。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> * <span class="title">mmap</span><span class="params">(<span class="keyword">void</span> * start,<span class="keyword">size_t</span> length,<span class="keyword">int</span> prot,<span class="keyword">int</span> flags,<span class="keyword">int</span> fd,<span class="keyword">off_t</span> offset)</span></span></span><br></pre></td></tr></table></figure>
-
-<p>​            start — 映射区的开始地址。</p>
-<p>​            length — 映射区的长度。</p>
-<p>​            prot — 期望的内存保护标志。</p>
-<p>​            flags — 指定映射对象的类型，映射选项和映射页是否可以共享。</p>
-<p>​            fd — 有效的文件描述符。</p>
-<p>​            offset — 被映射对象内容的起点。</p>
-<p>​        <code>mmap()</code>系统调用使得进程之间通过映射同一个普通文件实现共享内存。但是并不是完全为了用于共享内存而设计的。它本身提供了不同于一般对普通文件的访问方式，进程可以像读写内存一样对普通文件的操作。</p>
-<p>​        普通文件被映射到进程地址空间后，<strong>进程可以像访问普通内存一样对文件进行访问</strong>，不必再调用read()，write()等操作。mmap并不分配空间, 只是将文件映射到调用进程的地址空间里（但是会占掉你的 virutal memory）, 然后你就可以用memcpy等操作写文件, 而不用write()了。写完后，内存中的内容并不会立即更新到文件中，而是有一段时间的延迟，你可以调用<code>msync()</code>来显式同步一下, 这样你所写的内容就能立即保存到文件里了。不过通过<code>mmap</code>来写文件这种方式没办法增加文件的长度, 因为要映射的长度在调用<code>mmap()</code>的时候就决定了。</p>
-<h3 id="堆基础知识"><a href="#堆基础知识" class="headerlink" title="堆基础知识"></a>堆基础知识</h3><p>​        先补充一下堆的基础知识，如下图。堆的结构是由“堆表”以及“堆块”构成这，其中“堆表”主要作用是用来索引堆块的位置。其中，堆表主要是有两种：空闲双向链表（Freelist）,快速单向链表（Lookaside）（注意：堆表仅仅是用来索引空闲态的堆块，即未被使用的堆块）“堆块”就是用来提供程序员申请堆空间的。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401143714225.png" alt="image-20220401143714225"></p>
-<p>​        未使用下的堆块与使用状态下的堆块差别在于，堆首部分添加了8字节的指针对，该指针就是用来链路堆表当中的。</p>
-<p>​        堆表中需要关注的是空表索引区，由128项指针数组组成，这对指针用来将空闲堆组织成双向链表。根据堆块大小的不同，存放的指针数组也不同。每项链接的堆块大小均比其前一项链接的堆块增大8字节。<strong>值得注意的是free[0]链接的是大于等于1024字节的堆块。</strong></p>
-<p>​    下图是空闲双向链表，当释放相邻内存堆块后会发生合并现象，该点区别于快速单向链表，快速单向链表每项只有四个节点</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401144733642.png" alt="image-20220401144733642"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220401145728125.png" alt="image-20220401145728125"></p>
-<p>​        linux早期的堆分配，为了安全性，一个线程使用堆时，会进行加锁。然而，与此同时，加锁会导致其它线程无法使用堆，降低了内存分配和回收的高效性。同时，如果在多线程使用时，没能正确控制，也可能影响内存分配和回收的正确性。后来在此基础上进行改进使其可以支持多线程，这个堆分配器就是 ptmalloc 。目前 Linux 标准发行版中使用的堆分配器是 glibc 中的堆分配器：ptmalloc2。ptmalloc2 主要是通过 malloc/free 函数来分配和释放内存块。</p>
-<p>​        需要注意的是，在内存分配与使用的过程中，Linux 有这样的一个基本内存管理思想-<strong>-内存延迟分配，只有当真正访问一个地址的时候，系统才会建立虚拟页面与物理页面的映射关系</strong>。 所以虽然操作系统已经给程序分配了很大的一块内存，但是这块内存其实只是虚拟内存。只有当用户使用到相应的内存时，系统才会真正分配物理页面给用户使用。</p>
-<h3 id="内存分配与回收"><a href="#内存分配与回收" class="headerlink" title="内存分配与回收"></a>内存分配与回收</h3><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414205604264.png" alt="image-20220414205604264" style="zoom:67%;" />
-
-<p>先说上面面三个概念，三者概念的解释如下：</p>
-<ul>
-<li>arena：通过sbrk或mmap系统调用为线程分配的堆区，按线程的类型可以分为2类：<ul>
-<li>main arena：主线程建立的arena；</li>
-<li>thread arena：子线程建立的arena；</li>
-</ul>
-</li>
-<li>chunk：逻辑上划分的一小块内存，根据作用不同分为4类：<ul>
-<li>Allocated chunk：即分配给用户且未释放的内存块；</li>
-<li><strong>Free chunk</strong>：即用户已经释放的内存块；</li>
-<li>Top chunk：顶块, 位于所有块之后, 保存着未分配的所有内存；</li>
-<li>Last Remainder chunk</li>
-</ul>
-</li>
-<li>bin：一个用以保存Free chunk链表的表头信息的指针数组，按所悬挂链表的类型可以分为4类:<ul>
-<li>Fast bin：chunk 的指针数组 , 每个元素是一 条单向链表的头部 , 且同一条链表中块的大小相同，主要保存大小 <strong>32 至 128 字节的块</strong>；</li>
-<li>Unsorted bin：与 Small Bins 和 Large Bins 类似是双向循环链表 , 只有一个 bin, 其中保存的块大小不定，用于收集刚刚被 free 或从大的块中分裂剩下的块；</li>
-<li>Small bin：chunk 的指针数组 , 每个元素是一条双向循环链表的头部 , 且同一条链表中块的大小相同，主要保存大小 <strong>32 至 1024 字节</strong>的块；</li>
-<li>Large bin：每个元素是一条双向循环链表的头部 , 但同一条链表中块的大小不一定相同 , 按照从大到小的顺序排列 , 每个 bin 保存一定大小范围的块。主要保存大小 <strong>1024 字节以上</strong>的块。</li>
-</ul>
-</li>
-</ul>
-<p>在这里读者仅需明白arena的等级大于bin的等级大于(free)chunk的等级即可，即A&gt;B&gt;C。</p>
-<h4 id="main-arena中的内存申请"><a href="#main-arena中的内存申请" class="headerlink" title="main arena中的内存申请"></a>main arena中的内存申请</h4><p>与 thread 不同的是，main_arena 并不在申请的 heap 中，而是一个全局变量，在 libc.so 的数据段。</p>
-<img src="C:\Users\16434\AppData\Roaming\Typora\typora-user-images\image-20220414210612718.png" alt="image-20220414210612718" style="zoom: 67%;" />
-
-<h4 id="thread-arena中的申请"><a href="#thread-arena中的申请" class="headerlink" title="thread arena中的申请"></a>thread arena中的申请</h4><img src="C:\Users\16434\AppData\Roaming\Typora\typora-user-images\image-20220414210545187.png" alt="image-20220414210545187" style="zoom: 67%;" />
-
-<h4 id="chunk"><a href="#chunk" class="headerlink" title="chunk"></a>chunk</h4><p>在程序的执行过程中，我们称由 malloc 申请的内存为 chunk 。这块内存在 ptmalloc 内部用 malloc_chunk 结构体来表示。当程序申请的 chunk 被 free 后，会被加入到相应的空闲管理列表中。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span> &#123;</span></span><br><span class="line"></span><br><span class="line">  INTERNAL_SIZE_T      prev_size;  <span class="comment">/* Size of previous chunk (if free).  */</span></span><br><span class="line">  INTERNAL_SIZE_T      size;       <span class="comment">/* Size in bytes, including overhead. */</span></span><br><span class="line"></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span>* <span class="title">fd</span>;</span>         <span class="comment">/* double links -- used only if free. */</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span>* <span class="title">bk</span>;</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">/* Only used for large blocks: pointer to next larger size.  */</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span>* <span class="title">fd_nextsize</span>;</span> <span class="comment">/* double links -- used only if free. */</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span>* <span class="title">bk_nextsize</span>;</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-<p>用户最小申请的内存大小必须是 2 * SIZE_SZ 的最小整数倍。32 位系统中，SIZE_SZ 是 4；64 位系统中，SIZE_SZ 是 8。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220415095330146.png" alt="image-20220415095330146"></p>
-<p>​        上图是在使用中的chunk 。</p>
-<p>​    &lt;1&gt;chunk指针指向chunk开始的地址；mem指针指向用户内存块开始的地址。</p>
-<p>​    &lt;2&gt; p=0时，表示前一个chunk为空闲，prev_size才有效。</p>
-<p>​    &lt;3&gt; p=1时，表示前一个chunk正在使用，prev_size无效。 p主要用于内存块的合并操作。</p>
-<p>​    &lt;4&gt; ptmalloc分配的第一个块总是将p设为1,以防止程序引用到不存在的区域。</p>
-<p>​    &lt;5&gt; M=1 为mmap映射区域分配；M=0为heap区域分配。</p>
-<p>​    &lt;6&gt; A=1 为非主分区分配；A=0 为主分区分配。</p>
-<img src="C:\Users\16434\AppData\Roaming\Typora\typora-user-images\image-20220415095927924.png" alt="image-20220415095927924" style="zoom:80%;" />
-
-<p>上图是一个空闲的chunk</p>
-<p>   &lt;1&gt; 空闲的chunk会被放置到空闲的链表bins上。当用户申请内存malloc的时候，会先去查找空闲链表bins上是否有合适的内存。</p>
-<p>​    &lt;2&gt; fp和bp分别指向前一个和后一个空闲链表上的chunk</p>
-<p>​    &lt;3&gt;fp_nextsize和bp_nextsize分别指向前一个空闲chunk和后一个空闲chunk的大小，主要用于在空闲链表上快速查找合适大小的chunk。</p>
-<p>​    &lt;4&gt;fp、bp、fp_nextsize、bp_nextsize的值都会存在原本的用户区域，这样就不需要专门为每个chunk准备单独的内存存储指针了。</p>
-<p>​        当一个 chunk 处于使用状态时，它的下一个 chunk 的 prev_size 域无效，所以下一个 chunk 的该部分也可以被当前 chunk 使用。<strong>这就是 chunk 中的空间复用。</strong></p>
-<h4 id="空闲chunk容器"><a href="#空闲chunk容器" class="headerlink" title="空闲chunk容器"></a>空闲chunk容器</h4><h5 id="bin"><a href="#bin" class="headerlink" title="bin"></a>bin</h5><p>​        用户释放掉的内存并不是马上就归还给操作系统，ptmalloc会统一管理heap和mmap映射区中的空闲的chunk，当用户进行下一次请求分配时，ptmalloc会试图从空闲的内存中挑选一块给用户，这样可以避免频繁的系统调用，降低了内存分配的开销。ptmalloc将大小相似的chunk用双向循环链表连接起来，这样的一个链表称为bin。ptmalloc中一共维护了128个bin，并使用一个数组来存储这些bin（数组实际存储的是指针）。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220415100832075.png" alt="image-20220415100832075"></p>
-<p>​        并不是所有的 chunk 被释放后就 立即被放到 bin 中。ptmalloc 为了提高分配的速度，会把一些小的的 chunk 先放到一个叫做 fast bins 的容器内。</p>
-<h3 id="分配算法概述"><a href="#分配算法概述" class="headerlink" title="分配算法概述"></a>分配算法概述</h3><img src="C:\Users\16434\AppData\Roaming\Typora\typora-user-images\image-20220415144235424.png" alt="image-20220415144235424" style="zoom: 80%;" />
-
-<p>主分配区分配顺序依次为：</p>
-<p>fast bins <strong>–&gt;</strong> small bins <strong>–&gt;</strong>  合并fast bins并把chunk加入unsorted bins，找unsorted bins </p>
-<p><strong>–&gt;</strong> 把unsorted bins加入到large bins，找large bins <strong>–&gt;</strong>  top chunk <strong>–&gt;</strong> 增加heap大小或mmap分配</p>
-<h3 id="回收算法概述"><a href="#回收算法概述" class="headerlink" title="回收算法概述"></a>回收算法概述</h3><img src="C:\Users\16434\AppData\Roaming\Typora\typora-user-images\image-20220415104726171.png" alt="image-20220415104726171" style="zoom: 67%;" />
-
-<p>free()函数接受一个指向分配区域的指针作为参数，释放指针指向需要释放的chunk。</p>
-<p>（1）free()函数首先需要获取分配区的锁来保证线程安全。</p>
-<p>（2）判断传入的指针是否为0，如果为0，则什么都不做，直接return。否则转下一步。</p>
-<p>（3）判断所需释放的chunk是否为mmaped chunk，如果是，则调用munmap()释放解除空间映射，该空间不再有效。</p>
-<p>（4）判断chunk的大小和所处的位置，若chunk_size&lt;= max_fast，并且chunk并不处于heap的顶部，也就是说不与top chunk相邻，则转到下一步，否则转到第6步。</p>
-<p>（5）将chunk放到fast bins中，chunk放入到fast bins中时，并不修改该chunk使用状态位P,也不与相邻的chunk进行合并。只是放进去。这一步做完之后释放就结束了，程序从free()函数中返回。</p>
-<p>（6）判断前一个chunk是否正在使用中，如果前一个块也是空闲块，则合并。并转下一步。</p>
-<p>（7）判断当前释放的chunk的下一个块是否为top chunk，如果是，则转第9步，否则转下一步。</p>
-<p>（8）判断下一个chunk是否处于使用中，如果下一个chunk也是空闲的，则合并，并将合并后的chunk放到unsorted bin中。注意，这里在合并过程中，要更新chunk的大小，以反映合并后的chunk的大小。并转到第10步。</p>
-<p>（9）如果执行到这一步，说明释放了一个与top chunk相邻的chunk。则无论它有多大，都将它和top chunk合并，并更新top chunk的大小等信息。转下一步。</p>
-<p>（10）判断合并后的chunk的大小是否会大于max_fast（默认是64kb），如果是的话，则会触发进行fast bins的合并操作，fast bins中的chunk将被遍历，并与相邻的chunk进行合并，合并后的chunk会被放到unsorted bin中。fast bins将变为空，操作完成后进入到下一步。</p>
-<p>（11）判断 top chunk的大小是否大于mmap收缩阀值（默认是128kb），如果是的话，对于主分配区，则会试图归还top chunk中的一部分给操作系统。但是最先分配的128KB空间是不会归还给操作系统的，ptmalloc会一直管理这部分内存，用来响应用户的分配请求。如果是非主分配区，会进行sub_heap收缩，将top chunk的一部分返回给操作系统，如果 top chunk是整个sub_heap，会将整个sub_heap归还给操作系统。做完这一步后，释放结束，从free()函数退出。</p>
-<p><strong>对于Ubuntu 16.04而言，较小的chunk被free掉后，只是被放入fast bins中，其余什么也不做（见上述第5步）；对于Ubuntu 18.04而言，较小的chunk被free掉后，会被放入tcache bins中，</strong>       </p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220415111145345.png" alt="image-20220415111145345"></p>
-<p>​                        </p>
-<p>但无论是被放入fast bins还是tcache bins中，chunk的标志位都不会发生变化：</p>
-<p>利用该特性，可以在free掉某个内存块后，重新申请处于fast bins或tcache bins中的内存块，并对其进行读写操作，从而达到漏洞利用的目的。</p>
-<h3 id="堆溢出利用"><a href="#堆溢出利用" class="headerlink" title="堆溢出利用"></a>堆溢出利用</h3><p>堆溢出是一种特定的缓冲区溢出（还有栈溢出， bss 段溢出等）。但是其与栈溢出所不同的是，堆上并不存在返回地址等可以让攻击者直接控制执行流程的数据，因此我们一般无法直接通过堆溢出来控制 EIP 。一般来说，我们利用堆溢出的策略是</p>
-<ol>
-<li>覆盖与其物理相邻的下一个 chunk的内容。<ul>
-<li>prev_size</li>
-<li>size，主要有三个比特位，以及该堆块真正的大小。<ul>
-<li>NON_MAIN_ARENA</li>
-<li>IS_MAPPED</li>
-<li>PREV_INUSE</li>
-<li>the True chunk size</li>
-</ul>
-</li>
-<li>chunk content，从而改变程序固有的执行流。</li>
-</ul>
-</li>
-<li>利用堆中的机制（如 unlink 等 ）来实现任意地址写入（ Write-Anything-Anywhere）或控制堆块中的内容等效果，从而来控制程序的执行流。</li>
-</ol>
-<h4 id="寻找堆分配函数"><a href="#寻找堆分配函数" class="headerlink" title="寻找堆分配函数"></a>寻找堆分配函数</h4><p>​        通常来说堆是通过调用 glibc 函数 malloc 进行分配的，在某些情况下会使用 calloc 分配。calloc 与 malloc 的区别是 <strong>calloc 在分配后会自动进行清空，这对于某些信息泄露漏洞的利用来说是致命的</strong>。</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">calloc(0x20);</span><br><span class="line">//等同于</span><br><span class="line">ptr=malloc(0x20);</span><br><span class="line">memset(ptr,0,0x20);</span><br></pre></td></tr></table></figure>
-
-<p>​        此外还有一种是realloc函数，该函数兼并malloc和free两个函数功能。</p>
-<ul>
-<li>当 realloc(ptr,size) 的 size 不等于 ptr 的 size 时<ul>
-<li>如果申请 size &gt; 原来 size<ul>
-<li>如果 chunk 与 top chunk 相邻，直接扩展这个 chunk 到新 size 大小</li>
-<li>如果 chunk 与 top chunk 不相邻，相当于 free(ptr),malloc(new_size)</li>
-</ul>
-</li>
-<li>如果申请 size &lt; 原来 size<ul>
-<li>如果相差不足以容得下一个最小 chunk(64 位下 32 个字节，32 位下 16 个字节)，则保持不变</li>
-<li>如果相差可以容得下一个最小 chunk，则切割原 chunk 为两部分，free 掉后一部分</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>当 realloc(ptr,size) 的 size 等于 0 时，相当于 free(ptr)</li>
-<li>当 realloc(ptr,size) 的 size 等于 ptr 的 size，不进行任何操作</li>
-</ul>
-<h4 id="寻找危险函数"><a href="#寻找危险函数" class="headerlink" title="寻找危险函数"></a>寻找危险函数</h4><p>常见的危险函数如下</p>
-<ul>
-<li>输入<ul>
-<li>gets，直接读取一行，忽略 <code>&#39;\x00&#39;</code></li>
-<li>scanf</li>
-<li>vscanf</li>
-</ul>
-</li>
-<li>输出<ul>
-<li>sprintf</li>
-</ul>
-</li>
-<li>字符串<ul>
-<li>strcpy，字符串复制，遇到 <code>&#39;\x00&#39;</code> 停止</li>
-<li>strcat，字符串拼接，遇到 <code>&#39;\x00&#39;</code> 停止</li>
-<li>bcopy</li>
-</ul>
-</li>
-</ul>
-<h4 id="确定填充长度"><a href="#确定填充长度" class="headerlink" title="确定填充长度"></a>确定填充长度</h4><p>这一部分主要是计算<strong>我们开始写入的地址与我们所要覆盖的地址之间的距离</strong>。 一个常见的误区是 malloc 的参数等于实际分配堆块的大小，但是事实上 ptmalloc 分配出来的大小是对齐的。这个长度一般是字长的 2 倍，比如 32 位系统是 8 个字节，64 位系统是 16 个字节。但是对于不大于 2 倍字长的请求，malloc 会直接返回 2 倍字长的块也就是最小 chunk，比如 64 位系统执行<code>malloc(0)</code>会返回用户区域为 16 字节的块。</p>
-<p>还有一点是之前所说的用户申请的内存大小会被修改，其有可能会使用与其物理相邻的下一个 chunk 的 prev_size 字段储存内容。</p>
-<p><strong>实际上 ptmalloc 分配内存是以双字为基本单位，以 64 位系统为例，分配出来的空间是 16 的整数倍，即用户申请的 chunk 都是 16 字节对齐的。</strong></p>
-<p><strong>例如在 64 位程序中：</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">malloc(8)</span><br></pre></td></tr></table></figure>
-
-<p>申请到的堆块总大小为 16 + 8 + 8 + 1 = 0x21</p>
-<p>1.第一个 16 字节是<strong>系统最小分配的内存</strong>，也就是说你如果想要申请的内存小于系统最小分配的内存的话，就会按照最小的内存来分配。</p>
-<ul>
-<li>在 64 位系统中这个值是 16 个字节，在 32 位系统中是 8 个字节</li>
-<li>例如，如果代码中是 malloc(0) 的话，<strong>堆管理器也会分配最小内存空间给你</strong></li>
-</ul>
-<p>2.第二个 8 字节是 pre size 字段的大小（32 位的为 4 字节）<br>3.第三个 8 字节为 size 字段的大小（32 位的为 4 字节）<br>4.最后一个 1 字节是 <strong>PREV_INUSE 的值，只有 0 或 1两个值</strong></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220422144438152.png" alt="image-20220422144438152"></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/03/31/wkp/Chapter7%20the%20IO%20Request%20Packet/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/03/31/wkp/Chapter7%20the%20IO%20Request%20Packet/" class="post-title-link" itemprop="url">Chapter 7 the I/O Request Packet</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2022-03-31 00:00:00" itemprop="dateCreated datePublished" datetime="2022-03-31T00:00:00+08:00">2022-03-31</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-06-06 20:19:58" itemprop="dateModified" datetime="2022-06-06T20:19:58+08:00">2022-06-06</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">驱动开发</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>9.7k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>9 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h3 id="IRP介绍"><a href="#IRP介绍" class="headerlink" title="IRP介绍"></a>IRP介绍</h3><p>​    IRP的全名是I/O Request Package，即输入输出请求包，它是Windows内核中的一种非常重要的数据结构。上层应用程序与底层驱动程序通信时，应用程序会发出I/O请求，操作系统将相应的I/O请求转换成相应的IRP，不同的IRP会根据类型被分派到不同的派遣函数中进行处理。</p>
-<p>​      IRP有两个基本的属性，即<strong>MajorFunction</strong>和<strong>MinorFunction</strong>，分别记录IRP的主类型和子类型。操作系统根据MajorFunction决定将IRP分发到哪个派遣函数，然后派遣函数根据MinorFunction进行细分处理。没有设置派遣函数的IRP，默认与<strong>IopInvalidDeviceRequest</strong>函数关联。</p>
-<p>​      首先一个IRP在被分配时，调用者必须指定要分配多少个<strong>IO_STACK_LOCATION</strong>，这些结构直接在内存中伴随着IRP，其数量是设备堆栈中设备对象的数量。驱动程序会创建一个个设备对象，并将这些设备对象叠成一个垂直结构，叫做设备栈。IRP会被操作系统发送到设备栈顶层，如果顶层的设备对象的派遣函数结束了IRP的请求，那么这次I/O请求结束，如果没有，那么操作系统将IRP转发到设备栈的下一层设备处理，直到找到能够结束这个IRP请求的派遣函数的设备。</p>
-<p>​      因此，一个IRP请求可能被转发多次，为了记录IRP在每层设备中做的操作，IRP会有个<strong>IO_STACK_LOCATION</strong>数组<u>（数组中的每个堆栈单元都对应一个将处理该IRP的驱动程序，另外还有一个堆栈单元供IRP的创建者使用。堆栈单元中包含该IRP的类型代码和参数信息以及完成函数的地址）</u>，数组的元素个数应该大于IRP穿过的设备数目， 当一个驱动程序接收到一个IRP时，将会获得一个指向IRP结构的指针，对于本层设备对应的<strong>IO_STACK_LOCATION</strong>,可以通过<code>IoGetCurrentIrpStackLocation</code>函数得到。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220304144523080.png" alt="image-20220304144523080"></p>
-<h3 id="WDM与NT驱动程序"><a href="#WDM与NT驱动程序" class="headerlink" title="WDM与NT驱动程序"></a>WDM与NT驱动程序</h3><p>​     NT命名设备对象的名称形式为<code>\Device\DeviceName</code>, WDM驱动并不直接命名设备对象，系统规定了一个统一的命名方案，以确保设备名称不会在驱动程序之间发生冲突。WDM驱动程序命名方案：</p>
-<ul>
-<li>设备的 PDO 被命名。总线驱动程序为其枚举的设备请求命名 PDO。总线驱动程序在创建设备对象时指定 FILE_AUTOGENERATED_DEVICE_NAME 设备特性。</li>
-<li>FDO 和FiDO 未命名。创建设备对象时，函数和过滤器驱动程序不请求名称。</li>
-</ul>
-<p>共有三种 WDM 设备对象：</p>
-<ol>
-<li>物理设备对象 (PDO) – 表示总线上的设备到<a target="_blank" rel="noopener" href="https://docs.microsoft.com/en-us/windows-hardware/drivers/kernel/bus-drivers">总线驱动程序</a>，该设备对象表示在该总线上的该插槽中有某个设备。</li>
-<li>功能设备对象 (FDO) – 代表<a target="_blank" rel="noopener" href="https://docs.microsoft.com/en-us/windows-hardware/drivers/kernel/function-drivers">功能驱动程序</a>的设备，通常由硬件的供应商提供。</li>
-<li>过滤设备对象（FiDO）——代表<a target="_blank" rel="noopener" href="https://docs.microsoft.com/en-us/windows-hardware/drivers/kernel/filter-drivers">过滤器驱动程序</a>的设备。</li>
-</ol>
-<p>​    驱动程序通过创建设备对象 (<strong>IoCreateDevice</strong>）并将其附加到设备堆栈 （<strong>IoAttachDeviceToDeviceStack</strong> ）将自己添加到处理设备 I/O 的驱动程序堆栈中。<strong>IoAttachDeviceToDeviceStack</strong>确定设备堆栈的当前顶部并将新设备对象附加到设备堆栈的顶部。</p>
-<h3 id="设备节点和设备堆栈"><a href="#设备节点和设备堆栈" class="headerlink" title="设备节点和设备堆栈"></a>设备节点和设备堆栈</h3><p>​    大多数发送到设备驱动程序的请求都打包在IRP中。通常，当向设备发送 I/O 请求时，多个驱动程序会帮助处理该请求。这些驱动程序中的每一个都与一个设备对象相关联，并且这些设备对象被安排在一个堆栈中。设备对象及其相关驱动程序的序列称为设备堆栈。每个设备由一个设备节点表示，每个设备节点都有一个设备栈。</p>
-<p>​     即插即用管理器将一个设备节点与每个新创建的 PDO 相关联，并查看注册表以确定哪些驱动程序需要成为该节点的设备堆栈的一部分。设备堆栈必须有一个（并且只有一个）<strong>功能驱动程序</strong>，并且可以选择有一个或多个<strong>过滤器驱动程序</strong>。</p>
-<p>​     功能驱动程序是设备栈的主要驱动程序，负责处理读取、写入和设备控制请求。过滤器驱动程序在处理读取、写入和设备控制请求时起到辅助作用。在加载每个函数和过滤器驱动程序时，它会创建一个设备对象并将自己附加到设备堆栈。由功能驱动程序创建的设备对象称为<strong>功能设备对象</strong>（FDO），过滤驱动创建的设备对象称为<strong>过滤设备对象</strong>（Filter DO）。</p>
-<p>​       PDO 始终是设备堆栈中的底部设备对象。这是由设备堆栈的构造方式造成的。首先创建 PDO，当附加设备对象附加到堆栈时，它们将附加到现有堆栈的顶部。</p>
-<p>​      在某些情况下，设备除了其内核模式设备堆栈外，还具有用户模式设备堆栈。用户模式驱动程序通常基于用户模式驱动程序框架 (UMDF)，它是Windows 驱动程序框架提供的驱动程序模型之一。<strong>在 UMDF 中，驱动程序是用户模式的 DLL，设备对象是实现 IWDFDevice 接口的 COM 对象</strong>。UMDF 设备堆栈中的设备对象称为<strong>WDF 设备对象</strong>(WDF DO)。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220331104749931.png" alt="image-20220331104749931"></p>
-<p><code>IO_STACK_LOCATION</code>结构如下</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220331155121884.png" alt="image-20220331155121884"></p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IO_STACK_LOCATION</span> &#123;</span></span><br><span class="line">    UCHAR  MajorFunction;</span><br><span class="line">    UCHAR  MinorFunction;</span><br><span class="line">    UCHAR  Flags;</span><br><span class="line">    UCHAR  Control;</span><br><span class="line">    <span class="class"><span class="keyword">union</span> &#123;</span></span><br><span class="line">            <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">                PIO_SECURITY_CONTEXT SecurityContext;</span><br><span class="line">                ULONG Options;</span><br><span class="line">                USHORT POINTER_ALIGNMENT FileAttributes;</span><br><span class="line">                USHORT ShareAccess;</span><br><span class="line">                ULONG POINTER_ALIGNMENT EaLength;</span><br><span class="line">            &#125; Create;</span><br><span class="line">            <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">                ULONG Length;</span><br><span class="line">                ULONG POINTER_ALIGNMENT Key;</span><br><span class="line">                LARGE_INTEGER ByteOffset;</span><br><span class="line">            &#125; Read;</span><br><span class="line">            <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">                ULONG Length;</span><br><span class="line">                ULONG POINTER_ALIGNMENT Key;</span><br><span class="line">                LARGE_INTEGER ByteOffset;</span><br><span class="line">            &#125; Write;</span><br><span class="line">            ... ...</span><br><span class="line">        &#125; Parameters;</span><br><span class="line">    PDEVICE_OBJECT  DeviceObject;</span><br><span class="line">    PFILE_OBJECT  FileObject;</span><br><span class="line">    PIO_COMPLETION_ROUTINE CompletionRoutine;</span><br><span class="line">    PVOID Context;</span><br><span class="line">&#125; IO_STACK_LOCATION, *PIO_STACK_LOCATION;</span><br><span class="line"></span><br><span class="line">kd&gt; dt nt!_IO_STACK_LOCATION</span><br><span class="line">   +<span class="number">0x000</span> MajorFunction    : UChar</span><br><span class="line">   +<span class="number">0x001</span> MinorFunction    : UChar</span><br><span class="line">   +<span class="number">0x002</span> Flags            : UChar</span><br><span class="line">   +<span class="number">0x003</span> Control          : UChar</span><br><span class="line">   +<span class="number">0x004</span> Parameters       : &lt;unnamed-tag&gt;</span><br><span class="line">   +<span class="number">0x014</span> DeviceObject     : Ptr32 _DEVICE_OBJECT</span><br><span class="line">   +<span class="number">0x018</span> FileObject       : Ptr32 _FILE_OBJECT</span><br><span class="line">   +<span class="number">0x01c</span> CompletionRoutine : Ptr32     <span class="keyword">long</span> </span><br><span class="line">   +<span class="number">0x020</span> Context          : Ptr32 Void</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>这个结构的主要成员意义为：</p>
-<ul>
-<li><strong>MajorFunction(UCHAR) <strong>： 是该IRP的主功能码。这个代码应该为类似</strong>IRP_MJ_READ</strong>一样的值，并与驱动程序对象中<strong>MajorFunction</strong>表的某个派遣函数指针相对应。如果该代码存在于某个特殊驱动程序的I/O堆栈单元中，它有可能一开始是，例如<strong>IRP_MJ_READ</strong>，而后被驱动程序转换成其它代码，并沿着驱动程序堆栈发送到低层驱动程序。</li>
-<li><strong>MinorFunction(UCHAR)</strong> ： 是该IRP的副功能码。它进一步指出该IRP属于哪个主功能类。例如，<strong>IRP_MJ_PNP</strong>请求就有约一打的副功能码，如<strong>IRP_MN_START_DEVICE</strong>、<strong>IRP_MN_REMOVE_DEVICE</strong>。</li>
-<li><strong>Parameters(union)</strong> ： 是几个子结构的联合，每个请求类型都有自己专用的参数，而每个子结构就是一种参数。这些子结构包括**Create(IRP_MJ_CREATE请求)、Read(IRP_MJ_READ请求)、StartDevice(IRP_MJ_PNP的IRP_MN_START_DEVICE子类型)**，等等。</li>
-<li><strong>DeviceObject(PDEVICE_OBJECT)</strong> ：是与该堆栈单元对应的设备对象的地址。该域由<strong>IoCallDriver</strong>函数负责填写。</li>
-<li><strong>FileObject(PFILE_OBJECT)</strong> ： 是内核文件对象的地址，IRP的目标就是这个文件对象。驱动程序通常在处理清除请求(<strong>IRP_MJ_CLEANUP</strong>)时使用FileObject指针，以区分队列中与该文件对象无关的IRP。</li>
-<li><strong>CompletionRoutine(PIO_COMPLETION_ROUTINE) <strong>： 是一个I/O完成例程的地址，该地址是由与这个堆栈单元对应的驱动程序的更上一层驱动程序设置的。绝对不要直接设置这个域，应该调用</strong>IoSetCompletionRoutine</strong>函数，该函数知道如何参考下一层驱动程序的堆栈单元。设备堆栈的最低一级驱动程序并不需要完成例程，因为它们必须直接完成请求。然而，请求的发起者有时确实需要一个完成例程，但通常没有自己的堆栈单元。这就是为什么每一级驱动程序都使用下一级驱动程序的堆栈单元保存自己完成例程指针的原因。</li>
-<li><strong>Context(PVOID)</strong> ： 是一个任意的与上下文相关的值，将作为参数传递给完成例程。</li>
-</ul>
-<h3 id="IRP操作流程"><a href="#IRP操作流程" class="headerlink" title="IRP操作流程"></a>IRP操作流程</h3><p>​      通常大多数IRP是由I/O管理器创建的，该管理器初始化IRP结构和第一个I/O堆栈位置，然后它将IRP的指针传递到最上层。驱动程序在其适当的调度例程中接收到IRP。例如，如果这是一个ReadIRP，那么该驱动程序将从其驱动程序对象中调用其其主函数数组的IRP_MJ_READ索引。此时，驱动程序在处理IRP时可以有几个选项：</p>
-<p>​        1.将请求向下传递。如果这个驱动设备并不是设备节点的最后一个设备，当对该请求不感兴趣时，可以将其向下传递。这是由接收到不感兴趣的请求的过滤器驱动完成的，为了不损害设备的功能，驱动将该请求向下传递。需要调用<code>IoCallDriver</code>，<code>IoCallDriver</code>会调用<code>IoGetNextIrpStackLocation</code>下移设备栈的指针，因此我们需要对设备栈做如下之一的操作：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> IoCopyCurrentIrpStackLocationToNext( Irp ) &#123; \</span></span><br><span class="line"><span class="meta">    PIO_STACK_LOCATION irpSp; \</span></span><br><span class="line"><span class="meta">    PIO_STACK_LOCATION nextIrpSp; \</span></span><br><span class="line"><span class="meta">    irpSp = IoGetCurrentIrpStackLocation( (Irp) ); \</span></span><br><span class="line"><span class="meta">    nextIrpSp = IoGetNextIrpStackLocation( (Irp) ); \</span></span><br><span class="line"><span class="meta">    RtlCopyMemory( nextIrpSp, irpSp, FIELD_OFFSET(IO_STACK_LOCATION, CompletionRoutine)); \</span></span><br><span class="line"><span class="meta">    nextIrpSp-&gt;Control = 0; &#125;</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> IoSkipCurrentIrpStackLocation( Irp ) \</span></span><br><span class="line"><span class="meta">    (Irp)-&gt;CurrentLocation++; \</span></span><br><span class="line"><span class="meta">    (Irp)-&gt;Tail.Overlay.CurrentStackLocation++;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>​       <code>IoCopyCurrentIrpStackLocationToNext</code> 拷贝<code>IO_STACK_LOCATION</code> 成员到下一层。由于初始化的时候只初始化了第一个I/O堆栈位置，所以每个驱动需要初始化下一个驱动。</p>
-<p>​     <code>IoSkipCurrentIrpStackLocation</code> 上移一层，下次使用的时候仍旧使用当前的<code>IO_STACK_LOCATION</code>。</p>
-<p>​     2.完全处理这个请求。接收到这个请求的设备可以调用<code>IoCompleterequest</code>处理这个请求，这样更低层的设备不会看到这个请求。</p>
-<p>​     3.结合1和2，驱动程序可以检查IRP，做一些事情（比如记录请求），然后传递它。或者它可以对下一个I/O堆栈位置进行一些更改，然后传递请求。</p>
-<p>​     4.传递请求并在请求完成时由底层设备通知。任何一层（除了最低的一层）都可以通过在传递请求之前调用<code>IoSetCompletionRoutine</code>来设置I/O完成例程。当其中一个较低的层完成请求时，将会调用驱动程序的完成例程。</p>
-<p>​      5.开始一些异步IRP处理。驱动程序可能想要处理该请求，但如果请求很长（典型的硬件驱动程序，但也可能是软件驱动程序），驱动可能通过调用<code>IoMarkIrpPending</code>标记IRP为挂起，并从它的调度例程返回一个<code>STATUS_PENDING</code>。最终，它将不得不完成IRP。</p>
-<p>​    一旦一些层调用<code>IoCompleteRequest</code>，该IRP就会向反方向回到IRP的发起者（通常是在管理器），如果完成例程已经注册，它们将按注册的相反顺序被调用，即从下到上。</p>
-<h3 id="IRP"><a href="#IRP" class="headerlink" title="IRP"></a>IRP</h3><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220331155052079.png" alt="image-20220331155052079"></p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IRP</span> &#123;</span></span><br><span class="line">	PMDL              MdlAddress;</span><br><span class="line">	ULONG             Flags;</span><br><span class="line">	<span class="class"><span class="keyword">union</span> &#123;</span></span><br><span class="line">		<span class="class"><span class="keyword">struct</span> _<span class="title">IRP</span>*   <span class="title">MasterIrp</span>;</span></span><br><span class="line">		PVOID          SystemBuffer;</span><br><span class="line">	&#125; AssociatedIrp;</span><br><span class="line">	IO_STATUS_BLOCK   IoStatus;</span><br><span class="line">	KPROCESSOR_MODE   RequestorMode;</span><br><span class="line">	BOOLEAN           PendingReturned;</span><br><span class="line">	BOOLEAN           Cancel;</span><br><span class="line">	KIRQL             CancelIrql;</span><br><span class="line">	PDRIVER_CANCEL    CancelRoutine;</span><br><span class="line">	PVOID             UserBuffer;</span><br><span class="line">	<span class="class"><span class="keyword">union</span> &#123;</span></span><br><span class="line">		<span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">			<span class="class"><span class="keyword">union</span> &#123;</span></span><br><span class="line">				KDEVICE_QUEUE_ENTRY DeviceQueueEntry;</span><br><span class="line">				<span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">					PVOID    DriverContext[<span class="number">4</span>];</span><br><span class="line">				&#125;;</span><br><span class="line">			&#125;;</span><br><span class="line">			PETHREAD     Thread;</span><br><span class="line">			LIST_ENTRY   ListEntry;</span><br><span class="line">		&#125; Overlay;</span><br><span class="line">	&#125; Tail;</span><br><span class="line">&#125; IRP, *PIRP;</span><br><span class="line"></span><br><span class="line">kd&gt; dt nt!_IRP</span><br><span class="line">   +<span class="number">0x000</span> Type             : Int2B</span><br><span class="line">   +<span class="number">0x002</span> Size             : Uint2B</span><br><span class="line">   +<span class="number">0x004</span> MdlAddress       : Ptr32 _MDL</span><br><span class="line">   +<span class="number">0x008</span> Flags            : Uint4B</span><br><span class="line">   +<span class="number">0x00c</span> AssociatedIrp    : &lt;unnamed-tag&gt;</span><br><span class="line">   +<span class="number">0x010</span> ThreadListEntry  : _LIST_ENTRY</span><br><span class="line">   +<span class="number">0x018</span> IoStatus         : _IO_STATUS_BLOCK</span><br><span class="line">   +<span class="number">0x020</span> RequestorMode    : Char</span><br><span class="line">   +<span class="number">0x021</span> PendingReturned  : UChar</span><br><span class="line">   +<span class="number">0x022</span> StackCount       : Char</span><br><span class="line">   +<span class="number">0x023</span> CurrentLocation  : Char</span><br><span class="line">   +<span class="number">0x024</span> Cancel           : UChar</span><br><span class="line">   +<span class="number">0x025</span> CancelIrql       : UChar</span><br><span class="line">   +<span class="number">0x026</span> ApcEnvironment   : Char</span><br><span class="line">   +<span class="number">0x027</span> AllocationFlags  : UChar</span><br><span class="line">   +<span class="number">0x028</span> UserIosb         : Ptr32 _IO_STATUS_BLOCK</span><br><span class="line">   +<span class="number">0x02c</span> UserEvent        : Ptr32 _KEVENT</span><br><span class="line">   +<span class="number">0x030</span> Overlay          : &lt;unnamed-tag&gt;</span><br><span class="line">   +<span class="number">0x038</span> CancelRoutine    : Ptr32     <span class="keyword">void</span> </span><br><span class="line">   +<span class="number">0x03c</span> UserBuffer       : Ptr32 Void</span><br><span class="line">   +<span class="number">0x040</span> Tail             : &lt;unnamed-tag&gt;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><strong>MdlAddress</strong> : 是一个MDL的指针，当内核层和用户层采用共享内存的结构传递数据的时候，这个MDL就代表共享的内存信息（共享物理内存，通过MDL映射）。这个成员生效的标记为：DO_DIRECT_IO, METHOD_IN_DIRECT 或者METHOD_OUT_DIRECT.</li>
-<li><strong>AssociatedIrp</strong> : 这个成员是个联合体，其中存在一个SystemBuffer程序；当内核层使用用户层的数据的时候是通过拷贝数据的方式来实现的话，那么拷贝后的数据就放在了AssociatedIrp.SystemBuffer中了。这个成员生效的标记是DO_BUFFERED_IO或者METHOD_BUFFERED。</li>
-<li><strong>IoStatus</strong> ： 返回的状态信息。</li>
-<li><strong>RequestorMode</strong> : UserMode或KernelMode，指定原始I/O请求的来源。驱动程序有时需要查看这个值来决定是否要信任某些参数。</li>
-<li>**PendingReturned **: Pending 状态，如果为TRUE，则表明处理该IRP的最低级派遣函数返回了STATUS_PENDING。</li>
-<li><strong>StackCount</strong> : 设备栈的数目。</li>
-<li><strong>CurrentLocation</strong> : 当前处于哪个设备栈的索引。</li>
-<li><strong>Cancel</strong> : IRP是否被取消，如果为TRUE，则表明IoCancelIrp已被调用(该函数用于取消这个请求)。如果为FALSE，则表明没有调用IoCancelIrp函数。</li>
-<li>**CancelIrql(KIRQL) **: 是一个IRQL值，表明那个专用的取消自旋锁是在这个IRQL上获取的.</li>
-<li>**CancelRoutine(PDRIVER_CANCEL) **: 是驱动程序取消例程的地址。你应该使用IoSetCancelRoutine函数设置这个域而不是直接修改该域(因为可以原子修改）。</li>
-<li><strong>UserBuffer(PVOID)</strong> : 用户层参数的直接地址，设置标记METHOD_NEITHER时候有效。</li>
-<li>**Tail.Overlay **是Tail联合中的一种联合结构，如下：<br><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220331160047247.png" alt="image-20220331160047247"></li>
-</ul>
-<h3 id="访问用户缓冲区"><a href="#访问用户缓冲区" class="headerlink" title="访问用户缓冲区"></a>访问用户缓冲区</h3><p>驱动程序创建设备对象的时候，需要考虑该设备以何种方式读写。读写主要有缓冲区方式读写、直接方式读写、其他方式读写。一些派遣函数，比如IRP_MJ_READ，IRP_MJ_WRITE，IRP_MJ_DEVICE_CONTROL接受客户端提供的缓冲区——在大多数情况下来自用户模式。通常，派遣函数是在IRQL0和请求线程上下文中调用，这意味着用户模式提供的缓冲区指针非常容易访问：IRQL是0，所以页面错误通常会被处理，线程是请求者，因此指针在这个进程上下文中是有效的。</p>
-<p>以WriteFile为例，WriteFile要求用户提供一段缓冲区，并且说明缓冲区大小，然后将这段内存数据传入到驱动程序中，这段缓冲区内存是用户模式的内存地址，驱动程序如果直接引用这段内存很危险。因为操作系统是多任务的，他可能随时切换到别的进程。</p>
-<h4 id="缓冲区方式读写"><a href="#缓冲区方式读写" class="headerlink" title="缓冲区方式读写"></a>缓冲区方式读写</h4><p>针对解决上述问题，缓冲区方式读写这种方法中，<strong>操作系统将应用程序提供的缓冲区的数据复制到内核模式下的地址中</strong>。IRP的派遣函数操作的是内核模式下的缓冲区而不是用户模式下的。这样的方法的缺点是，影响了运行效率，在少量内存操作时，可以采用这种方法。</p>
-<p>1.I/O管理器会从非分页池中分配一个与用户模式下的缓冲区相同大小的缓冲区。并且Read/WriteFile创建的IRP的AssociatedIrp-&gt;SystemBuffer子域会记录这段内存地址。（可以通过IO_STACK_LOCATION中的Parameters.Read(or Write).Length知道请求了多少字节。）</p>
-<p>2.I/O管理器会进行用户模式地址和内核模式地址的数据复制。</p>
-<p>3.一旦驱动程序完成了IRP，I/O管理器（对于ReadFile请求）将系统缓冲区复制回用户的缓冲区(复制的大小由IoStatus.Information(记录了实际操作了多少字节)决定)</p>
-<p>4.最后，I/O管理器释放内核缓冲区。</p>
-<p><strong>特点：</strong>使用简单，只需在设备对象中指定标志，其他所有事情都由I/O管理器处理。总是有一个副本，所以它最好用于小的缓冲区（通常最多一页）。大型缓冲区的复制成本可能会很高。在这种情况下，应该使用直接I/O来代替。</p>
-<h4 id="直接方式读写"><a href="#直接方式读写" class="headerlink" title="直接方式读写"></a>直接方式读写</h4><p>与前一种方式不同，该方式读写设备时，操作系统会将用户模式下的缓冲区锁住。然后操作系统将这段缓冲区在内核模式地址再映射一遍。这样，用户模式和内核模式的缓冲区指向的是同一区域的物理内存。无论操作系统如何切换进程，内核模式地址都保持不变。</p>
-<p>锁定后，操作系统用<strong>内存描述符表（MDL）</strong>记录这段内存,该数据结构描述了缓冲区是如何映射到RAM的，该数据结构存储在IRP的pIrp-&gt;MdlAddress。</p>
-<img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220511194722486.png" alt="image-20220511194722486" style="zoom:67%;" />
-
-<p>从上图可知，这段虚拟内存首地址应该是mdl-&gt;StartVa+mdl-&gt;ByteOffset。</p>
-<p>实现中主要用到MmGetSystemAddressForMdlSafe函数（该函数第二个参数是指定优先级），得到MDL在内核模式下的映射，返回值是内核地址。</p>
-<p>如果返回NULL，这意味着系统超出系统页表或系统页表很低（取决于上面的优先级参数）。这种情况可能出现在内存很少的情况下，如果出现这种情况，那么IRP的完成状态应该是STATUS_INSUFFICIENT_RESOURCES。</p>
-<h4 id="其他方式读写"><a href="#其他方式读写" class="headerlink" title="其他方式读写"></a>其他方式读写</h4><p>派遣函数直接读写应用程序提供的额缓冲区地址，只有把驱动程序和应用程序运行在相同线程上下文的情况下，才能使用这种方式。</p>
-<p>缓冲区内存地址，可以在派遣函数中通过IRP的pIrp-&gt;UsersBuffer得到。因为ReadFile可能把空指针地址或者非法地址传递给驱动程序，所以驱动程序在使用用户模式地址前，需要探测这段内存是否可读或者可写（使用ProbeForWrite函数和try块）</p>
-<h4 id="IO设备控制操作"><a href="#IO设备控制操作" class="headerlink" title="IO设备控制操作"></a>IO设备控制操作</h4><p>除了前面说的ReadFile，WriteFile之外，还可以通过另外一种方式操作设备。DeviceIoControl内部会使操作系统创建一个IRP_MJ_DEVICE_CONTROL类型的IRP，然后操作系统会将这个IRP转发到派遣函数。</p>
-<h5 id="DeviceIoControl与驱动交互"><a href="#DeviceIoControl与驱动交互" class="headerlink" title="DeviceIoControl与驱动交互"></a>DeviceIoControl与驱动交互</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">BOOL <span class="title">DeviceIoControl</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    HANDLE hDevice, <span class="comment">// handle to device or file</span></span></span></span><br><span class="line"><span class="params"><span class="function">    DWORD dwIoControlCode, <span class="comment">// IOCTL code (控制码)</span></span></span></span><br><span class="line"><span class="params"><span class="function">    PVOID lpInBuffer, <span class="comment">// input buffer</span></span></span></span><br><span class="line"><span class="params"><span class="function">    DWORD nInBufferSize, <span class="comment">// size of input buffer</span></span></span></span><br><span class="line"><span class="params"><span class="function">    PVOID lpOutBuffer, <span class="comment">// output buffer</span></span></span></span><br><span class="line"><span class="params"><span class="function">    DWORD nOutBufferSize, <span class="comment">// size of output buffer</span></span></span></span><br><span class="line"><span class="params"><span class="function">    PDWORD lpdwBytesReturned, <span class="comment">// # of bytes actually returned</span></span></span></span><br><span class="line"><span class="params"><span class="function">    LPOVERLAPPED lpOverlapped)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>（IOCTL）控制码主要由四个参数构成，由CTL_CODE宏提供</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> CTL_CODE( DeviceType, Function, Method, Access ) ( \</span></span><br><span class="line"><span class="meta">((DeviceType) &lt;&lt; 16) | ((Access) &lt;&lt; 14) | ((Function) &lt;&lt; 2) | (Method))</span></span><br></pre></td></tr></table></figure>
-
-<p>第三个参数比较关键，指的是操作模式（METHOD_BUFFERED、METHOD_IN_DIRECT、METHOD_OUT_DIRECT、METHOD_NEITHER）,这几种操作模式与前面提到的缓冲区、直接和其他访问方式类似，对于METHOD_IN/OUT_DIRECT的区别是，当以只读权限打开设备的时候，前者会成功，后者会失败。如果以读写权限打开设备，两者都成功。</p>
-<p>参考链接：<a target="_blank" rel="noopener" href="https://blog.csdn.net/xiangbaohui/article/details/104910607">windows驱动之IRP结构</a>、<a target="_blank" rel="noopener" href="https://docs.microsoft.com/en-us/windows-hardware/drivers/gettingstarted/driver-stacks">微软官方文档</a></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/03/31/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E5%8D%81%E5%85%AB%E5%A4%A9/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/03/31/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E5%8D%81%E5%85%AB%E5%A4%A9/" class="post-title-link" itemprop="url">代码随想录第十八天</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2022-03-31 00:00:00" itemprop="dateCreated datePublished" datetime="2022-03-31T00:00:00+08:00">2022-03-31</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-04-01 10:51:52" itemprop="dateModified" datetime="2022-04-01T10:51:52+08:00">2022-04-01</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/leetcode/" itemprop="url" rel="index"><span itemprop="name">leetcode</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>397</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h4 id="哈希表-赎金信"><a href="#哈希表-赎金信" class="headerlink" title="哈希表-赎金信"></a>哈希表-赎金信</h4><p><a target="_blank" rel="noopener" href="https://leetcode-cn.com/problems/ransom-note/">题目链接</a></p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">bool</span> <span class="title">canConstruct</span><span class="params">(string ransomNote, string magazine)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> record[<span class="number">26</span>] = &#123;<span class="number">0</span>&#125;;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; magazine.<span class="built_in">length</span>(); i++)&#123;</span><br><span class="line">            record[magazine[i]-<span class="string">&#x27;a&#x27;</span>]++;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; ransomNote.<span class="built_in">length</span>(); j++)&#123;</span><br><span class="line">            record[ransomNote[j]-<span class="string">&#x27;a&#x27;</span>]--;</span><br><span class="line">            <span class="keyword">if</span>(record[ransomNote[j]-<span class="string">&#x27;a&#x27;</span>] &lt; <span class="number">0</span>)</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/03/29/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E5%8D%81%E4%B8%83%E5%A4%A9/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/03/29/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E5%8D%81%E4%B8%83%E5%A4%A9/" class="post-title-link" itemprop="url">代码随想录第十七天</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2022-03-29 00:00:00 / 修改时间：10:48:44" itemprop="dateCreated datePublished" datetime="2022-03-29T00:00:00+08:00">2022-03-29</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/leetcode/" itemprop="url" rel="index"><span itemprop="name">leetcode</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>438</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h4 id="哈希表-两数之和"><a href="#哈希表-两数之和" class="headerlink" title="哈希表-两数之和"></a>哈希表-两数之和</h4><p><a target="_blank" rel="noopener" href="https://leetcode-cn.com/problems/two-sum/">题目链接</a></p>
-<p>这道题用C++的<code>unordered_map</code>,首先不需要有顺序，以及键值不需要相同，从第一个元素开始不断比较以及往<code>myMap</code>里面插数据。</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">vector&lt;<span class="keyword">int</span>&gt; <span class="title">twoSum</span><span class="params">(vector&lt;<span class="keyword">int</span>&gt;&amp; nums, <span class="keyword">int</span> target)</span> </span>&#123;</span><br><span class="line">        std::unordered_map&lt;<span class="keyword">int</span>,<span class="keyword">int</span>&gt; myMap;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; nums.<span class="built_in">size</span>(); i++)&#123;</span><br><span class="line">            <span class="keyword">auto</span> pt = myMap.<span class="built_in">find</span>(target - nums[i]);</span><br><span class="line">            <span class="keyword">if</span>(pt != myMap.<span class="built_in">end</span>())</span><br><span class="line">              <span class="keyword">return</span> &#123;pt-&gt;second, i&#125;;  </span><br><span class="line">            myMap.<span class="built_in">insert</span>(pair&lt;<span class="keyword">int</span>, <span class="keyword">int</span>&gt;(nums[i], i));</span><br><span class="line">        &#125;</span><br><span class="line">    <span class="keyword">return</span> &#123;&#125;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1608,7 +1312,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">101</span>
+          <span class="site-state-item-count">108</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1621,7 +1325,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">103</span>
+        <span class="site-state-item-count">115</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1668,12 +1372,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">229k</span>
+    <span title="站点总字数">284k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">3:28</span>
+    <span title="站点阅读时长">4:19</span>
 </div>
 
         

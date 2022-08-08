@@ -18,29 +18,18 @@
     var CONFIG = {"hostname":"erkeai.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="思路打开文件，得到文件大小 ——&gt; 申请相应的内存空间 ——&gt; 加载exe到内存——&gt; 修复重定位表——&gt; 填写导入表 12345678910typedef struct _SERVICE_DESCRIPTOR_TABLE&amp;#123;    PULONG ServiceTableBase;			&#x2F;&#x2F; 指针，指向函数地址，每个成员占4字节    PULONG ServiceC">
+  <meta name="description" content="思路打开文件，得到文件大小 ——&gt; 申请相应的内存空间 ——&gt; 加载exe到内存——&gt; 修复重定位表——&gt; 填写导入表">
 <meta property="og:type" content="article">
 <meta property="og:title" content="PE Loader实现">
 <meta property="og:url" content="https://erkeai.github.io/2022/06/07/Cheese_point/PELoader/index.html">
 <meta property="og:site_name" content="hazel&#39;blog">
-<meta property="og:description" content="思路打开文件，得到文件大小 ——&gt; 申请相应的内存空间 ——&gt; 加载exe到内存——&gt; 修复重定位表——&gt; 填写导入表 12345678910typedef struct _SERVICE_DESCRIPTOR_TABLE&amp;#123;    PULONG ServiceTableBase;			&#x2F;&#x2F; 指针，指向函数地址，每个成员占4字节    PULONG ServiceC">
+<meta property="og:description" content="思路打开文件，得到文件大小 ——&gt; 申请相应的内存空间 ——&gt; 加载exe到内存——&gt; 修复重定位表——&gt; 填写导入表">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513101524872.png">
-<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513101808757.png">
-<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513101659232.png">
-<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513101831019.png">
-<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513101934441.png">
-<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513102906581.png">
-<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513110615404.png">
-<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513110650432.png">
-<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513111120329.png">
-<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513110923377.png">
 <meta property="article:published_time" content="2022-06-06T16:00:00.000Z">
-<meta property="article:modified_time" content="2022-06-07T13:07:33.251Z">
+<meta property="article:modified_time" content="2022-06-14T06:14:26.199Z">
 <meta property="article:author" content="ZouFeIYu">
 <meta property="article:tag" content="PE">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513101524872.png">
 
 <link rel="canonical" href="https://erkeai.github.io/2022/06/07/Cheese_point/PELoader/">
 
@@ -134,7 +123,7 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">103</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">115</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -144,7 +133,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">101</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">108</span></a>
 
   </li>
   </ul>
@@ -197,10 +186,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2022-06-07 00:00:00 / 修改时间：21:07:33" itemprop="dateCreated datePublished" datetime="2022-06-07T00:00:00+08:00">2022-06-07</time>
+              <time title="创建时间：2022-06-07 00:00:00" itemprop="dateCreated datePublished" datetime="2022-06-07T00:00:00+08:00">2022-06-07</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-06-14 14:14:26" itemprop="dateModified" datetime="2022-06-14T14:14:26+08:00">2022-06-14</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -217,7 +212,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>1.2k</span>
+              <span>65</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -237,30 +232,6 @@
 
       
         <h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><p>打开文件，得到文件大小 ——&gt; 申请相应的内存空间 ——&gt; 加载exe到内存——&gt; 修复重定位表——&gt; 填写导入表</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">SERVICE_DESCRIPTOR_TABLE</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    PULONG ServiceTableBase;			<span class="comment">// 指针，指向函数地址，每个成员占4字节</span></span><br><span class="line">    PULONG ServiceCounterTableBase;		<span class="comment">// 当前系统服务表被调用的次数</span></span><br><span class="line">    ULONG  NumberOfService;				<span class="comment">// 服务函数的总数</span></span><br><span class="line">    PUCHAR ParamTableBase;				<span class="comment">// 服务函数的参数总长度，以字节为单位，每个成员占一个字节</span></span><br><span class="line">    									<span class="comment">// 如：服务函数有两个参数，每个参数占四字节，那么对应参数总长度为8</span></span><br><span class="line">    									<span class="comment">// 函数地址成员 与 参数总长度成员 一一对应</span></span><br><span class="line">&#125; SSDTEntry, *PSSDTEntry;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-<p>用本地内核调试查看SSDT表，第一个参数指向的地址存储的是全部内核函数</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513101524872.png" alt="image-20220513101524872"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513101808757.png" alt="image-20220513101808757"></p>
-<p>第二个参数代表ssdt表里面有多少个内核函数</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513101659232.png" alt="image-20220513101659232"></p>
-<p>第三个参数是一个指针指向一个地址，这里表示的是与上面的内核函数相对应的参数个数，例如第一个为10，参数个数就为0x10/4 = 4</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513101831019.png" alt="image-20220513101831019"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513101934441.png" alt="image-20220513101934441"></p>
-<p>系统中一共存在两个系统服务描述表，<code>KeServiceDescriptorTable</code> 和 <code>KeServiceDescriptorTableShadow</code>，其中 <code>KeServiceDescriptorTable</code> 主要是处理来自 Ring3 层 Kernel32.dll 中的系统调用，而 <code>KeServiceDescriptorTableShadow</code> 则主要处理来自 User32.dll 和 GDI32.dll 中的系统调用，并且<code>KeServiceDescriptorTable</code> 在ntoskrnl.exe(Windows 操作系统内核文件，包括内核和执行体层)是导出的，而 <code>KeServiceDescriptorTableShadow</code> 则是没有被 Windows 操作系统所导出。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513102906581.png" alt="image-20220513102906581"></p>
-<h3 id="CR0寄存器"><a href="#CR0寄存器" class="headerlink" title="CR0寄存器"></a>CR0寄存器</h3><p>SSDT表所在的内存页属性是只读，没有写入的权限，所以需要把该地址设置为可写入，这样才能写入自己的函数，使用的是CR0寄存器关闭只读属性，开关在CR0寄存器的第16位。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513110615404.png" alt="image-20220513110615404"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513110650432.png" alt="image-20220513110650432"></p>
-<p>可以看到这里使用32位寄存器，而在CR0寄存器中，我们重点关注的是3个标志位：</p>
-<p>PE ­ 是否启用保护模式,置1则启用。<br>PG ­ 是否使用分页模式, 置1则开启分页模式, 此标志置1时, PE 标志也必须置1,否则CPU报异常。<br>WP WP为1时, 不能修改只读的内存页 , WP为0时, 可以修改只读的内存页。</p>
-<h3 id="驱动"><a href="#驱动" class="headerlink" title="驱动"></a>驱动</h3><p>原作者写了个简单驱动，其主要代码部分如下，就是替换SSDT表中相应函数地址。自己写的函数地址就是将相应进程设为拒绝访问，最后调用原函数。</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513111120329.png" alt="image-20220513111120329"></p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220513110923377.png" alt="image-20220513110923377"></p>
-<p><strong>不过，x64需要绕过PatchGuard保护，困难较大</strong>。</p>
-<p>参考文章：<a target="_blank" rel="noopener" href="https://drunkmars.top/2022/02/15/ssdt%20hook/">https://drunkmars.top/2022/02/15/ssdt%20hook/</a></p>
 
     </div>
 
@@ -299,7 +270,10 @@
     <a href="/2022/06/06/wkp/Chapter8%20%E8%BF%87%E6%BB%A4%E9%A9%B1%E5%8A%A8%E7%A8%8B%E5%BA%8F/" rel="prev" title="Chapter 10 文件系统微过滤器">
       <i class="fa fa-chevron-left"></i> Chapter 10 文件系统微过滤器
     </a></div>
-      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2022/06/30/Cheese_point/%E6%B3%A8%E5%86%8C%E8%A1%A8%E7%9B%91%E6%8E%A7/" rel="next" title="注册表监控">
+      注册表监控 <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
       </footer>
     
@@ -358,7 +332,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%9D%E8%B7%AF"><span class="nav-number">1.</span> <span class="nav-text">思路</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CR0%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-number">2.</span> <span class="nav-text">CR0寄存器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%A9%B1%E5%8A%A8"><span class="nav-number">3.</span> <span class="nav-text">驱动</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%9D%E8%B7%AF"><span class="nav-number">1.</span> <span class="nav-text">思路</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -374,7 +348,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">101</span>
+          <span class="site-state-item-count">108</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -387,7 +361,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">103</span>
+        <span class="site-state-item-count">115</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -434,12 +408,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">229k</span>
+    <span title="站点总字数">284k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">3:28</span>
+    <span title="站点阅读时长">4:19</span>
 </div>
 
         

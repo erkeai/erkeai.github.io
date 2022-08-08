@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.ico">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"erkeai.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="CmRegisterCallback64位系统下微软提供了CmRegisterCallback这个回调函数来实时监控注册表的操作，那详细探究一下其实现的原理。 12345NTSTATUS CmRegisterCallback(  [in]           PEX_CALLBACK_FUNCTION Function,  [in, optional] PVOID">
+<meta property="og:type" content="article">
+<meta property="og:title" content="注册表监控">
+<meta property="og:url" content="https://erkeai.github.io/2022/06/30/Cheese_point/x64%E4%B8%8B%E9%9A%90%E8%97%8F%E5%8F%AF%E6%89%A7%E8%A1%8C%E5%86%85%E5%AD%98/index.html">
+<meta property="og:site_name" content="hazel&#39;blog">
+<meta property="og:description" content="CmRegisterCallback64位系统下微软提供了CmRegisterCallback这个回调函数来实时监控注册表的操作，那详细探究一下其实现的原理。 12345NTSTATUS CmRegisterCallback(  [in]           PEX_CALLBACK_FUNCTION Function,  [in, optional] PVOID">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220630164456292.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220630164913636.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220630165633538.png">
+<meta property="og:image" content="c:/Users/16434/AppData/Roaming/Typora/typora-user-images/image-20220630171826957.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220630173058237.png">
+<meta property="article:published_time" content="2022-06-29T16:00:00.000Z">
+<meta property="article:modified_time" content="2022-06-30T11:23:18.617Z">
+<meta property="article:author" content="ZouFeIYu">
+<meta property="article:tag" content="注册表">
+<meta property="article:tag" content="驱动">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220630164456292.png">
+
+<link rel="canonical" href="https://erkeai.github.io/2022/06/30/Cheese_point/x64%E4%B8%8B%E9%9A%90%E8%97%8F%E5%8F%AF%E6%89%A7%E8%A1%8C%E5%86%85%E5%AD%98/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>注册表监控 | hazel'blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">hazel'blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">115</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">10</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">108</span></a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/06/30/Cheese_point/x64%E4%B8%8B%E9%9A%90%E8%97%8F%E5%8F%AF%E6%89%A7%E8%A1%8C%E5%86%85%E5%AD%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          注册表监控
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-06-30 00:00:00 / 修改时间：19:23:18" itemprop="dateCreated datePublished" datetime="2022-06-30T00:00:00+08:00">2022-06-30</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%9F%A5%E8%AF%86%E7%82%B9%E8%A1%A5%E5%85%85%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">知识点补充学习</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="CmRegisterCallback"><a href="#CmRegisterCallback" class="headerlink" title="CmRegisterCallback"></a>CmRegisterCallback</h3><p>64位系统下微软提供了<code>CmRegisterCallback</code>这个回调函数来实时监控注册表的操作，那详细探究一下其实现的原理。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">NTSTATUS <span class="title">CmRegisterCallback</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">  [in]           PEX_CALLBACK_FUNCTION Function,</span></span></span><br><span class="line"><span class="params"><span class="function">  [in, optional] PVOID                 Context,</span></span></span><br><span class="line"><span class="params"><span class="function">  [out]          PLARGE_INTEGER        Cookie</span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>上面为其结构，详细参数如下：            </p>
+<table>
+<thead>
+<tr>
+<th><strong>参数</strong></th>
+<th><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Function</td>
+<td>指向RegistryCallback例程的指针，这个参数就是用来监控注册表操作的回调函数</td>
+</tr>
+<tr>
+<td>Context</td>
+<td>配置管理器将作为CallbackContext参数传递给RegistryCallback例程中由驱动程序定义的值。此处设为NULL就好</td>
+</tr>
+<tr>
+<td>Cookie</td>
+<td>指向LARGE_INTEGER变量的指针，该变量接收标识回调例程的值。当注册回调例程的时候，次值将作为Cookie参数传递给CmUnRegisterCallback</td>
+</tr>
+</tbody></table>
+<p>其中第一个参数指向的类型是<code>PEX_CALLBACK_FUNCTION</code>，该类型是一个回调函数。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">EX_CALLBACK_FUNCTION ExCallbackFunction;</span><br><span class="line"></span><br><span class="line"><span class="function">NTSTATUS <span class="title">ExCallbackFunction</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">  [in]           PVOID CallbackContext,</span></span></span><br><span class="line"><span class="params"><span class="function">  [in, optional] PVOID Argument1,</span></span></span><br><span class="line"><span class="params"><span class="function">  [in, optional] PVOID Argument2</span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span></span><br><span class="line"><span class="function"></span>&#123;...&#125;</span><br></pre></td></tr></table></figure>
+
+<p>参数如下</p>
+<table>
+<thead>
+<tr>
+<th><strong>参数</strong></th>
+<th><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CallbackContext</td>
+<td>在注册该RegistryCallback例程时，驱动程序作为Context参数传递给CmRegisterCallback的值</td>
+</tr>
+<tr>
+<td>Argument1</td>
+<td>REG_NOTIFY_CLASS联合体类型的值，用于标识正在执行的注册表的操作类型，以及是否在执行注册表操作之前或之后调用RegistryCallback例程</td>
+</tr>
+<tr>
+<td>Argument2</td>
+<td>指向特定于注册表操作信息的结构指针。结构的类型取决于Argument1中的REG_NOTIFY_CLASS类型值</td>
+</tr>
+</tbody></table>
+<p><code>REG_NOTIFY_CLASS</code>结构中其中的几个比较常用的类型，它们的意义，以及对应的<code>Argument2</code>的结构体的内容如下</p>
+<table>
+<thead>
+<tr>
+<th><strong>REG_NOTIFY_CLASS的值</strong></th>
+<th><strong>意义</strong></th>
+<th><strong>Argument2结构体</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RegNtPreCreateKey</td>
+<td>创建注册表</td>
+<td>PREG_CREATE_KEY_INFORMATION</td>
+</tr>
+<tr>
+<td>RegNtPreOpenKey</td>
+<td>打开注册表</td>
+<td>PREG_CREATE_KEY_INFORMATION</td>
+</tr>
+<tr>
+<td>RegNtPreDeleteKey</td>
+<td>删除键</td>
+<td>PREG_DELETE_KEY_INFORMATION</td>
+</tr>
+<tr>
+<td>RegNtPreDeleteValueKey</td>
+<td>删除键值</td>
+<td>PREG_DELETE_VALUE_KEY_INFORMATION</td>
+</tr>
+<tr>
+<td>RegNtPreSetValueKey</td>
+<td>修改键值</td>
+<td>PREG_SET_VALUE_KEY_INFORMATION</td>
+</tr>
+</tbody></table>
+<p>关注一下这几个结构体，其中<code>PREG_CREATE_KEY_INFORMATION</code>就是有两个关键成员</p>
+<table>
+<thead>
+<tr>
+<th><strong>成员</strong></th>
+<th><strong>含义</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CompleteName</td>
+<td>指向包含新注册表项路径的UNICODE_字符串结构的指针。路径可以是绝对的，也可以是相对的。如果路径是绝对路径，则此结构包含以“\”字符开头的完全限定路径。对于绝对路径，RootObject成员指定\注册表项，它是注册表树的根目录。如果路径是相对的，则路径以“\”以外的字符开头，并且与RootObject成员指定的键相对</td>
+</tr>
+<tr>
+<td>RootObject</td>
+<td>指向注册表项对象的指针，该对象用作CompleteName成员指定的路径的根</td>
+</tr>
+</tbody></table>
+<p>然后关于<code>PREG_DELETE_KEY_INFORMATION</code>的结构体定义如下，<code>Object</code>参数指向要删除注册表的指针</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">REG_DELETE_KEY_INFORMATION</span> &#123;</span></span><br><span class="line">    PVOID    Object;                      <span class="comment">// IN</span></span><br><span class="line">    PVOID    CallContext;  </span><br><span class="line">    PVOID    ObjectContext;</span><br><span class="line">    PVOID    Reserved;     </span><br><span class="line">&#125; REG_DELETE_KEY_INFORMATION, *PREG_DELETE_KEY_INFORMATION</span><br></pre></td></tr></table></figure>
+
+<p>然后<code>PREG_DELETE_VALUE_KEY_INFORMATION</code>结构体定义如下,<code>Object</code>还是指向要删除的注册表的指针，而<code>ValueName</code>就是指向具体需要删除的值</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">REG_DELETE_VALUE_KEY_INFORMATION</span> &#123;</span></span><br><span class="line">  PVOID           Object;</span><br><span class="line">  PUNICODE_STRING ValueName;</span><br><span class="line">  PVOID           CallContext;</span><br><span class="line">  PVOID           ObjectContext;</span><br><span class="line">  PVOID           Reserved;</span><br><span class="line">&#125; REG_DELETE_VALUE_KEY_INFORMATION, *PREG_DELETE_VALUE_KEY_INFORMATION;</span><br></pre></td></tr></table></figure>
+
+<p>最后是<code>PREG_SET_VALUE_KEY_INFORMATION</code>结构，同样是<code>Object</code>指向要修改的注册表的指针，而<code>ValueName</code>就是指向具体需要修改的值。</p>
+<h3 id="IDA逆向分析"><a href="#IDA逆向分析" class="headerlink" title="IDA逆向分析"></a>IDA逆向分析</h3><p>这个函数首先将需要的参数入栈以后调用<code>CmpRegisterCallbackInternal</code></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220630164456292.png" alt="image-20220630164456292"></p>
+<p>通过<code>test esi,esi</code>将<code>Blink</code>和<code>Flink</code>都指向自己，然后进行判断后跳转到<code>69436B</code>这个地址</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220630164913636.png" alt="image-20220630164913636"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220630165633538.png" alt="image-20220630165633538"></p>
+<p>这段函数的主要作用就是将<code>Cookie</code>的值存入<code>0x10</code>偏移处，这里的设计很巧妙，因为一个cookie是占8位的，这里首先将<code>[esi + 0x10]</code>的值存入eax，然后将 ebx 指向的内存位置的内容移动到指向 eax 的内存位置，相当于赋值前4位，然后再进行同样的操作，这里取的是<code>[esi + 0x14]</code>，也就是赋值后四位。</p>
+<p><img src="C:\Users\16434\AppData\Roaming\Typora\typora-user-images\image-20220630171826957.png" alt="image-20220630171826957"></p>
+<p>可以看到，系统分配0x30大小的内存来保存相应的内容，根据以上的分析可以得出下面的结论</p>
+<ul>
+<li>最开始的8个字节保存的是一个<code>LIST_ENTRY</code>类型的双向链表</li>
+<li>偏移0x10保存的是COOKIE</li>
+<li>偏移0x1C保存的Context</li>
+<li>偏移0x18保存的是回调函数的地址</li>
+</ul>
+<p>可以想到注册表监控的回调函数是用<code>LIST_ENTRY</code>双向链表来一个个连起来的。而真正将分配的这块内存加入链表的函数则是<code>SetRegisterCallback</code>函数</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220630173058237.png" alt="image-20220630173058237"></p>
+<p>在这个<code>ListBegin</code>就是链表头的地址，里面保存的就是第一个链表的地址。首先会将它保存的内容取出判断保存的是否就是<code>ListBegin</code>的首地址，如果是的话就说明到了链表的尾部，接下来就会跳转到<code>loc_695306</code>来把结构加进链表。如果不是的话，它会执行循环，不断的取链表中的下一个数据直到链表尾。</p>
+<p>​           ——————————————-我是一条分割线—————————————————————</p>
+<p>根据上面的内容知道了，回调函数是可以获取要操作的注册表键的对象的，所以可以使用<code>ObQueryNameString</code>函数来<strong>获得要操作的键的名称</strong>，该函数在文档中的定义如下</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">NTSTATUS</span></span><br><span class="line"><span class="function">  <span class="title">ObQueryNameString</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    IN PVOID  Object,</span></span></span><br><span class="line"><span class="params"><span class="function">    OUT POBJECT_NAME_INFORMATION  ObjectNameInfo,</span></span></span><br><span class="line"><span class="params"><span class="function">    IN ULONG  Length,</span></span></span><br><span class="line"><span class="params"><span class="function">    OUT PULONG  ReturnLength</span></span></span><br><span class="line"><span class="params"><span class="function">    )</span></span>;</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th><strong>参数</strong></th>
+<th><strong>含义</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Object</td>
+<td>指向请求名称的对象的指针。此参数是必需的，不能为NULL。</td>
+</tr>
+<tr>
+<td>ObjectNameInfo</td>
+<td>指向接收对象名称信息的调用方分配的缓冲区的OBJECT_NAME_INFORMATION指针</td>
+</tr>
+<tr>
+<td>Length</td>
+<td>参数二的缓冲区大小</td>
+</tr>
+<tr>
+<td>ReturnLength</td>
+<td>实际返回到缓冲区中的数据大小</td>
+</tr>
+</tbody></table>
+<p><strong>想要实现对监控函数的删除，</strong>可以使用<code>CmUnRegisterCallback</code>函数来实现，该函数在文档中的定义如下。它只有一个参数，就是前面设置监控函数时候指定的<code>Cookie</code>的地址。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">NTSTATUS</span></span><br><span class="line"><span class="function">  <span class="title">CmUnRegisterCallback</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    IN LARGE_INTEGER  Cookie)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="实施监控"><a href="#实施监控" class="headerlink" title="实施监控"></a>实施监控</h3><p>注册表的监控回调函数被以链表的形式保存到了内存中，其中这个链表头是ListBegin。接下来只要找到这个链表头并且遍历这个链表，取出COOKIE就可以实现回调函数的删除。通过字节码匹配可以找到链表头。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;ntifs.h&gt;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="function">VOID <span class="title">DriverUnload</span><span class="params">(IN PDRIVER_OBJECT driverObject)</span></span>;</span><br><span class="line"><span class="function">PULONG <span class="title">GetRegisterList</span><span class="params">()</span></span>;</span><br><span class="line"> </span><br><span class="line"><span class="function">NTSTATUS <span class="title">DriverEntry</span><span class="params">(IN PDRIVER_OBJECT driverObject, IN PUNICODE_STRING registryPath)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    NTSTATUS status = STATUS_SUCCESS;</span><br><span class="line">    PULONG pHead = <span class="literal">NULL</span>;</span><br><span class="line">    PLIST_ENTRY pListEntry = <span class="literal">NULL</span>;</span><br><span class="line">    PLARGE_INTEGER  pLiRegCookie = <span class="literal">NULL</span>;</span><br><span class="line">    LARGE_INTEGER test;</span><br><span class="line">    PULONG pFuncAddr = <span class="literal">NULL</span>;</span><br><span class="line"> </span><br><span class="line">    DbgPrint(<span class="string">&quot;驱动加载完成\r\n&quot;</span>);</span><br><span class="line">    pHead = GetRegisterList();</span><br><span class="line">    <span class="keyword">if</span> (pHead != <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        pListEntry = (PLIST_ENTRY)*pHead;</span><br><span class="line">         </span><br><span class="line">        <span class="keyword">while</span> ((ULONG)pListEntry != (ULONG)pHead)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (!MmIsAddressValid(pListEntry)) <span class="keyword">break</span>;</span><br><span class="line">             </span><br><span class="line">            pLiRegCookie = (PLARGE_INTEGER)((ULONG)pListEntry + <span class="number">0x10</span>);</span><br><span class="line">            pFuncAddr = (PULONG)((ULONG)pListEntry + <span class="number">0x1C</span>);</span><br><span class="line">            <span class="comment">//判断地址是否有效</span></span><br><span class="line">            <span class="keyword">if</span> (MmIsAddressValid(pFuncAddr) &amp;&amp;  MmIsAddressValid(pLiRegCookie))</span><br><span class="line">            &#123;</span><br><span class="line">                status = CmUnRegisterCallback(*pLiRegCookie);</span><br><span class="line">                <span class="keyword">if</span> (NT_SUCCESS(status))</span><br><span class="line">                &#123;</span><br><span class="line">                    DbgPrint(<span class="string">&quot;删除注册表回调成功,函数地址为0x%X\r\n&quot;</span>, *pFuncAddr);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            pListEntry = pListEntry-&gt;Flink;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line"><span class="built_in">exit</span>:</span><br><span class="line">    driverObject-&gt;DriverUnload = DriverUnload;</span><br><span class="line">    <span class="keyword">return</span> STATUS_SUCCESS;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="function">PULONG <span class="title">GetRegisterList</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    PULONG pListEntry = <span class="literal">NULL</span>;</span><br><span class="line">    PUCHAR pCmRegFunc = <span class="literal">NULL</span>, pCmcRegFunc = <span class="literal">NULL</span>, pSetRegFunc = <span class="literal">NULL</span>;</span><br><span class="line">    UNICODE_STRING uStrFuncName = RTL_CONSTANT_STRING(<span class="string">L&quot;CmRegisterCallback&quot;</span>);</span><br><span class="line"> </span><br><span class="line">    pCmRegFunc = (PUCHAR)MmGetSystemRoutineAddress(&amp;uStrFuncName);</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">if</span> (pCmRegFunc == <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        DbgPrint(<span class="string">&quot;MmGetSystemRoutineAddress Error\r\n&quot;</span>);</span><br><span class="line">        <span class="keyword">goto</span> <span class="built_in">exit</span>;</span><br><span class="line">    &#125;</span><br><span class="line">     </span><br><span class="line">    <span class="keyword">while</span> (*pCmRegFunc != <span class="number">0xC2</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (*pCmRegFunc == <span class="number">0xE8</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            pCmcRegFunc = (PUCHAR)((ULONG)pCmRegFunc + <span class="number">5</span> + *(PULONG)(pCmRegFunc + <span class="number">1</span>));</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        pCmRegFunc++;</span><br><span class="line">    &#125;</span><br><span class="line">     </span><br><span class="line">    <span class="keyword">if</span> (pCmcRegFunc == <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        DbgPrint(<span class="string">&quot;GetCmcRegFunc Error\r\n&quot;</span>);</span><br><span class="line">        <span class="keyword">goto</span> <span class="built_in">exit</span>;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">while</span> (*pCmcRegFunc != <span class="number">0xC2</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (*pCmcRegFunc == <span class="number">0x8B</span> &amp;&amp; *(pCmcRegFunc +<span class="number">1</span>) == <span class="number">0xC6</span> &amp;&amp; *(pCmcRegFunc + <span class="number">2</span>) == <span class="number">0xE8</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            pSetRegFunc = (PUCHAR)((ULONG)pCmcRegFunc + <span class="number">2</span> + <span class="number">5</span> + *(PULONG)(pCmcRegFunc + <span class="number">3</span>));</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        pCmcRegFunc++;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">if</span> (pSetRegFunc == <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        DbgPrint(<span class="string">&quot;GetSetRegFunc Error\r\n&quot;</span>);</span><br><span class="line">        <span class="keyword">goto</span> <span class="built_in">exit</span>;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">while</span> (*pSetRegFunc != <span class="number">0xC2</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (*pSetRegFunc == <span class="number">0xBB</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            pListEntry = (PULONG)*(PULONG)(pSetRegFunc + <span class="number">1</span>);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        pSetRegFunc++;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="built_in">exit</span>:</span><br><span class="line">    <span class="keyword">return</span> pListEntry;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="function">VOID <span class="title">DriverUnload</span><span class="params">(IN PDRIVER_OBJECT driverObject)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    DbgPrint(<span class="string">&quot;驱动卸载完成\r\n&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>参考链接：<a target="_blank" rel="noopener" href="https://bbs.pediy.com/thread-269980.htm#msg_header_h1_0">看雪</a>、<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/mefFuWKJMDJMYvNTjzBVuw">跳跳糖</a></p>
+<p>(<strong>PS</strong>:前面虽然说是64位，但是我发现参考的文章其实IDA分析的都是32位的ntoskrnl.exe)</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>ZouFeIYu
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://erkeai.github.io/2022/06/30/Cheese_point/x64%E4%B8%8B%E9%9A%90%E8%97%8F%E5%8F%AF%E6%89%A7%E8%A1%8C%E5%86%85%E5%AD%98/" title="注册表监控">https://erkeai.github.io/2022/06/30/Cheese_point/x64下隐藏可执行内存/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%B3%A8%E5%86%8C%E8%A1%A8/" rel="tag"># 注册表</a>
+              <a href="/tags/%E9%A9%B1%E5%8A%A8/" rel="tag"># 驱动</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/06/30/Cheese_point/%E6%B3%A8%E5%86%8C%E8%A1%A8%E7%9B%91%E6%8E%A7/" rel="prev" title="注册表监控">
+      <i class="fa fa-chevron-left"></i> 注册表监控
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/07/06/paper/Malware%20classification%20using%20a%20byte-granularity/" rel="next" title="Malware classification using a byte-granularity feature based on structural entropy">
+      Malware classification using a byte-granularity feature based on structural entropy <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#CmRegisterCallback"><span class="nav-number">1.</span> <span class="nav-text">CmRegisterCallback</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IDA%E9%80%86%E5%90%91%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">IDA逆向分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E6%96%BD%E7%9B%91%E6%8E%A7"><span class="nav-number">3.</span> <span class="nav-text">实施监控</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ZouFeIYu"
+      src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+  <p class="site-author-name" itemprop="name">ZouFeIYu</p>
+  <div class="site-description" itemprop="description">reading, coding, travelling</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">115</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/erkeai" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;erkeai" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:563783592@qq.com" title="E-Mail → mailto:563783592@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-feather"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ZouFeIYu</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">284k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:19</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
