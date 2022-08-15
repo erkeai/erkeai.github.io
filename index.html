@@ -120,7 +120,7 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">114</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">116</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -130,7 +130,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">107</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">108</span></a>
 
   </li>
   </ul>
@@ -156,6 +156,132 @@
 
           <div class="content index posts-expand">
             
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/08/15/wkp/%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91-%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/08/15/wkp/%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91-%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C/" class="post-title-link" itemprop="url">驱动开发-文件操作</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-08-15 00:00:00 / 修改时间：18:46:29" itemprop="dateCreated datePublished" datetime="2022-08-15T00:00:00+08:00">2022-08-15</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">驱动开发</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="Ring3和Ring0的通信DeviceIoControl"><a href="#Ring3和Ring0的通信DeviceIoControl" class="headerlink" title="Ring3和Ring0的通信DeviceIoControl"></a>Ring3和Ring0的通信DeviceIoControl</h3><p>这种通信方式是驱动程序与应用程序自定义IO控制码，然后调用<code>DeviceIoControl</code>函数，IO管理器会产生一个<code>MajorFunction</code> 为<code>IRP_MJ_DEVICE_CONTROL</code>（<code>DeviceIoControl</code>函数会产生此<code>IRP</code>），<code>MinorFunction</code> 为自己定义的控制码的<code>IRP</code>，系统就调用相应的处理<code>IRP_MJ_DEVICE_CONTROL</code>的派遣函数，你在派遣函数中判断<code>MinorFunction</code> ，是自定义的控制码你就进行相应的处理。</p>
+<h4 id="操作码"><a href="#操作码" class="headerlink" title="操作码"></a>操作码</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> IOCTL_Device_Function CTL_CODE(DeviceType, Function, Method, Access)</span></span><br></pre></td></tr></table></figure>
+
+<p>　　* IOCTL_Device_Function：生成的IRP的MinorFunction<br>　　* DeviceType：设备对象的类型。一般以<code>FILE_DEVICE_XXX</code>的形式，但是这主要用于<strong>基于硬件</strong>的驱动程序，对于像本例子这样的软件驱动程序来说，这部分并不是很重要。微软规定第三方的值应该从<code>0x8000</code>开始。<br>　　* Function ：自定义的IO控制码。自己定义时取0x800到0xFFF，因为0x0到0x7FF是微软保留。<br>　　* Method ：数据的操作模式。</p>
+<p>​       METHOD_BUFFERED：缓冲区模式</p>
+<p>​       METHOD_IN_DIRECT：直接写模式</p>
+<p>​       METHOD_OUT_DIRECT：直接读模式</p>
+<p>​       METHOD_NEITHER ：Neither模式</p>
+<ul>
+<li>Access：访问权限，可取值有：</li>
+</ul>
+<p>​      FILE_ANY_ACCESS：表明用户拥有所有的权限</p>
+<p>​      FILE_READ_DATA：表明权限为只读</p>
+<p>​      FILE_WRITE_DATA：表明权限为可写</p>
+<p>​      也可以 FILE_WRITE_DATA | FILE_READ_DATA：表明权限为可读可写，但还没达到FILE_ANY_ACCESS的权限。</p>
+<h4 id="缓冲区方式的读写操作"><a href="#缓冲区方式的读写操作" class="headerlink" title="缓冲区方式的读写操作"></a>缓冲区方式的读写操作</h4><p>简单说一下这四种操作模式，首先第一种**缓冲区模式<code>METHOD_BUFFERED</code>**，表示系统将应用程序提供缓冲区的数据复制到内核模式下的地址中，这个地址用<code>pIrp-&gt;AssociatedIrp.SystemBuffer</code>来记录。因此这种方式的通信比较安全和方便，但是效率较低，适合数据量比较小的时候使用。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220812161136566.png" alt="image-20220812161136566"></p>
+<p>第二种<strong>直接方式读写<code>METHOD_IN/OUT_DIRECT</code><strong>，与第一种方式不同，操作系统会将用户模式下的缓冲区锁住，然后操作系统将这段缓冲区在内核模式地址再次映射一遍。这样，</strong>用户模式和内核模式的缓冲区指向的是同一区域的物理内存</strong>。操作系统将用户模式地址锁定后，会用内存描述符表（MDL）记录这段内存。</p>
+<p>这种方式效率高，但是单独占用物理页面，无法再进行其它操作（例如文件读写） ，适合数据量较大时使用。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220812162552303.png" alt="image-20220812162552303"></p>
+<p>第三种是**其他读写方式<code>METHOD_NEITHER </code>**，派遣函数直接读写应用程序提供的缓冲区地址，在驱动程序中，直接操作应用程序的缓冲区地址是很危险的。只有驱动程序与应用程序运行在相同线程上下文的情况下，才能使用这种方式。</p>
+<p>驱动的派遣函数中输入缓冲区可以通过I/O堆栈（IO_STACK_LOCATION）的<code>stack-&gt;Parameters.DeviceIoControl.Type3InputBuffer</code>得到。输出缓冲区可以通过<code>pIrp-&gt;UserBuffer</code>得到。在读写前使用<code>ProbeForRead</code>和<code>ProbeForWrite</code>函数探测地址是否可读和可写。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220812163159811.png" alt="image-20220812163159811"></p>
+<p>通信流程：</p>
+<p>　　* 驱动程序和应用程序自定义好IO控制码<br>　　* 驱动程序定义驱动设备名，符号链接名， 将符号链接名与设备对象名称关联 ，等待IO控制码（<code>IoCreateDevice</code>，<code>IoCreateSymbolicLink</code>）<br>　　* 应用程序由符号链接名通过<code>CreateFile</code>函数获取到设备句柄<code>DeviceHandle</code>，再用<code>DeviceIoControl</code>通过这个设备句柄发送控制码给派遣函数。</p>
+<p><strong>总之，三环函数-&gt;NTDLL-&gt;封装IRP-&gt;由驱动进行接收处理-&gt;最后返回给R3</strong></p>
+<h4 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h4><p>1.首先需要和驱动程序一样定义操作码，以便通信</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220815102456775.png" alt="image-20220815102456775"></p>
+<p>2.然后打开符号链接</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220815101857369.png" alt="image-20220815101857369"></p>
+<p>3.通过<code>DeviceIoControl</code>将操作码等数据发给驱动，表明要执行什么操作，注意<code>Write</code>以及<code>Read</code>操作需要调用该函数两次，<code>Write</code>一次发送操作路径，一次发送操作数据，<code>Read</code>一次发送操作路径，返回文件大小；一次发送操作长度，返回文件内容。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220815102859789.png" alt="image-20220815102859789"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220815183826750.png" alt="image-20220815183826750"></p>
+<h3 id="Ring0层"><a href="#Ring0层" class="headerlink" title="Ring0层"></a>Ring0层</h3><p>驱动程序首先需要创建设备名称和符号链接，并且需要创建设备对象，目的就是为了接受R3层的IRP数据，符号链接主要是为设备对象创建的，创建了符号链接才能再yR3层看到驱动。并且只有驱动内部含有符号链接名，应用层才能以文件形式打开这个驱动。</p>
+<h4 id="驱动和设备的关系"><a href="#驱动和设备的关系" class="headerlink" title="驱动和设备的关系"></a>驱动和设备的关系</h4><p>驱动:  驱动则是用来操作设备的. </p>
+<p>设备:  设备则是我们常说的外设. 比如键盘. 显示器.鼠标等等。</p>
+<p>驱动和设备之间的关系是<strong>一对多</strong>的关系，驱动可以操作很多设备。</p>
+<p>依据上面的数据关系来说，设备对象中肯定会存储驱动对象结构体的指针，驱动对象做外键存储到设备对象中.</p>
+<h4 id="代码-1"><a href="#代码-1" class="headerlink" title="代码"></a>代码</h4><p>1.创建设备名称和符号链接</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220813131057472.png" alt="image-20220813131057472"></p>
+<p>2.注册回调函数</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220815101449066.png" alt="image-20220815101449066"></p>
+<p>3.主要的操作函数，用来处理与Ring3的交互</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220815184356417.png" alt="image-20220815184356417"></p>
+<p>因为采用的是缓冲区的方式读写，所以按照前面说的，输入输出其实都是一个缓冲区。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -1750,102 +1876,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/05/24/paper/Cryptomining%20Malware%20Detection%20Based%20on%20Edge/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/05/24/paper/Cryptomining%20Malware%20Detection%20Based%20on%20Edge/" class="post-title-link" itemprop="url">Cryptomining Malware Detection Based on Edge Computing-Oriented Multi-Modal Features Deep Learning</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2022-05-24 00:00:00 / 修改时间：16:15:23" itemprop="dateCreated datePublished" datetime="2022-05-24T00:00:00+08:00">2022-05-24</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/paper-reading/" itemprop="url" rel="index"><span itemprop="name">paper reading</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.5k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>近年来，随着加密货币价格的上涨，恶意加密挖矿软件的数量显著增加。凭借其强大的传播能力，加密挖矿恶意软件可以在不知不觉中占据我们的资源，损害我们的利益，并损害更多的合法资产。然而，虽然目前传统的基于规则的恶意软件检测方法的误报率较低，但在面对大量新出现的恶意软件时，其检出率相对较低。尽管常见的基于机器学习或基于深度学习的方法具有一定的学习和检测未知恶意软件的能力，<strong>但它们所学习的特征是单一的和独立的，不能自适应地学习</strong>。针对上述问题，提出了一种具有<strong>多模态特征多输入</strong>的深度学习模型，该模型可以同时接受不同维度上的数字特征和图像特征。该模型依次包括三个子模型的并行学习和另一个特定子模型的集成学习。这四个子模型可以在不同的设备上并行处理，并可以进一步应用于边缘计算环境。该模型可以自适应地学习多模态特征并输出预测结果。该模型的检出率高达97.01%，误报率仅为0.63%。实验结果证明了该方法的优点和有效性。</p>
-<h3 id="论文贡献"><a href="#论文贡献" class="headerlink" title="论文贡献"></a>论文贡献</h3><ul>
-<li>提取了软件在不同模式下的特征，使样本信息描述更加全面。</li>
-<li>所提出的模型分别学习不同模式的特征，并优化各模型的效果。</li>
-<li>可以将单个模型作为一个块纳入整体模型，每个块的输出可以进行拼接和变形，并可以输出下一阶段的深度学习模型进行进一步的学习和预测</li>
-</ul>
-<p>特征主要有<strong>灰度图像特征、字节/熵直方图，传统特征工程</strong>。使用三种深度学习子模型来接受这三种模式的特征，并使用另一个深度学习子模型来学习和预测上述三个子模型的输出。换句话说，整体的深度学习模型实际上包含了四个具有不同功能的深度学习模块，可以单独或同时执行。</p>
-<h3 id="方法模型"><a href="#方法模型" class="headerlink" title="方法模型"></a>方法模型</h3><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220524155818502.png" alt="image-20220524155818502"></p>
-<p>对于灰度图像的特征，作者使用EfficientNet，这是一个集成尺度方法的多维模型，是图像图像分类任务的最佳模型之一。通过简单的设计理念，它可以达到良好的最终效果。缩放方法和神经结构搜索(NAS)是EfficientNet的核心思想。</p>
-<p>在字节直方图和熵直方图的学习模块中，作者设计了一个基于CNN的基本模型。通过卷积、批处理归一化、池化等函数，了解了直方图的特征。</p>
-<p>对于利用专业领域知识提取的特征工程向量，作者使用基于Bi-GRU的深度学习模型进行学习。将特征向量视为序列数据。Bi-GRU可以同时从两个方向上学习序列特征。</p>
-<h4 id="集成学习块"><a href="#集成学习块" class="headerlink" title="集成学习块"></a>集成学习块</h4><p>在获得三种特征提取模型提取的特征后，需要对它们进行拼接和变换。首先，将三个维数为（512,1）、（256,1）和（256,1）的向量连接起来，得到一个维数为（1024,1）的向量。然后，将获得的向量重塑为一个大小为（32,32）的类图像向量。最后，将其输入到基于效率网-b0的模型中，得到最终的预测结果。</p>
-<h4 id="边缘计算"><a href="#边缘计算" class="headerlink" title="边缘计算"></a>边缘计算</h4><p>该模型由四个部分组成，每个部分都有不同的计算成本和所需的资源。边缘计算与云技术相结合，可以大大提高模型的效率。从挖矿恶意软件到这三个功能的过程可以通过边缘设备独立完成，然后将这些功能上传到云端。对于硬件配置较高的设备，甚至可以在边缘设备上完成第一阶段的模型预测任务。</p>
-<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>本文采用静态分析方法提取了三种不同的特征：灰度图像特征、字节/熵直方图特征和特征工程。通过对特征的集成学习，在控制误报率的情况下，取得了良好的效果。该方法得益于对不同模态特征的同时处理和自适应处理，避免了传统手工评分的盲目性。在恶意挖掘样本的检测任务中，基于多模态特征的深度学习模型的性能为未来的多场景应用提供了一种新的解决方案。结合边缘计算和云计算等技术可以实现模型在部署和服务上更有效。</p>
-<p>然而，静态分析也有其固有的缺点。它很难处理混淆和去壳的样本，程序的执行甚至可以产生额外的行为和特征。动态分析既可以更好地提取混淆部分或潜在部分，又可以检测程序的特殊行为和资源占用。静态分析和动态分析并不是相互排斥的，而是互补的。因此，当条件允许时，两者的结合将会更好</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1917,7 +1947,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">107</span>
+          <span class="site-state-item-count">108</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1930,7 +1960,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">114</span>
+        <span class="site-state-item-count">116</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1977,12 +2007,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">271k</span>
+    <span title="站点总字数">274k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">4:07</span>
+    <span title="站点阅读时长">4:09</span>
 </div>
 
         

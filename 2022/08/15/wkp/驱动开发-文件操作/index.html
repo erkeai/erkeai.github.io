@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.ico">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"erkeai.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Ring3和Ring0的通信DeviceIoControl这种通信方式是驱动程序与应用程序自定义IO控制码，然后调用DeviceIoControl函数，IO管理器会产生一个MajorFunction 为IRP_MJ_DEVICE_CONTROL（DeviceIoControl函数会产生此IRP），MinorFunction 为自己定义的控制码的IRP，系统就调用相应的处理IRP_MJ_DEVICE">
+<meta property="og:type" content="article">
+<meta property="og:title" content="驱动开发-文件操作">
+<meta property="og:url" content="https://erkeai.github.io/2022/08/15/wkp/%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91-%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C/index.html">
+<meta property="og:site_name" content="hazel&#39;blog">
+<meta property="og:description" content="Ring3和Ring0的通信DeviceIoControl这种通信方式是驱动程序与应用程序自定义IO控制码，然后调用DeviceIoControl函数，IO管理器会产生一个MajorFunction 为IRP_MJ_DEVICE_CONTROL（DeviceIoControl函数会产生此IRP），MinorFunction 为自己定义的控制码的IRP，系统就调用相应的处理IRP_MJ_DEVICE">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220812161136566.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220812162552303.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220812163159811.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220815102456775.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220815101857369.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220815102859789.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220815183826750.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220813131057472.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220815101449066.png">
+<meta property="og:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220815184356417.png">
+<meta property="article:published_time" content="2022-08-14T16:00:00.000Z">
+<meta property="article:modified_time" content="2022-08-15T10:46:29.448Z">
+<meta property="article:author" content="ZouFeIYu">
+<meta property="article:tag" content="文件操作">
+<meta property="article:tag" content="Ring0&#x2F;3通信">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220812161136566.png">
+
+<link rel="canonical" href="https://erkeai.github.io/2022/08/15/wkp/%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91-%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>驱动开发-文件操作 | hazel'blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">hazel'blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">116</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">10</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">108</span></a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/08/15/wkp/%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91-%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          驱动开发-文件操作
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-08-15 00:00:00 / 修改时间：18:46:29" itemprop="dateCreated datePublished" datetime="2022-08-15T00:00:00+08:00">2022-08-15</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">驱动开发</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="Ring3和Ring0的通信DeviceIoControl"><a href="#Ring3和Ring0的通信DeviceIoControl" class="headerlink" title="Ring3和Ring0的通信DeviceIoControl"></a>Ring3和Ring0的通信DeviceIoControl</h3><p>这种通信方式是驱动程序与应用程序自定义IO控制码，然后调用<code>DeviceIoControl</code>函数，IO管理器会产生一个<code>MajorFunction</code> 为<code>IRP_MJ_DEVICE_CONTROL</code>（<code>DeviceIoControl</code>函数会产生此<code>IRP</code>），<code>MinorFunction</code> 为自己定义的控制码的<code>IRP</code>，系统就调用相应的处理<code>IRP_MJ_DEVICE_CONTROL</code>的派遣函数，你在派遣函数中判断<code>MinorFunction</code> ，是自定义的控制码你就进行相应的处理。</p>
+<h4 id="操作码"><a href="#操作码" class="headerlink" title="操作码"></a>操作码</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> IOCTL_Device_Function CTL_CODE(DeviceType, Function, Method, Access)</span></span><br></pre></td></tr></table></figure>
+
+<p>　　* IOCTL_Device_Function：生成的IRP的MinorFunction<br>　　* DeviceType：设备对象的类型。一般以<code>FILE_DEVICE_XXX</code>的形式，但是这主要用于<strong>基于硬件</strong>的驱动程序，对于像本例子这样的软件驱动程序来说，这部分并不是很重要。微软规定第三方的值应该从<code>0x8000</code>开始。<br>　　* Function ：自定义的IO控制码。自己定义时取0x800到0xFFF，因为0x0到0x7FF是微软保留。<br>　　* Method ：数据的操作模式。</p>
+<p>​       METHOD_BUFFERED：缓冲区模式</p>
+<p>​       METHOD_IN_DIRECT：直接写模式</p>
+<p>​       METHOD_OUT_DIRECT：直接读模式</p>
+<p>​       METHOD_NEITHER ：Neither模式</p>
+<ul>
+<li>Access：访问权限，可取值有：</li>
+</ul>
+<p>​      FILE_ANY_ACCESS：表明用户拥有所有的权限</p>
+<p>​      FILE_READ_DATA：表明权限为只读</p>
+<p>​      FILE_WRITE_DATA：表明权限为可写</p>
+<p>​      也可以 FILE_WRITE_DATA | FILE_READ_DATA：表明权限为可读可写，但还没达到FILE_ANY_ACCESS的权限。</p>
+<h4 id="缓冲区方式的读写操作"><a href="#缓冲区方式的读写操作" class="headerlink" title="缓冲区方式的读写操作"></a>缓冲区方式的读写操作</h4><p>简单说一下这四种操作模式，首先第一种**缓冲区模式<code>METHOD_BUFFERED</code>**，表示系统将应用程序提供缓冲区的数据复制到内核模式下的地址中，这个地址用<code>pIrp-&gt;AssociatedIrp.SystemBuffer</code>来记录。因此这种方式的通信比较安全和方便，但是效率较低，适合数据量比较小的时候使用。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220812161136566.png" alt="image-20220812161136566"></p>
+<p>第二种<strong>直接方式读写<code>METHOD_IN/OUT_DIRECT</code><strong>，与第一种方式不同，操作系统会将用户模式下的缓冲区锁住，然后操作系统将这段缓冲区在内核模式地址再次映射一遍。这样，</strong>用户模式和内核模式的缓冲区指向的是同一区域的物理内存</strong>。操作系统将用户模式地址锁定后，会用内存描述符表（MDL）记录这段内存。</p>
+<p>这种方式效率高，但是单独占用物理页面，无法再进行其它操作（例如文件读写） ，适合数据量较大时使用。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220812162552303.png" alt="image-20220812162552303"></p>
+<p>第三种是**其他读写方式<code>METHOD_NEITHER </code>**，派遣函数直接读写应用程序提供的缓冲区地址，在驱动程序中，直接操作应用程序的缓冲区地址是很危险的。只有驱动程序与应用程序运行在相同线程上下文的情况下，才能使用这种方式。</p>
+<p>驱动的派遣函数中输入缓冲区可以通过I/O堆栈（IO_STACK_LOCATION）的<code>stack-&gt;Parameters.DeviceIoControl.Type3InputBuffer</code>得到。输出缓冲区可以通过<code>pIrp-&gt;UserBuffer</code>得到。在读写前使用<code>ProbeForRead</code>和<code>ProbeForWrite</code>函数探测地址是否可读和可写。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220812163159811.png" alt="image-20220812163159811"></p>
+<p>通信流程：</p>
+<p>　　* 驱动程序和应用程序自定义好IO控制码<br>　　* 驱动程序定义驱动设备名，符号链接名， 将符号链接名与设备对象名称关联 ，等待IO控制码（<code>IoCreateDevice</code>，<code>IoCreateSymbolicLink</code>）<br>　　* 应用程序由符号链接名通过<code>CreateFile</code>函数获取到设备句柄<code>DeviceHandle</code>，再用<code>DeviceIoControl</code>通过这个设备句柄发送控制码给派遣函数。</p>
+<p><strong>总之，三环函数-&gt;NTDLL-&gt;封装IRP-&gt;由驱动进行接收处理-&gt;最后返回给R3</strong></p>
+<h4 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h4><p>1.首先需要和驱动程序一样定义操作码，以便通信</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220815102456775.png" alt="image-20220815102456775"></p>
+<p>2.然后打开符号链接</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220815101857369.png" alt="image-20220815101857369"></p>
+<p>3.通过<code>DeviceIoControl</code>将操作码等数据发给驱动，表明要执行什么操作，注意<code>Write</code>以及<code>Read</code>操作需要调用该函数两次，<code>Write</code>一次发送操作路径，一次发送操作数据，<code>Read</code>一次发送操作路径，返回文件大小；一次发送操作长度，返回文件内容。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220815102859789.png" alt="image-20220815102859789"></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220815183826750.png" alt="image-20220815183826750"></p>
+<h3 id="Ring0层"><a href="#Ring0层" class="headerlink" title="Ring0层"></a>Ring0层</h3><p>驱动程序首先需要创建设备名称和符号链接，并且需要创建设备对象，目的就是为了接受R3层的IRP数据，符号链接主要是为设备对象创建的，创建了符号链接才能再yR3层看到驱动。并且只有驱动内部含有符号链接名，应用层才能以文件形式打开这个驱动。</p>
+<h4 id="驱动和设备的关系"><a href="#驱动和设备的关系" class="headerlink" title="驱动和设备的关系"></a>驱动和设备的关系</h4><p>驱动:  驱动则是用来操作设备的. </p>
+<p>设备:  设备则是我们常说的外设. 比如键盘. 显示器.鼠标等等。</p>
+<p>驱动和设备之间的关系是<strong>一对多</strong>的关系，驱动可以操作很多设备。</p>
+<p>依据上面的数据关系来说，设备对象中肯定会存储驱动对象结构体的指针，驱动对象做外键存储到设备对象中.</p>
+<h4 id="代码-1"><a href="#代码-1" class="headerlink" title="代码"></a>代码</h4><p>1.创建设备名称和符号链接</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220813131057472.png" alt="image-20220813131057472"></p>
+<p>2.注册回调函数</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220815101449066.png" alt="image-20220815101449066"></p>
+<p>3.主要的操作函数，用来处理与Ring3的交互</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220815184356417.png" alt="image-20220815184356417"></p>
+<p>因为采用的是缓冲区的方式读写，所以按照前面说的，输入输出其实都是一个缓冲区。</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>ZouFeIYu
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://erkeai.github.io/2022/08/15/wkp/%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91-%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C/" title="驱动开发-文件操作">https://erkeai.github.io/2022/08/15/wkp/驱动开发-文件操作/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C/" rel="tag"># 文件操作</a>
+              <a href="/tags/Ring0-3%E9%80%9A%E4%BF%A1/" rel="tag"># Ring0/3通信</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/08/01/sample/CVE-2019-1458%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/" rel="prev" title="CVE-2019-1458漏洞分析">
+      <i class="fa fa-chevron-left"></i> CVE-2019-1458漏洞分析
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Ring3%E5%92%8CRing0%E7%9A%84%E9%80%9A%E4%BF%A1DeviceIoControl"><span class="nav-number">1.</span> <span class="nav-text">Ring3和Ring0的通信DeviceIoControl</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%93%8D%E4%BD%9C%E7%A0%81"><span class="nav-number">1.1.</span> <span class="nav-text">操作码</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BC%93%E5%86%B2%E5%8C%BA%E6%96%B9%E5%BC%8F%E7%9A%84%E8%AF%BB%E5%86%99%E6%93%8D%E4%BD%9C"><span class="nav-number">1.2.</span> <span class="nav-text">缓冲区方式的读写操作</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81"><span class="nav-number">1.3.</span> <span class="nav-text">代码</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Ring0%E5%B1%82"><span class="nav-number">2.</span> <span class="nav-text">Ring0层</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A9%B1%E5%8A%A8%E5%92%8C%E8%AE%BE%E5%A4%87%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-number">2.1.</span> <span class="nav-text">驱动和设备的关系</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81-1"><span class="nav-number">2.2.</span> <span class="nav-text">代码</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ZouFeIYu"
+      src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+  <p class="site-author-name" itemprop="name">ZouFeIYu</p>
+  <div class="site-description" itemprop="description">reading, coding, travelling</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">116</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/erkeai" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;erkeai" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:563783592@qq.com" title="E-Mail → mailto:563783592@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-feather"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ZouFeIYu</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">274k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:09</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

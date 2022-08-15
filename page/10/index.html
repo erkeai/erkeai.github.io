@@ -120,7 +120,7 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">114</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">116</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -130,7 +130,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">107</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">108</span></a>
 
   </li>
   </ul>
@@ -156,6 +156,222 @@
 
           <div class="content index posts-expand">
             
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/10/10/sample/Dissecting%20APT21%20samples%20using%20a%20step-by-step%20approach/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/10/10/sample/Dissecting%20APT21%20samples%20using%20a%20step-by-step%20approach/" class="post-title-link" itemprop="url">Dissecting APT21 samples using a step-by-step approach</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-10-10 00:00:00" itemprop="dateCreated datePublished" datetime="2021-10-10T00:00:00+08:00">2021-10-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-08-08 15:57:49" itemprop="dateModified" datetime="2022-08-08T15:57:49+08:00">2022-08-08</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%A0%B7%E6%9C%AC%E5%88%86%E6%9E%90/" itemprop="url" rel="index"><span itemprop="name">样本分析</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5.9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>在这篇博文中，详细分析了与名为 APT21 的 APT（高级持续威胁）攻击者相关联的恶意文件（称为“Travelnet”的后门）。 </p>
+<h3 id="Travelnet"><a href="#Travelnet" class="headerlink" title="Travelnet"></a>Travelnet</h3><p>第一个文件是用于将恶意 DLL（NetTraveler 木马）注册为服务的投放程序。 该木马的主要目的是收集有关环境的信息，例如用户名、主机名、主机的 IP 地址、Windows 操作系统版本、CPU 的不同配置、有关内存消耗的信息、进程列表。 </p>
+<p>恶意进程对磁盘以及 USB 驱动器和网络共享上的.doc/.docx/.xls/.xlsx/.txt/.rtf/.pdf 文件感兴趣，以便渗漏它们。在整个感染过程中，会创建多个.ini 配置文件，并且恶意软件还能够在受感染的机器上下载和执行其他文件。数据使用基于Lempel-Ziv的自定义算法进行压缩，并使用修改后的 Base64 算法进行编码，然后再将其泄露到命令和控制服务器。</p>
+<h3 id="1-Dropper"><a href="#1-Dropper" class="headerlink" title="1.Dropper"></a>1.Dropper</h3><p>恶意软件执行的第一步包括创建名为“立即安装服务”的互斥锁（注意空格）。互斥锁用于避免已感染的计算机再次感染</p>
+<pre><code>API:CreateMutexA
+</code></pre>
+<p>创建一个配置文件config_t.dat，配置文件由WritePrivateProfileStringA填充</p>
+<pre><code>API:CreateFileA
+
+    WritePrivateProfileStringA
+</code></pre>
+<p>在恶意代码的精确位置发现加密字节，加密包含了XOR操作，解密结束后发现是URL（C2服务器）</p>
+<p>注意在文件0x334偏移处有一字节表示恶意软件是否用代理，如果是0，配置文件中UP=0,如果是1，UP=1，并且还有PS (proxy address), PP (proxy port), PU (proxy user), PW (proxy password), PF (unknown)</p>
+<p>RegQueryValueExA该函数用来搜索与“HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows NT\CurrentVersion\Svchost”相关联的netsvcs(svchost.exe)的类型和数据</p>
+<pre><code>API:RegQueryValueExA
+</code></pre>
+<p>恶意文件枚举主机上所有可用的服务，将其与硬编码列表中的进行比较，第一个系统上没有的服务便被用来当作恶意目的。策略：枚举所有服务相对应的键值，查看服务是否被安装。第一个没被安装的服务是FastUserSwitchingCompatibility, RegOpenKeyExA 用于检查服务是否存在。</p>
+<p>与该服务相关联的dll将被删除，然后一个同名服务将被创建冒充为合法服务，服务的二进制路径为%SystemRoot%\System32\svchost.exe-k netsvcs，可以在网址(<a target="_blank" rel="noopener" href="https://lolbas-project.github.io/%E6%9F%A5%E7%9C%8B%E5%88%B0%E6%9B%B4%E5%A4%9A%E7%9A%84%E5%90%88%E6%B3%95%E8%BF%9B%E7%A8%8B%E5%92%8Cdll%E3%80%82">https://lolbas-project.github.io/查看到更多的合法进程和dll。</a></p>
+<pre><code>API:RegOpenKeyExA
+
+    DeleteFileA
+
+    CreateServiceA
+</code></pre>
+<p>在该服务下方一个新的键值parameters被创建，这个键值被用来将恶意dll注册为一个服务.</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample4/wpsEE81.tmp.png" alt="img"> </p>
+<p>进程创建一个temp.bat的空文件作为初始可执行文件，该文件的目的是通过添加ServiceDll条目，将前面恶意程序删除后重新创建的dll注册为服务。因为文件时重新创建的，所以为了不引起怀疑，<strong>修改时间戳是一种规避技术。</strong></p>
+<p>现在这个dll中都是恶意代码，甚至路径看起来都是合法的。<strong>将DLL文件注册为服务是一种持久性机制。</strong>使用StartServiceA启动新创建的服务，并将执行流传递给DLL导出函数ServiceMain：</p>
+<pre><code>API:RegCreateKeyA
+
+    WriteFileA
+
+    StartServiceA
+</code></pre>
+<h3 id="2-DLL-File"><a href="#2-DLL-File" class="headerlink" title="2.DLL File"></a>2.DLL File</h3><p>恶意软件执行的第一个步骤之一是调用GetProcessWindowsStation，该API返回当前窗口的句柄，然后使用OpenWindowsStationA打开交互式窗口Winsta0。进程使用setProcessWindowsStation函数将指定的窗口Winsta0分配给调用进程，该窗口是唯一的交互式窗口（服务应该是交互式的）。与之前一样，这个进程也会创建一个互斥锁，如果存在，将会退出而不重新感染主机。</p>
+<pre><code>API:GetProcessWindowsStation
+
+    OpenWindowsStationA
+
+    setProcessWindowsStation
+
+    CreateMutexA
+</code></pre>
+<p>它从由第一个进程创建的配置文件config_t.dat中检索几个元素：WebPage、DownCmdTime、UploadRate、AutoCheck、UP和CheckedSuccess（此时不存在，因此函数返回0）。使用GetPrivateProfileString和GetPrivateProfileInt提取所有值。</p>
+<pre><code>API:GetPrivateProfileString
+
+    GetPrivateProfileInt
+</code></pre>
+<p>进程会创建一个与执行文件同名的log文件，该文件会枚举C:\ProgramFile(x86) 下的路径，并将输出复制到新创建的文件中</p>
+<pre><code>API:CreateFileA
+</code></pre>
+<p>恶意软件正在查找名为“C:\Users&lt;Username&gt;\AppData\Local\Microsoft\Windows\History\History.IE5\index.dat”的文件，该文件包含Internet浏览历史活动，包括基于Internet的搜索和打开的文件.故恶意软件打开注册键Shell Folders并提取History值，以及从Internet Explorer键中提取Version值，获得的信息附加到log文件中（包括操作系统版本）</p>
+<pre><code>API:RegOpenKeyExA
+
+    RegQueryValueExA
+
+    GetVersionExA
+</code></pre>
+<p>网络通信中使用的用户代理始终设置为“Mozilla/4.0（compatible; MSIE 6.0）”。还有一个Accept 请求(httP标头。该进程尝试连接到(<a target="_blank" rel="noopener" href="http://www.microsoft.com/info/privacy_security.htm">http://www.microsoft.com/info/privacy_security.htm</a> （此URL过去可用）以验证是否存在网络连接，如果成功，也会把相应的信息输出到log文件。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample4/wpsEE82.tmp.jpg" alt="img"> </p>
+<pre><code>API:InternetOpenA
+
+    (httpOpenRequestA
+</code></pre>
+<p>如果连接不成功，进程会找到explorer.exe并试图打开。基本上，攻击者的目的是<strong>通过调用OpenProcessToken来窃取explorer.exe进程令牌，以打开与explorer.exe关联的访问令牌，然后使用ImpersonateLoggedOnUser函数模拟用户的安全上下文</strong>。</p>
+<pre><code>API:Process32First 
+
+    Process32Next
+
+    OpenProcess
+
+    OpenProcessToken
+
+    ImpersonateLoggedOnUser
+</code></pre>
+<p>该进程使用RegOpenKeyExA打开“HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Internet Settings”注册表项，然后提取ProxyEnable值以查看计算机是否使用代理服务器，并且提取ProxyServer(网络上代理服务器的主机名/IP)和ProxyOverride(绕过代理服务器的主机名/IP)。收集到这些信息后，再次连接同样地URL，成功后会将信息输出到log文件。</p>
+<pre><code>API:RegOpenKeyExA
+</code></pre>
+<p>如果该方法奏效，恶意程序会修改config_t.dat文件中地值，如果失败就会将失败信息记录在log文件，一共会尝试四次方法。如果所有方法都失败了，感染就会停止，并且会执行一些自我删除操作。</p>
+<p>如果有一个方法奏效，那么恶意软件会休眠一分钟，然后创建一个线程1，再休眠十秒创建一个线程2</p>
+<h4 id="2-1-Thread1"><a href="#2-1-Thread1" class="headerlink" title="2.1 Thread1"></a>2.1 Thread1</h4><p>首先，线程检索与“C:\”目录关联的卷序列号（“A2C9-AD2F”）。该序列号将用作与C2服务器通信时的主机id。此外，它还查找计算机的NETBIOS名称，与当前线程关联的用户名，检索计算机的主机名，使用gethostbyname/inet\n函数打印计算机的IP地址。枚举可用的磁盘驱动器，它感兴趣的是类型3。获取系统物理和虚拟内存，除此以外还获取了其他的键值信息，并将目前为止提取地信息存储在system_t.dll中，以便对其进行过滤。</p>
+<p>下一步是<strong>创建管道，用作进程间通信机制，创建一个新的进程“ipconfig/all”,输出将通过管道传输回原始流程。</strong></p>
+<pre><code>API:getVolumeInformation
+
+    GetComputerNameA
+
+    GetUserNameA
+
+    gethostname
+
+    GetLogicalDrivers
+
+    GetDriverTypeA
+
+    GlobalMemoryStatus
+
+    CreatePipe
+
+    CreateProcessA
+
+    ......
+</code></pre>
+<p>恶意软件使用GetPrivateProfileInt函数检查config_t.dat中的UP值。根据卡巴斯基报告，system_t.dll文件的内容将使用基于Lempel-Ziv的自定义算法进行压缩，并使用修改后的Base64算法进行编码。</p>
+<p>编码后地数据通过一个向vipmailru[.]com（C2服务器）的GET请求进行过滤。如果服务器返回成功，那么就过滤成功，恶意程序会删除system_t.dll文件，进程会执行另一个GET请求（参数包含action = getcmd），请求的结果有相应的开头和结束的格式，在开头结束中间的数据会被保存在stat_t.ini。进程会再执行一个GET请求（参数包含action = gotcmd）</p>
+<p>如前所述，如果一切正常，则文件需要包含“Success”字符串的(httP响应。进程正在删除一个名为“C:\Windows\SysWOW64\dnlist.ini”的文件，该文件目前不存在。该文件将创建，并使用以下数据填充该文件：</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample4/wpsEE83.tmp.png" alt="img"> </p>
+<p>删除文件stat_t.ini，然后调用GetACP，该API返回操作系统的当前Windows ANSI代码页标识符。因为在dnlist.ini中ScanAll的值为True，所以恶意软件扫描所有可用的磁盘驱动器，然后将它们的类型与3（固定驱动器）或4（远程驱动器）进行比较。枚举所有文件以及路径，路径记录命名为dn，文件命名为fn，如下图，保存在enumfs.ini。这样针对c:\的操作是递归的，并应用于每个目录。枚举完成后发送给服务器。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/sample4/wpsEE84.tmp.jpg" alt="img"> </p>
+<pre><code>API:GetLogicalDrivers
+
+    GetDriverTypeA
+</code></pre>
+<p>恶意进程试图打开目前不存在的uenumfs.ini，然后枚举在“C:\User<Username>\AppData\Local\Temp\ntvba00.tmp\”中找到的文件。此特定目录将由Thread2创建，并包含已选择要导出到C2服务器的所有文件。现在该进程再次使用参数“action=getdata”联系 C2 服务器。 它需要以下响应之一：“A2C9AD2F:UNINSTALL”、“A2C9AD2F:UPDATE”、“A2C9AD2F:RESET”或“A2C9AD2F:UPLOAD”（注意“A2C9AD2F”是之前提取的卷序列号）</p>
+<p><strong>Case1：UNINSTALL</strong></p>
+<p>删除相应键值，并且删掉enumfs.ini、dnlist.ini、udidx.ini、uenumfs.ini、stat_t.ini文件，C2服务器通过执行带有“action=updated”参数的GET请求得知操作已完成。</p>
+<p><strong>Case2：UPDATE</strong></p>
+<p>删除上述的同样的键值以及文件，使用“action=datasize”参数向C2服务器发出GET请求，如果一切正常,(httP响应应包括“Success:”.恶意软件会下载一个update.exe的文件。</p>
+<p>下载文件的字节与“MZ”（Windows中可执行文件、DLL文件的格式）进行比较，并且它还查找特定偏移量处的“PE”字符串。下载的文件保存为“C:\Windows\install.exe”，并由恶意进程运行。然后执行同样的GET请求表示操作已完成。</p>
+<p><strong>Case3：RESET</strong></p>
+<p>同样删除ini文件，然后执行同样的GET请求表示操作已完成。</p>
+<p><strong>Case4：UPLOAD</strong></p>
+<p>此情况与UPDATE相同，不同之处在于未删除任何文件/注册表项。</p>
+<p>在执行流通过所有案例后，流程休眠60秒，然后返回到循环中。</p>
+<h4 id="2-2-Thread2"><a href="#2-2-Thread2" class="headerlink" title="2.2 Thread2"></a>2.2 Thread2</h4><p>主要是一些窗口的操作，恶意软件对参数为DBT_DEVICEARRIVAL（0x8000）的WM_DEVICECHANGE（0x219）消息感兴趣，<strong>这意味着有插入了新的USB驱动器或系统上安装了网络共享文件夹这样的事件</strong>。</p>
+<p>从dnlist.ini解析的USearch和UTypeLimit值应设置为True，dnlist.ini中的UAuto值也应设置为False（这可能表明是否应自动过滤目标文件）。攻击者还对Types参数（目标扩展）感兴趣，稍后我们将了解原因。其想法是<strong>扫描插入的每个设备以及主机上安装的网络共享，并在uenumfs.ini文件中创建一个“文件系统”结构（就像在Thread1中所做的那样）</strong></p>
+<p>与第一种情况一样，此搜索将递归地应用于驱动器上找到的每个目录。该进程创建一个“C:\Users&lt;Username&gt;\AppData\Local\Temp\ntvba00.tmp\”目录，其属性设置为hidden。还将创建以下文件：“C:\Windows\SysWOW64\uenumfs.ini”（其内容将类似于enumfs.ini）。进程还会比较文件的后缀，并且为符合文件格式的文件计算一个HASH值（文件名和最后修改时间）。文件会被复制到tmp的文件夹下，并以新的文件名命名（hidden file–year-month-day-hour-minute-5f7a78e7927532ba2a930ec8d47e252a）</p>
+<p>该进程将创建“C:\Windows\SysWOW64\udidx.ini”文件，并将添加所有按照前面说明计算的哈希，新文件的最后修改时间戳设置为从初始文件提取的值。</p>
+<p>最后，该文件使用DefWindowProcA API来确保应用程序不处理的窗口消息具有默认处理功能。</p>
+<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><p>(<a target="_blank" rel="noopener" href="https://cybergeeks.tech/dissecting-apt21-samples-using-a-step-by-step-approach/">https://cybergeeks.tech/dissecting-apt21-samples-using-a-step-by-step-approach/</a></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -1384,101 +1600,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/06/15/wkp/Chapter%202%20Getting%20Started%20with%20Kernel%20Development/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/06/15/wkp/Chapter%202%20Getting%20Started%20with%20Kernel%20Development/" class="post-title-link" itemprop="url">Chapter 2 Getting Started with Kernel Development</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2021-06-15 00:00:00" itemprop="dateCreated datePublished" datetime="2021-06-15T00:00:00+08:00">2021-06-15</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-22 14:11:31" itemprop="dateModified" datetime="2021-12-22T14:11:31+08:00">2021-12-22</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">驱动开发</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>231</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h4 id="1-编写驱动程序"><a href="#1-编写驱动程序" class="headerlink" title="1.编写驱动程序"></a>1.编写驱动程序</h4><p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp2/wps68FF.tmp.jpg" alt="img"> </p>
-<h4 id="2-加载驱动"><a href="#2-加载驱动" class="headerlink" title="2.加载驱动"></a>2.加载驱动</h4><h5 id="创建服务"><a href="#创建服务" class="headerlink" title="创建服务"></a>创建服务</h5><p>sc create sample type= kernel binPath= c:\dev\sample\x64\debug\sample.sys</p>
-<p>查看注册表创建成功</p>
-<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp2/wps6900.tmp.jpg" alt="img"> </p>
-<h5 id="驱动签名"><a href="#驱动签名" class="headerlink" title="驱动签名"></a>驱动签名</h5><p>bcdedit /set testsigning on</p>
-<p>（依旧不能解决，需要在bios禁用签名，但是其实在设置中重启就可以解决）</p>
-<p>设置-更新和安全-恢复-立即重启-疑难解答-高级选项-启动设置</p>
-<p>以上，其实最好的方式是用virtualkd工具，在进OS一开始就关闭强制签名（f8）</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1550,7 +1671,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">107</span>
+          <span class="site-state-item-count">108</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1563,7 +1684,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">114</span>
+        <span class="site-state-item-count">116</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1610,12 +1731,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">271k</span>
+    <span title="站点总字数">274k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">4:07</span>
+    <span title="站点阅读时长">4:09</span>
 </div>
 
         
