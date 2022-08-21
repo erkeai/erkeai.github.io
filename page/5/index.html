@@ -384,7 +384,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-04-24 10:45:16" itemprop="dateModified" datetime="2022-04-24T10:45:16+08:00">2022-04-24</time>
+                <time title="修改时间：2022-08-21 23:13:51" itemprop="dateModified" datetime="2022-08-21T23:13:51+08:00">2022-08-21</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -423,7 +423,7 @@
       
           <p>​        堆溢出是指程序向某个堆块中写入的字节数超过了堆块本身可使用的字节数，因而导致了数据溢出，并覆盖到<strong>物理相邻的高地址</strong>的下一个堆块。但是其与栈溢出所不同的是，堆上并不存在返回地址等可以让攻击者直接控制执行流程的数据，因此我们一般无法直接通过堆溢出来控制 EIP 。</p>
 <h3 id="Linux内存布局"><a href="#Linux内存布局" class="headerlink" title="Linux内存布局"></a>Linux内存布局</h3><p>先提一下windows的内存布局</p>
-<img src="C:\Users\16434\AppData\Roaming\Typora\typora-user-images\image-20220414195634518.png" alt="image-20220414195634518" style="zoom:80%;" />
+<img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414195634518.png" alt="image-20220414195634518" style="zoom:80%;" />
 
 <p>linux 64位下内存布局如下，这种内存布局方式沿用的32位模式下内存的经典布局，但是栈和mmap的映射区域不再是从一个固定的地方开始，每次启动时的值都不一样。这样一来，使得使用缓冲区溢出攻击变得更加困难。（32位中，程序能够访问的最后地址是0xbfffffff(3G)的位置，3G以上的位置是给内核使用的，应用程序不能直接访问。）</p>
 <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220414195748633.png" alt="image-20220414195748633"></p>
