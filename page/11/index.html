@@ -120,7 +120,7 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">116</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">118</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -130,7 +130,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">108</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">110</span></a>
 
   </li>
   </ul>
@@ -156,6 +156,251 @@
 
           <div class="content index posts-expand">
             
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/07/16/Q_record/%E5%8F%8C%E6%9C%BA%E8%B0%83%E8%AF%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/07/16/Q_record/%E5%8F%8C%E6%9C%BA%E8%B0%83%E8%AF%95/" class="post-title-link" itemprop="url">双机调试</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-07-16 00:00:00" itemprop="dateCreated datePublished" datetime="2021-07-16T00:00:00+08:00">2021-07-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-12-22 11:33:26" itemprop="dateModified" datetime="2021-12-22T11:33:26+08:00">2021-12-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%BC%80%E5%8F%91%E9%97%AE%E9%A2%98%E7%AC%94%E8%AE%B0/" itemprop="url" rel="index"><span itemprop="name">开发问题笔记</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>611</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="双机调试"><a href="#双机调试" class="headerlink" title="双机调试"></a>双机调试</h3><p>双机调试</p>
+<p>1.打开源代码文件a.cpp</p>
+<p>2.!process 0 0 进程名</p>
+<p>3.显示eprocess结构体地址，输命令 .process /i /r /p 地址</p>
+<p>4.g</p>
+<p>5..reload /user /f</p>
+<p>6.在cpp下断点，g</p>
+<p><strong>双机调试应用实例：</strong></p>
+<p>ps（调试的时候记得看microsoft file有没有文件；virtualKD：将target64复制到虚拟机，然后启动程序）</p>
+<p>首先虚拟机按f8关闭强制签名</p>
+<p>运行AutoRun.exe，然后在Windbg打开源代码文件，再break(注意这里打开的exe与cpp一定要是同一个文件)</p>
+<p>!process 0 0 进程名(显示进程名)</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/ProjectRecord2/wps6917.tmp.jpg" alt="img"> </p>
+<p>显示eprocess结构体地址，输命令 .process /i /r /p 地址，然后输入g继续运行，再.reload /user /f加载符号</p>
+<p>在cpp中下断点，断在CreateService函数的位置，一步一步调试到要到的位置，这个位置的选定要结合IDA，首先IDA打开CreateService的dll,下图中圈出来的前三个是该函数的开头字节码。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/ProjectRecord2/wps6918.tmp.jpg" alt="img"> </p>
+<p>下图是该函数的伪代码，调试发现函数进的是箭头指向的函数，所以直接动态调试进该函数，我们动态调试的目的是需要看该函数的第二个参数是什么。但是由于参数地址后面加了3090，所以在静态分析的时候不能准确判断。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/ProjectRecord2/wps6919.tmp.jpg" alt="img"> </p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/ProjectRecord2/wps691A.tmp.jpg" alt="img"> </p>
+<p>在windbg中动态调试查看第二个参数压入栈的寄存器的值，在IDA中找到该地址的值，就可以得到我们要的函数字节码</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/ProjectRecord2/wps691B.tmp.jpg" alt="img"> </p>
+<p>对比发现是4800h开头的值</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/ProjectRecord2/wps691C.tmp.jpg" alt="img"> </p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2021/07/06/wkp/Chapter%203%20Kernel%20Programming%20Basics/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/07/06/wkp/Chapter%203%20Kernel%20Programming%20Basics/" class="post-title-link" itemprop="url">Chapter 3 Kernel Programming Basics</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-07-06 00:00:00" itemprop="dateCreated datePublished" datetime="2021-07-06T00:00:00+08:00">2021-07-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-04-25 17:11:07" itemprop="dateModified" datetime="2022-04-25T17:11:07+08:00">2022-04-25</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">驱动开发</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6901.tmp.jpg" alt="img"> </p>
+<h5 id="未处理的异常"><a href="#未处理的异常" class="headerlink" title="未处理的异常"></a>未处理的异常</h5><p>用户模式情况下会崩溃该进程，内核模式下会崩溃系统，导致蓝屏（实质上是一种保护机制，如果允许代码继续执行可能会造成一些不可逆转的损坏）。</p>
+<h5 id="终止"><a href="#终止" class="headerlink" title="终止"></a>终止</h5><p>进程会自动释放内存和资源，包括关闭句柄，没有资源泄露。而对于内核驱动来说，如果没有释放资源，这些资源不会被自动释放，只有在下一次系统启动时才能被释放。</p>
+<h5 id="函数返回值"><a href="#函数返回值" class="headerlink" title="函数返回值"></a>函数返回值</h5><p>要注意处理内核模式下的函数返回值，因为一些简单的API函数也有可能失败，失败造成的结果相比用户模式比较严重。</p>
+<h5 id="IRQL"><a href="#IRQL" class="headerlink" title="IRQL"></a>IRQL</h5><p>中断请求级别，当一个用户模式代码正在执行时，<strong>总是</strong>为0；内核模式下<strong>大部分时间</strong>为0.</p>
+<h5 id="C-使用"><a href="#C-使用" class="headerlink" title="C++使用"></a>C++使用</h5><p>C++作为一种语言几乎完全支持内核代码，C++的一个术语RAII(资源获取就是初始化)，是C++常用的管理资源、避免内存泄漏的方法，保证在任何情况下，使用对象是先构造对象，然后析构对象。但是在内核钟没有C++运行，所以<strong>一些C++特性不能被使用：</strong></p>
+<ul>
+<li><p>new和delete不被支持并且不会被编译，这是因为它们的正常操作是从用户模式堆中分配，这和内核无关。但是内核API会有替换函数，但是模仿的函数更类似malloc和free,</p>
+</li>
+<li><p>将不会调用具有非默认构造函数的全局变量，当然这些情况可以<strong>通过这些方式避免</strong>：<strong>避免使用构造函数中的任何代码，而是创建一些要从驱动程序代码中显式调用的Init函数</strong>；<strong>只将指针分配为全局变量，并动态地创建实际实例。编译器将生成正确的代码来调用构造函数。</strong></p>
+</li>
+<li><p>C++异常处理关键字（try,catch,throw）不进行编译。这是因为C++异常处理机制需要它自己的运行时，异常处理只能使用结构化异常处理(SEH)来完成——这是一种处理异常的内核机制</p>
+</li>
+<li><p>在内核中无法使用标准的C++库。</p>
+</li>
+</ul>
+<p>严格地说，驱动程序可以用纯C语编写，没有任何问题。如果您更喜欢使用该路由，请使用具有C扩展名的文件，而不是CPP，这将自动调用C编译器。</p>
+<h4 id="2-Debug与Release"><a href="#2-Debug与Release" class="headerlink" title="2.Debug与Release"></a>2.Debug与Release</h4><p>​    Debug默认不适用优化但是更易于调试。Release利用编译器优化来尽可能快地生成代码，在内核中是checked\Free.从编译角度看，内核调试定义符号DBG，并将其设置为1（用户模式定_DEBUG），这实际上是KdPrint宏所做的：在debug构建中，它编译为调用DbgPrint，而在Realse中，它什么都不编译，所以vKdPrint调用在Realse中没有影响。</p>
+<h4 id="3-内核API"><a href="#3-内核API" class="headerlink" title="3.内核API"></a>3.内核API</h4><p>​    内核驱动程序使用从内核组件导出的函数，大多数都是在内核模块本身(NtOskrnl.exe)中实现的，但有些功能可以由其他内核模块实现，比如HAL(hal.dll)。</p>
+<p>​    大多数函数都以实现该功能地组件前缀开头，比如Nt，Ex。</p>
+<p>​    如果内核驱动程序需要调用系统服务，则它不应该受到对用户模式调用者施加的相同的检查和约束。这就是Zw函数发挥作用的地方。调用Zw函数会将前面的调用者模式设置为KernelMode（0），然后调用本机函数。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6911.tmp.jpg" alt="img"> </p>
+<p>​    调用Zw函数将前一个调用者模式设置为KernelMode（0），然后调用本机函数。例如，调用ZwCreateFile将上一个调用方设置为kernelMode，然后调用NtCreateFile，从而使NtCreateFile绕过一些安全性和缓冲区检查，否则将执行这些检查。</p>
+<p>​    <strong>内核驱动都推荐用Zw，可以避免不必要的检查。</strong></p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6912.tmp.jpg" alt="img"> </p>
+<h4 id="4-函数和错误代码"><a href="#4-函数和错误代码" class="headerlink" title="4.函数和错误代码"></a>4.函数和错误代码</h4><p>​    大多数内核API函数返回一个指示操作成功或失败的状态。这是一个类型NTSTATUS，一个有符号的32位整数。值STATUS_SUCCESS（0）表示成功，负值表示存在某种错误。</p>
+<p>​    大多数代码路径都不关心错误的确切性质，因此测试最重要的位就足够了。这可以通过NT_SUCCESS宏来完成。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6913.tmp.jpg" alt="img"> </p>
+<p>​    在某些情况下，NTSTATUS将从函数返回并最终到用户模式。在这些情况下，STATUS_xxx值将通过<strong>GetLastError</strong>函数转换为用户模式可用的某些ERROR_yyy值。请注意，这些都不是相同的数字。首先，用户模式下的错误代码具有正值，其次，该映射并不是一对一的。</p>
+<h4 id="5-字符串"><a href="#5-字符串" class="headerlink" title="5.字符串"></a>5.字符串</h4><p>​    _UNICODE_STRING，操作该结构通常用Rtl开头的函数。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6914.tmp.jpg" alt="img"> </p>
+<h4 id="6-动态分配内存"><a href="#6-动态分配内存" class="headerlink" title="6.动态分配内存"></a>6.动态分配内存</h4><p>​    驱动通常都需要动态分配内存，驱动一般提供两种内存池，</p>
+<p>​    分页池—如果需要，可以调出的内存池。</p>
+<p>​    非分页池—从不分页并保证保留在RAM中的内存池（慎用）</p>
+<p>​    某些函数中的tag参数允许用4字节值标记分配。通常，此值最多由4个ASCII字符组成，这些字符在逻辑上标识驱动程序或驱动程序的某些部分。这些标记可用于指示内存泄漏—如果在卸载驱动程序后仍保留任何带有驱动程序标记的分配。</p>
+<h4 id="7-链表"><a href="#7-链表" class="headerlink" title="7.链表"></a>7.链表</h4><p>​    内核在很多内部数据结构中使用循环双链表。系统上的所有进程都由EPROCESS结构管理，连接在一个循环的双链表中，双链表的头存储在内核变量PsActiveProcessHead中。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/paper/image-20220425160841942.png" alt="image-20220425160841942"></p>
+<p>​    CONTAINING_RECORD是一个宏，根据一个结构体变量成员的地址来获取该结构体变量的地址,<strong>成员变量的地址-成员变量和结构体首地址间的偏移量，就是结构体的首地址了。</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CONTAINING_RECORD (entry, PDO_DEVICE_DATA, Link);</span><br></pre></td></tr></table></figure>
+
+<p>​    entry是一个PDO_DEVICE_DATA结构中Link成员的地址，表达式得到的是其所在结构体变量的地址。<br>​    LIST_ENTRY是一个链表节点成员，一些结构中会定义一个此类型的成员，以便把很多结构体变量连成一个链表。在自定义结构中，最好把链表节点成员定义在最前，这样该成员的地址就是结构体的地址，不需要这样转换。</p>
+<h4 id="8-驱动对象"><a href="#8-驱动对象" class="headerlink" title="8.驱动对象"></a>8.驱动对象</h4><p>​    Driver在启动时对Driver_Object初始化，MajorFunction指定驱动支持哪些操作比如读写创建等等，通常这些都需要IRP_MJ前缀以前的MajorFunction队列由内核初始化，一个驱动至少要有Creat和Close操作。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6915.tmp.jpg" alt="img"> </p>
+<h4 id="9-设备对象"><a href="#9-设备对象" class="headerlink" title="9.设备对象"></a>9.设备对象</h4><p>​    客户端与驱动程序对话的实际通信端点是<strong>设备对象</strong>，要与Driver_Object通信，必须创建一个DeviceObject与之连接，一个驱动对象可以有多个设备对象，以链表方式存在。</p>
+<p>​    CreateFile函数第一个参数是文件名，其实应该是驱动对象名。CreateFile的file其实意味着文件对象。打开一个文件或者设备句柄会创建内核结构FILE_OBJECT的实例。更准确地说，CreateFile接受一个<strong>符号链接</strong>（一个知道如何指向另外一个内核对象得内核对象。类似文件的快捷方式）。</p>
+<p>​    大部分的符号链接都在这个Global??目录里，指向设备目录下的内部设备名称。用户模式调用者不能直接访问此目录中的名称。但是内核调用者可以使用IoGetDevice对象指针API访问它们。</p>
+<p>​    驱动程序使用IoCreateDevice函数创建设备对象。此函数分配并初始化设备对象结构，并将其指针返回给调用者。设备对象实例存储在DRIVER_OBJECT结构的DeviceObject成员中。如果创建了多个设备对象，它们将形成一个单独的链接列表，其中DEVICE_OBJECT的成员NextDevice指向下一个设备对象。注意，设备对象插入到列表的顶部，因此创建的第一个设备对象最后存储；其NextDevice指向NULL。</p>
+<p><img src="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/typora/wkp3/wps6916.tmp.jpg" alt="img"> </p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -1231,7 +1476,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">108</span>
+          <span class="site-state-item-count">110</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1244,7 +1489,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">116</span>
+        <span class="site-state-item-count">118</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1291,12 +1536,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">274k</span>
+    <span title="站点总字数">276k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">4:09</span>
+    <span title="站点阅读时长">4:11</span>
 </div>
 
         
