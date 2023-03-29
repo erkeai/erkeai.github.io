@@ -842,6 +842,114 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/05/17/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%B8%89%E5%8D%81%E5%9B%9B%E5%A4%A9/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
+      <meta itemprop="name" content="ZouFeIYu">
+      <meta itemprop="description" content="reading, coding, travelling">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="hazel'blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/05/17/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%B8%89%E5%8D%81%E5%9B%9B%E5%A4%A9/" class="post-title-link" itemprop="url">代码随想录第三十四天</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-05-17 00:00:00" itemprop="dateCreated datePublished" datetime="2022-05-17T00:00:00+08:00">2022-05-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-05-18 15:21:11" itemprop="dateModified" datetime="2022-05-18T15:21:11+08:00">2022-05-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/leetcode/" itemprop="url" rel="index"><span itemprop="name">leetcode</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.7k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="二叉树-递归遍历与迭代遍历"><a href="#二叉树-递归遍历与迭代遍历" class="headerlink" title="二叉树-递归遍历与迭代遍历"></a>二叉树-递归遍历与迭代遍历</h4><p>递归三要素</p>
+<ol>
+<li><strong>确定递归函数的参数和返回值：</strong> 确定哪些参数是递归的过程中需要处理的，那么就在递归函数里加上这个参数， 并且还要明确每次递归的返回值是什么进而确定递归函数的返回类型。</li>
+<li><strong>确定终止条件：</strong> 写完了递归算法, 运行的时候，经常会遇到栈溢出的错误，就是没写终止条件或者终止条件写的不对，操作系统也是用一个栈的结构来保存每一层递归的信息，如果递归没有终止，操作系统的内存栈必然就会溢出。</li>
+<li><strong>确定单层递归的逻辑：</strong> 确定每一层递归需要处理的信息。在这里也就会重复调用自己来实现递归的过程。</li>
+</ol>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">traversal</span><span class="params">(TreeNode* cur, vector&lt;<span class="keyword">int</span>&gt;&amp; vec)</span></span>&#123;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span>(cur == <span class="literal">NULL</span>)<span class="keyword">return</span>;</span><br><span class="line">        <span class="comment">//前序</span></span><br><span class="line">        vec.<span class="built_in">push_back</span>(cur-&gt;val);</span><br><span class="line">        <span class="built_in">traversal</span>(cur-&gt;left, vec);</span><br><span class="line">        <span class="built_in">traversal</span>(cur-&gt;right, vec);</span><br><span class="line">        <span class="comment">//中序</span></span><br><span class="line">        <span class="comment">//traversal(cur-&gt;left, vec);  // 左</span></span><br><span class="line">        <span class="comment">//vec.push_back(cur-&gt;val);    // 中</span></span><br><span class="line">        <span class="comment">//traversal(cur-&gt;right, vec); // 右</span></span><br><span class="line">    	</span><br><span class="line">        <span class="comment">//后序</span></span><br><span class="line">        <span class="comment">//traversal(cur-&gt;left, vec);  // 左</span></span><br><span class="line">        <span class="comment">//traversal(cur-&gt;right, vec); // 右</span></span><br><span class="line">    	<span class="comment">//vec.push_back(cur-&gt;val);    // 中</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function">vector&lt;<span class="keyword">int</span>&gt; <span class="title">preorderTraversal</span><span class="params">(TreeNode* root)</span> </span>&#123;</span><br><span class="line">        vector&lt;<span class="keyword">int</span>&gt;res;</span><br><span class="line">        <span class="built_in">traversal</span>(root,res);</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">vector&lt;<span class="keyword">int</span>&gt; <span class="title">preorderTraversal</span><span class="params">(TreeNode* root)</span> </span>&#123;</span><br><span class="line">        stack&lt;TreeNode*&gt; st;</span><br><span class="line">        vector&lt;<span class="keyword">int</span>&gt; res;</span><br><span class="line">        <span class="keyword">if</span>(root == <span class="literal">NULL</span>) <span class="keyword">return</span> res;</span><br><span class="line">        st.<span class="built_in">push</span>(root);</span><br><span class="line">        <span class="keyword">while</span>(!st.<span class="built_in">empty</span>())&#123;</span><br><span class="line">            TreeNode* node = st.<span class="built_in">top</span>();</span><br><span class="line">            st.<span class="built_in">pop</span>();</span><br><span class="line">            res.<span class="built_in">push_back</span>(node-&gt;val);</span><br><span class="line">            <span class="keyword">if</span> (node-&gt;right) st.<span class="built_in">push</span>(node-&gt;right);<span class="comment">//如果是后序遍历就将这两行调换</span></span><br><span class="line">            <span class="keyword">if</span> (node-&gt;left) st.<span class="built_in">push</span>(node-&gt;left);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//后序遍历还需要将结果反转，就是左中右的顺序了</span></span><br><span class="line">        <span class="comment">//reverse(res.begin(), res.end());</span></span><br><span class="line">         <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>迭代的中序遍历需要用到指针</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">vector&lt;<span class="keyword">int</span>&gt; <span class="title">preorderTraversal</span><span class="params">(TreeNode* root)</span> </span>&#123;</span><br><span class="line">        stack&lt;TreeNode*&gt; st;</span><br><span class="line">        vector&lt;<span class="keyword">int</span>&gt; res;</span><br><span class="line">        TreeNode* cur = root;</span><br><span class="line">        <span class="keyword">while</span>(cur != <span class="literal">NULL</span> || !st.<span class="built_in">empty</span>())&#123;</span><br><span class="line">            <span class="keyword">if</span>(cur != <span class="literal">NULL</span>)&#123;</span><br><span class="line">                st.<span class="built_in">push</span>(cur);</span><br><span class="line">                cur = cur-&gt;left;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span>&#123;</span><br><span class="line">                cur = st.<span class="built_in">top</span>();</span><br><span class="line">                st.<span class="built_in">pop</span>();</span><br><span class="line">                res.<span class="built_in">push_back</span>(cur-&gt;val);</span><br><span class="line">                cur = cur-&gt;right;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/05/17/pwn/CISCN2021-lonelywolf/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -976,114 +1084,6 @@
 <p>2.利用off by null、off by one 修改chunk的size 使得进入错的tcache[tc_idx]</p>
 <p>tcache 管理是通过chunk的size 计算出对应的tc_idx，进而找到管理对应大小chunk的tcache链表</p>
 <p>来源：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Theffth-blog/p/12790720.html">Tcache attack学习记录</a></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/05/17/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%B8%89%E5%8D%81%E5%9B%9B%E5%A4%A9/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
-      <meta itemprop="name" content="ZouFeIYu">
-      <meta itemprop="description" content="reading, coding, travelling">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="hazel'blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/05/17/leetcode/%E4%BB%A3%E7%A0%81%E9%9A%8F%E6%83%B3%E5%BD%95%E7%AC%AC%E4%B8%89%E5%8D%81%E5%9B%9B%E5%A4%A9/" class="post-title-link" itemprop="url">代码随想录第三十四天</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2022-05-17 00:00:00" itemprop="dateCreated datePublished" datetime="2022-05-17T00:00:00+08:00">2022-05-17</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-05-18 15:21:11" itemprop="dateModified" datetime="2022-05-18T15:21:11+08:00">2022-05-18</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/leetcode/" itemprop="url" rel="index"><span itemprop="name">leetcode</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1.7k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>2 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h4 id="二叉树-递归遍历与迭代遍历"><a href="#二叉树-递归遍历与迭代遍历" class="headerlink" title="二叉树-递归遍历与迭代遍历"></a>二叉树-递归遍历与迭代遍历</h4><p>递归三要素</p>
-<ol>
-<li><strong>确定递归函数的参数和返回值：</strong> 确定哪些参数是递归的过程中需要处理的，那么就在递归函数里加上这个参数， 并且还要明确每次递归的返回值是什么进而确定递归函数的返回类型。</li>
-<li><strong>确定终止条件：</strong> 写完了递归算法, 运行的时候，经常会遇到栈溢出的错误，就是没写终止条件或者终止条件写的不对，操作系统也是用一个栈的结构来保存每一层递归的信息，如果递归没有终止，操作系统的内存栈必然就会溢出。</li>
-<li><strong>确定单层递归的逻辑：</strong> 确定每一层递归需要处理的信息。在这里也就会重复调用自己来实现递归的过程。</li>
-</ol>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">traversal</span><span class="params">(TreeNode* cur, vector&lt;<span class="keyword">int</span>&gt;&amp; vec)</span></span>&#123;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span>(cur == <span class="literal">NULL</span>)<span class="keyword">return</span>;</span><br><span class="line">        <span class="comment">//前序</span></span><br><span class="line">        vec.<span class="built_in">push_back</span>(cur-&gt;val);</span><br><span class="line">        <span class="built_in">traversal</span>(cur-&gt;left, vec);</span><br><span class="line">        <span class="built_in">traversal</span>(cur-&gt;right, vec);</span><br><span class="line">        <span class="comment">//中序</span></span><br><span class="line">        <span class="comment">//traversal(cur-&gt;left, vec);  // 左</span></span><br><span class="line">        <span class="comment">//vec.push_back(cur-&gt;val);    // 中</span></span><br><span class="line">        <span class="comment">//traversal(cur-&gt;right, vec); // 右</span></span><br><span class="line">    	</span><br><span class="line">        <span class="comment">//后序</span></span><br><span class="line">        <span class="comment">//traversal(cur-&gt;left, vec);  // 左</span></span><br><span class="line">        <span class="comment">//traversal(cur-&gt;right, vec); // 右</span></span><br><span class="line">    	<span class="comment">//vec.push_back(cur-&gt;val);    // 中</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function">vector&lt;<span class="keyword">int</span>&gt; <span class="title">preorderTraversal</span><span class="params">(TreeNode* root)</span> </span>&#123;</span><br><span class="line">        vector&lt;<span class="keyword">int</span>&gt;res;</span><br><span class="line">        <span class="built_in">traversal</span>(root,res);</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">vector&lt;<span class="keyword">int</span>&gt; <span class="title">preorderTraversal</span><span class="params">(TreeNode* root)</span> </span>&#123;</span><br><span class="line">        stack&lt;TreeNode*&gt; st;</span><br><span class="line">        vector&lt;<span class="keyword">int</span>&gt; res;</span><br><span class="line">        <span class="keyword">if</span>(root == <span class="literal">NULL</span>) <span class="keyword">return</span> res;</span><br><span class="line">        st.<span class="built_in">push</span>(root);</span><br><span class="line">        <span class="keyword">while</span>(!st.<span class="built_in">empty</span>())&#123;</span><br><span class="line">            TreeNode* node = st.<span class="built_in">top</span>();</span><br><span class="line">            st.<span class="built_in">pop</span>();</span><br><span class="line">            res.<span class="built_in">push_back</span>(node-&gt;val);</span><br><span class="line">            <span class="keyword">if</span> (node-&gt;right) st.<span class="built_in">push</span>(node-&gt;right);<span class="comment">//如果是后序遍历就将这两行调换</span></span><br><span class="line">            <span class="keyword">if</span> (node-&gt;left) st.<span class="built_in">push</span>(node-&gt;left);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//后序遍历还需要将结果反转，就是左中右的顺序了</span></span><br><span class="line">        <span class="comment">//reverse(res.begin(), res.end());</span></span><br><span class="line">         <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-<p>迭代的中序遍历需要用到指针</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">vector&lt;<span class="keyword">int</span>&gt; <span class="title">preorderTraversal</span><span class="params">(TreeNode* root)</span> </span>&#123;</span><br><span class="line">        stack&lt;TreeNode*&gt; st;</span><br><span class="line">        vector&lt;<span class="keyword">int</span>&gt; res;</span><br><span class="line">        TreeNode* cur = root;</span><br><span class="line">        <span class="keyword">while</span>(cur != <span class="literal">NULL</span> || !st.<span class="built_in">empty</span>())&#123;</span><br><span class="line">            <span class="keyword">if</span>(cur != <span class="literal">NULL</span>)&#123;</span><br><span class="line">                st.<span class="built_in">push</span>(cur);</span><br><span class="line">                cur = cur-&gt;left;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span>&#123;</span><br><span class="line">                cur = st.<span class="built_in">top</span>();</span><br><span class="line">                st.<span class="built_in">pop</span>();</span><br><span class="line">                res.<span class="built_in">push_back</span>(cur-&gt;val);</span><br><span class="line">                cur = cur-&gt;right;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-
-
-
-
-
-
-
-
 
       
     </div>
