@@ -191,7 +191,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-03-29 15:03:20" itemprop="dateModified" datetime="2023-03-29T15:03:20+08:00">2023-03-29</time>
+                <time title="修改时间：2023-03-29 15:40:32" itemprop="dateModified" datetime="2023-03-29T15:40:32+08:00">2023-03-29</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -274,7 +274,7 @@
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 1. service_user 结构</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">service_user</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">  <span class="comment">/* And the link to the next entry.  */</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">service_user</span> *<span class="title">next</span>;</span></span><br><span class="line">  <span class="comment">/* Action according to result.  */</span></span><br><span class="line">  lookup_actions actions[<span class="number">5</span>];</span><br><span class="line">  <span class="comment">/* Link to the underlying library object.  */</span></span><br><span class="line">  service_library *library;</span><br><span class="line">  <span class="comment">/* Collection of known functions.  */</span></span><br><span class="line">  <span class="keyword">void</span> *known;</span><br><span class="line">  <span class="comment">/* Name of the service (`files&#x27;, `dns&#x27;, `nis&#x27;, ...).  */</span></span><br><span class="line">  <span class="keyword">char</span> name[<span class="number">0</span>];</span><br><span class="line">&#125; service_user;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. nss_load_library() 函数</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">nss_load_library</span> <span class="params">(service_user *ni)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (ni-&gt;library == <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">static</span> name_database default_table;</span><br><span class="line">      ni-&gt;library = nss_new_service (service_table ?: &amp;default_table, ni-&gt;name);<span class="comment">// （1）设置 ni-&gt;library</span></span><br><span class="line">                     </span><br><span class="line">      <span class="keyword">if</span> (ni-&gt;library == <span class="literal">NULL</span>)</span><br><span class="line">    		<span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (ni-&gt;library-&gt;lib_handle == <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="comment">/* Load the shared library.  */</span></span><br><span class="line">      <span class="keyword">size_t</span> shlen = (<span class="number">7</span> + <span class="built_in">strlen</span> (ni-&gt;name) + <span class="number">3</span></span><br><span class="line">              + <span class="built_in">strlen</span> (__nss_shlib_revision) + <span class="number">1</span>);</span><br><span class="line">      <span class="keyword">int</span> saved_errno = errno;</span><br><span class="line">      <span class="keyword">char</span> shlib_name[shlen];</span><br><span class="line"></span><br><span class="line">      <span class="comment">/* Construct shared object name.  */</span></span><br><span class="line">      __stpcpy (__stpcpy (__stpcpy (__stpcpy (shlib_name,   <span class="comment">// （2）伪造的库文件名必须是 libnss_xxx.so</span></span><br><span class="line">                          <span class="string">&quot;libnss_&quot;</span>),</span><br><span class="line">                    ni-&gt;name),</span><br><span class="line">              <span class="string">&quot;.so&quot;</span>),</span><br><span class="line">        __nss_shlib_revision);</span><br><span class="line"></span><br><span class="line">      ni-&gt;library-&gt;lib_handle = __libc_dlopen (shlib_name); <span class="comment">// （3）加载目标库</span></span><br><span class="line">      <span class="comment">//continue long long function</span></span><br></pre></td></tr></table></figure>
 
 <p>根据上面的代码，我们知道需要将 <code>ni-&gt;library</code>覆盖为 <code>null</code>，将 <code>ni-&gt;name</code>覆盖我们自己伪造的库名字，且伪造的库文件名必须是<code> libnss_xxx.so</code></p>
-<p>—待更新（针对linux还有所欠缺，决定先多打基础</p>
+<p>—待更新</p>
 
       
     </div>
@@ -1457,7 +1457,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/06/30/Cheese_point/%E6%B3%A8%E5%86%8C%E8%A1%A8%E7%9B%91%E6%8E%A7/">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/06/30/Cheese_point/x64%E4%B8%8B%E9%9A%90%E8%97%8F%E5%8F%AF%E6%89%A7%E8%A1%8C%E5%86%85%E5%AD%98/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
@@ -1471,7 +1471,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2022/06/30/Cheese_point/%E6%B3%A8%E5%86%8C%E8%A1%A8%E7%9B%91%E6%8E%A7/" class="post-title-link" itemprop="url">注册表监控</a>
+            <a href="/2022/06/30/Cheese_point/x64%E4%B8%8B%E9%9A%90%E8%97%8F%E5%8F%AF%E6%89%A7%E8%A1%8C%E5%86%85%E5%AD%98/" class="post-title-link" itemprop="url">注册表监控</a>
         </h2>
 
         <div class="post-meta">
@@ -1480,16 +1480,10 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2022-06-30 00:00:00" itemprop="dateCreated datePublished" datetime="2022-06-30T00:00:00+08:00">2022-06-30</time>
+              <time title="创建时间：2022-06-30 00:00:00 / 修改时间：19:23:18" itemprop="dateCreated datePublished" datetime="2022-06-30T00:00:00+08:00">2022-06-30</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-07-18 15:26:10" itemprop="dateModified" datetime="2022-07-18T15:26:10+08:00">2022-07-18</time>
-              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -1704,7 +1698,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/06/30/Cheese_point/x64%E4%B8%8B%E9%9A%90%E8%97%8F%E5%8F%AF%E6%89%A7%E8%A1%8C%E5%86%85%E5%AD%98/">
+    <link itemprop="mainEntityOfPage" href="https://erkeai.github.io/2022/06/30/Cheese_point/%E6%B3%A8%E5%86%8C%E8%A1%A8%E7%9B%91%E6%8E%A7/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="https://blog-1257910714.cos.ap-chengdu.myqcloud.com/images%2FhdImg_f7fb2f283d6fd693d9c2444fb73eaf4715853190130.jpg">
@@ -1718,7 +1712,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2022/06/30/Cheese_point/x64%E4%B8%8B%E9%9A%90%E8%97%8F%E5%8F%AF%E6%89%A7%E8%A1%8C%E5%86%85%E5%AD%98/" class="post-title-link" itemprop="url">注册表监控</a>
+            <a href="/2022/06/30/Cheese_point/%E6%B3%A8%E5%86%8C%E8%A1%A8%E7%9B%91%E6%8E%A7/" class="post-title-link" itemprop="url">注册表监控</a>
         </h2>
 
         <div class="post-meta">
@@ -1727,10 +1721,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2022-06-30 00:00:00 / 修改时间：19:23:18" itemprop="dateCreated datePublished" datetime="2022-06-30T00:00:00+08:00">2022-06-30</time>
+              <time title="创建时间：2022-06-30 00:00:00" itemprop="dateCreated datePublished" datetime="2022-06-30T00:00:00+08:00">2022-06-30</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-07-18 15:26:10" itemprop="dateModified" datetime="2022-07-18T15:26:10+08:00">2022-07-18</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
